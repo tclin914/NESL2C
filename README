@@ -1,0 +1,16 @@
+NESL to Annotated C compiler
+
+Goal:
+    Translate nesl programs to Annotated C for partial flattening in CUDA.
+
+input : *.nesl
+output: *.c
+
+TODO
+1. build lexer
+2. build parser
+3. build Tree
+4. build SymbolTable
+5. Semantic analysis
+6. Codegeneration
+7. Validation and optimization
