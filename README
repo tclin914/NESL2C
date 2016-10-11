@@ -14,3 +14,11 @@ TODO
 5. Semantic analysis
 6. Codegeneration
 7. Validation and optimization
+
+Make:
+    yacc yacc.y -d
+    lex lex.l
+    gcc lex.yy.c 
+
+Run: 
+    ./a.out < "Input-file"
