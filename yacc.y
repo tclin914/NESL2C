@@ -1,7 +1,7 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
-//#include "lex.yy.c"
+#include "lex.yy.c"
 %}
 
 %token FUNCTION NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
