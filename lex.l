@@ -40,7 +40,7 @@ NQUOTE [^']
     /* Just to eat the spaces and new lines
            so that they won't appear in output */
 }
-"," {
+, {
             token(',');
 }
 "(" {
@@ -58,7 +58,7 @@ NQUOTE [^']
 "*" {
             token('*');
 }
-":" {
+: {
             token(':');
 }
 "/" {
@@ -77,7 +77,7 @@ NQUOTE [^']
             token('}');
 }
 
-";" {
+; {
             token(';');
 }
 "=" {
@@ -102,8 +102,9 @@ NQUOTE [^']
 
 
 [-+]?[0-9]+ { token(intconst); }
-[-+]?[0-9]*.[0-9]+([eE][-+]?[0-9]+)? {
-            token(floatconst);
+[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
+    //return(floatconst);
+    token(floatconst);
 }
 [_a-zA-Z0-9]+  {
             token(name);

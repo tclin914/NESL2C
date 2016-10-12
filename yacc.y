@@ -1,23 +1,14 @@
 %{
+#include <stdlib.h>
 #include <stdio.h>
-#include "lex.yy.c"
+//#include "lex.yy.c"
 %}
 
 %token FUNCTION NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token IF THEN ELSE LET IN OR NOR XOR AND NAND 
 %token intconst floatconst name boolconst stringconst
 %token '{' '}' '(' ')' ';' '=' ',' '[' ']'
-/*%token toplevel name pattern typedef exp typebinds typebind typeexp
-%token typelist typeclass basetype const rbinds rbind sequence explist const 
-%token binop unaryop 
-%token goal toplevel */
-/* left 
-%left NOT
-%left GE LT LE GT EQ NE
-%left PLUS MINUS
-%left STAR SLASH
-%nonassoc UMINUS                 // uni minus
-*/
+
 %start goal
 
 %%
@@ -78,7 +69,6 @@ int yyerror(const char *s) {
 }
 
 int main(){
-//    yylex();
     yyparse();
     printf("parse done\n");
  return 0;
