@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
-#define token(s) {printf("\ttoken:%s\n", yytext); /*return(s);*/}
+#define token(s) {printf("%s\ttoken%d\n",yytext, s);return(s);}
 
 %}
 
@@ -36,6 +36,46 @@ NQUOTE [^']
 
 %%
 
+[ \n]* {
+    /* Just to eat the spaces and new lines
+           so that they won't appear in output */
+}
+"," {
+            token(',');
+}
+"(" {
+            token('(');
+}
+")" {
+            token(')');
+}
+"+" {
+            token('+');
+}
+"-" {
+            token('-');
+}
+"*" {
+            token('*');
+}
+":" {
+            token(':');
+}
+"/" {
+            token('/');
+} 
+"[" {
+            token('[');
+}
+"]" {
+            token(']');
+}
+";" {
+            token(';');
+}
+"=" {
+            token('=');
+}
 {F}{U}{N}{C}{T}{I}{O}{N} {
     token(FUNCTION);    
 }
@@ -58,7 +98,7 @@ NQUOTE [^']
 [-+]?[0-9]*.[0-9]+([eE][-+]?[0-9]+)? {
             token(floatconst);
 }
-[_A-Z0-9]+  {
+[_a-zA-Z0-9]+  {
             token(name);
 }
 [{T}{F}]        {
@@ -70,10 +110,6 @@ NQUOTE [^']
 
 %%
 yywrap(){
-    token (1);
+    return(1);
     }
 
-int main(){
-    yylex();
-    return 0;
-}
