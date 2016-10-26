@@ -86,6 +86,9 @@ NQUOTE [^']
 {F}{U}{N}{C}{T}{I}{O}{N} {
     token(FUNCTION);    
 }
+{D}{A}{T}{A}{T}{Y}{P}{E} {
+    token(DATATYPE);
+}
 
 {N}{U}{M}{B}{E}{R}      {token(NUMBER);  }
 {O}{R}{D}{I}{N}{A}{L}   {token(ORDINAL); }
