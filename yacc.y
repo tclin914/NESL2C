@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "lex.yy.c"
+int yydebug =1;
 %}
 
 %token FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
@@ -13,7 +14,7 @@
 
 %%
 
-goal : nesl ;
+goal : sequence ;
 
 nesl : toplevel { printf("toplevel\n"); }
         | 

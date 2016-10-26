@@ -3,7 +3,14 @@ all :
 	yacc yacc.y -d
 	gcc -c lex.yy.c
 	gcc -c y.tab.c
-	gcc lex.yy.o -ll -ly
+	gcc y.tab.o -ly -ll 
+
+debug :
+	lex lex.l
+	yacc yacc.y -d --debug --verbose
+	gcc -c lex.yy.c -g
+	gcc -c y.tab.c -g 
+	gcc y.tab.o -ly -ll
 
 run :
 	./a.out < ~/trunk/bench/NESL/muladd.nesl

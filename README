@@ -8,7 +8,9 @@ output: *.c
 
 TODO
 1. build lexer
+    a. got to fix the boolean definition
 2. build parser
+    a. should try the nested array first.
 3. build Tree
 4. build SymbolTable
 5. Semantic analysis
@@ -16,9 +18,13 @@ TODO
 7. Validation and optimization
 
 Make:
-    yacc yacc.y -d
-    lex lex.l
-    gcc lex.yy.c 
-
+    make all
 Run: 
     ./a.out < "Input-file"
+
+debug:
+    make debug
+    gdb
+    (gdb) file a.out
+    (gdb) b main
+    (gdb) r < test 

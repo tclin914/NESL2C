@@ -112,7 +112,10 @@ NQUOTE [^']
 [_a-zA-Z0-9]+  {
             token(name);
 }
-[{T}{F}]        {
+{T}        {
+            token(boolconst);
+}
+{F} {
             token(boolconst);
 }
 \"[^"]*\"     {
