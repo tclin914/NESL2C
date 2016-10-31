@@ -3,7 +3,9 @@ all :
 	yacc yacc.y -d
 	gcc -c lex.yy.c
 	gcc -c y.tab.c
-	gcc y.tab.o -ly -ll 
+	gcc -c symtab.c
+	gcc -c node.c
+	gcc y.tab.o node.o symtab.o -ly -ll 
 
 debug :
 	lex lex.l

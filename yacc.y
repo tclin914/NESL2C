@@ -2,150 +2,174 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "lex.yy.c"
+#include "node.h"
+
 int yydebug =1;
+
+struct nodeType * nodeOpNode(int op);
 %}
 
-%token FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
-%token IF THEN ELSE LET IN OR NOR XOR AND NAND 
-%token intconst floatconst name boolconst stringconst
-%token '{' '}' '(' ')' ';' '=' ',' '[' ']'
+%union {
+    struct nodeType *node;
+    int number ;
+    char * string;
+}
+
+%token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
+%token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND 
+%token <node> intconst floatconst nametoken boolconst stringconst
+%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '+' '-' '*' '/'
+
+%type <node> goal nesl toplevel funcopt typedef typebinds typebind
+%type <node> typeexp typelist typeclass basetype exp expoption1
+%type <node> expoption2 expbinds expbindsoption pattern rbinds
+%type <node> rbind sequence seqoption explist const binop unaryop
 
 %start goal
 
 %%
 
-goal : sequence ;
+goal : toplevel  {$$=newNode(NODE_ERROR);}
+    ;
 
-nesl : toplevel { printf("toplevel\n"); }
-        | 
+nesl : toplevel { printf("toplevel\n"); $$=newNode(NODE_ERROR);}
+        | {$$=newNode(NODE_ERROR);}
         ;
 
 toplevel : 
-        FUNCTION name pattern funcopt |
-        DATATYPE name typedef ';' |
-        pattern '=' exp |
-        exp 
+        FUNCTION nametoken pattern funcopt {$$=newNode(NODE_ERROR);}|
+        DATATYPE nametoken typedef ';' {$$=newNode(NODE_ERROR);}|
+        pattern '=' exp {$$=newNode(NODE_ERROR);}|
+        exp {$$=newNode(NODE_ERROR);}
         ;
 
-funcopt : ':' typedef '=' exp ';' 
-        |
+funcopt : ':' typedef '=' exp ';' {$$=newNode(NODE_ERROR);}
+        |{$$=newNode(NODE_ERROR);}
         ;
 
-pattern : name |
-        name '(' pattern ')' |
-        pattern ',' pattern |
-        '(' pattern ')' 
+pattern : nametoken {$$=newNode(NODE_ERROR);}|
+        nametoken '(' pattern ')' {$$=newNode(NODE_ERROR);}|
+        pattern ',' pattern {$$=newNode(NODE_ERROR);}|
+        '(' pattern ')' {$$=newNode(NODE_ERROR);}
         ;
 
-typedef : typeexp |
-        typeexp ':'':' '(' typebinds ')'
+typedef : typeexp {$$=newNode(NODE_ERROR);}|
+        typeexp ':'':' '(' typebinds ')'{$$=newNode(NODE_ERROR);}
         ;
 
-typebinds : typebind |
-        typebind ';' typebinds
+typebinds : typebind {$$=newNode(NODE_ERROR);}|
+        typebind ';' typebinds{$$=newNode(NODE_ERROR);}
         ;
 
-typebind : name IN typeclass 
+typebind : nametoken IN typeclass {$$=newNode(NODE_ERROR);}
         ;
 
-typeexp : basetype |
-        name |
-        typeexp '-''>' typeexp |
-        typeexp ',' typeexp |
-        name '(' typelist ')' |
-        '[' typeexp ']' |
-        '(' typeexp ')'
+typeexp : basetype {$$=newNode(NODE_ERROR);}|
+        nametoken {$$=newNode(NODE_ERROR);}|
+        typeexp '-''>' typeexp {$$=newNode(NODE_ERROR);}|
+        typeexp ',' typeexp {$$=newNode(NODE_ERROR);}|
+        nametoken '(' typelist ')' {$$=newNode(NODE_ERROR);}|
+        '[' typeexp ']' {$$=newNode(NODE_ERROR);}|
+        '(' typeexp ')'{$$=newNode(NODE_ERROR);}
         ;
 
-typelist : typeexp |
-           typeexp ',' typelist 
+typelist : typeexp {$$=newNode(NODE_ERROR);} |
+           typeexp ',' typelist {$$=newNode(NODE_ERROR);}
          ;
 
-typeclass : NUMBER | ORDINAL | LOGICAL | ANY 
+typeclass : NUMBER {$$=newNode(NODE_ERROR);}
+        | ORDINAL {$$=newNode(NODE_ERROR);}
+        | LOGICAL {$$=newNode(NODE_ERROR);}
+        | ANY {$$=newNode(NODE_ERROR);}
         ;
 
-basetype : INT | BOOL | FLOAT | CHAR 
+basetype : INT {$$=newNode(NODE_ERROR);}
+        | BOOL {$$=newNode(NODE_ERROR);}
+        | FLOAT {$$=newNode(NODE_ERROR);}
+        | CHAR {$$=newNode(NODE_ERROR);}
         ;
 
-exp : const 
-    | name 
-    | IF exp THEN exp ELSE exp 
-    | LET expbinds IN exp 
-    | '{' expoption1 rbinds expoption2 '}' 
-    | exp exp
-    | exp binop exp
-    | unaryop exp
-    | sequence
-    | exp '[' exp ']'
-    | '(' exp ')'
+exp : const {$$=newNode(NODE_ERROR);}
+    | nametoken {$$=newNode(NODE_ERROR);}
+    | IF exp THEN exp ELSE exp {$$=newNode(NODE_ERROR);}
+    | LET expbinds IN exp {$$=newNode(NODE_ERROR);}
+    | '{' expoption1 rbinds expoption2 '}' {$$=newNode(NODE_ERROR);}
+    | exp exp{$$=newNode(NODE_ERROR);}
+    | exp binop exp{$$=newNode(NODE_ERROR);}
+    | unaryop exp{$$=newNode(NODE_ERROR);}
+    | sequence{$$=newNode(NODE_ERROR);}
+    | exp '[' exp ']'{$$=newNode(NODE_ERROR);}
+    | '(' exp ')'{$$=newNode(NODE_ERROR);}
     ;
 
-expoption1 : exp ':' 
-    | 
+expoption1 : exp ':' {$$=newNode(NODE_ERROR);}
+    | {$$=newNode(NODE_ERROR);}
     ;
 
-expoption2 : '|' exp
-    | 
+expoption2 : '|' exp{$$=newNode(NODE_ERROR);}
+    | {$$=newNode(NODE_ERROR);}
     ;
 
 expbinds :
-    pattern '=' exp expbindsoption
+    pattern '=' exp expbindsoption{$$=newNode(NODE_ERROR);}
     ;
 
-expbindsoption : ';' expbinds 
-    | 
+expbindsoption : ';' expbinds {$$=newNode(NODE_ERROR);}
+    | {$$=newNode(NODE_ERROR);}
     ;
 
-pattern : name 
-    | name '(' pattern ')'
-    | pattern ',' pattern 
-    | '(' pattern ')'
+rbinds : rbind rbinds{$$=newNode(NODE_ERROR);}
+    | ';' rbind{$$=newNode(NODE_ERROR);}
+    |{$$=newNode(NODE_ERROR);}
     ;
 
-rbinds : rbind rbinds
-    | ';' rbind
-    |
+rbind : pattern IN exp {$$=newNode(NODE_ERROR);}
+    | nametoken {$$=newNode(NODE_ERROR);}
     ;
 
-rbind : pattern IN exp 
-    | name 
+sequence : '[' explist ']'{$$=newNode(NODE_ERROR);}
+    | '[' ']' typeexp{$$=newNode(NODE_ERROR);}
+    | '[' exp ':' exp seqoption ']'{$$=newNode(NODE_ERROR);}
+    ;
+seqoption : ':' exp{$$=newNode(NODE_ERROR);}
     ;
 
-sequence : '[' explist ']'
-    | '[' ']' typeexp
-    | '[' exp ':' exp seqoption ']'
-    ;
-seqoption : ':' exp
+explist : exp explist {$$=newNode(NODE_ERROR);}
+    | ',' explist{$$=newNode(NODE_ERROR);}
+    |{$$=newNode(NODE_ERROR);}
     ;
 
-explist : exp explist 
-    | ',' explist
-    |
+const : intconst {$$=newNode(NODE_ERROR);}
+    |   floatconst {$$=newNode(NODE_ERROR);}
+    |   boolconst {$$=newNode(NODE_ERROR);}
+    |   stringconst{$$=newNode(NODE_ERROR);}
     ;
 
-const : intconst 
-    |   floatconst 
-    |   boolconst 
-    |   stringconst
+binop : ','{$$=newNode(NODE_ERROR);}
+    | OR {$$=newNode(NODE_ERROR);}| NOR {$$=newNode(NODE_ERROR);}| XOR{$$=newNode(NODE_ERROR);}
+    | AND {$$=newNode(NODE_ERROR);}| NAND{$$=newNode(NODE_ERROR);}
+    | "==" {$$=newNode(NODE_ERROR);}| "/=" {$$=newNode(NODE_ERROR);}| '<' {$$=newNode(NODE_ERROR);}| '>' {$$=newNode(NODE_ERROR);}| "<=" {$$=newNode(NODE_ERROR);}| ">="{$$=newNode(NODE_ERROR);}
+    | '+' {$$=newNode(NODE_ERROR);} | '-' {$$=newNode(NODE_ERROR);}| "++" {$$=newNode(NODE_ERROR);}| "<-"{$$=newNode(NODE_ERROR);}
+    | '*' {$$=newNode(NODE_ERROR);} | '/' {$$=newNode(NODE_ERROR);}| "->"{$$=newNode(NODE_ERROR);}
+    | '^' {$$=newNode(NODE_ERROR);}
     ;
 
-binop : ','
-    | OR | NOR | XOR
-    | AND | NAND
-    | "==" | "/=" | '<' | '>' | "<=" | ">="
-    | '+'  | '-' | "++" | "<-"
-    | '*'  | '/' | "->" 
-    | '^'
-    ;
-
-unaryop :   '#'
-    |   '@'
-    |   '-'
+unaryop :   '#' {$$=newNode(NODE_ERROR);}
+    |   '@'  {$$=newNode(NODE_ERROR);}
+    |   '-' {$$=newNode(NODE_ERROR);}
     ;
 
 
 
 %%
+
+struct nodeType *ASTRoot;
+struct nodeType * newOpNode(int op) {
+    struct nodeType *node = newNode(NODE_OP);
+    node -> op = op;
+
+    return node;
+}
 
 int yyerror(const char *s) {
     printf("Syntax error\n");
