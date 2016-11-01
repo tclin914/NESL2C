@@ -9,10 +9,12 @@ all :
 
 debug :
 	lex lex.l
-	yacc yacc.y -d --debug --verbose
+	yacc yacc.y -d
 	gcc -c lex.yy.c -g
 	gcc -c y.tab.c -g 
-	gcc y.tab.o -ly -ll
+	gcc -c symtab.c -g 
+	gcc -c node.c -g 
+	gcc y.tab.o node.o symtab.o -g -ly -ll 
 
 run :
 	./a.out < ~/trunk/bench/NESL/muladd.nesl

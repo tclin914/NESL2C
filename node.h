@@ -22,6 +22,8 @@ struct nodeType;
 #define NODE_ARR_REF        13
 #define NODE_TAIL           14
 
+#define NODE_SEQ            17
+
 #define NODE_SUB_HEAD       15
 #define NODE_SUB_DEC        16
 

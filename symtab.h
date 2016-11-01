@@ -1,8 +1,10 @@
 #ifndef __SYMTAB_H___
 #define __SYMTAB_H___
 
+#include <stdio.h>
 #include "node.h"
 void semanticCheck(struct nodeType* node);
+void codegen(FILE* fptr,struct nodeType* node);
 
 enum StdType {TypeInt, TypeReal, TypeArray};
 

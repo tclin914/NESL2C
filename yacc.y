@@ -3,10 +3,12 @@
 #include <stdio.h>
 #include "lex.yy.c"
 #include "node.h"
+#include "symtab.h"
 
 int yydebug =1;
 
 struct nodeType * nodeOpNode(int op);
+extern struct nodeType* ASTRoot;
 %}
 
 %union {
@@ -29,29 +31,36 @@ struct nodeType * nodeOpNode(int op);
 
 %%
 
-goal : toplevel  {$$=newNode(NODE_ERROR);}
+goal : toplevel  {ASTRoot = $1;}
     ;
 
 nesl : toplevel { printf("toplevel\n"); $$=newNode(NODE_ERROR);}
         | {$$=newNode(NODE_ERROR);}
         ;
 
-toplevel : 
-        FUNCTION nametoken pattern funcopt {$$=newNode(NODE_ERROR);}|
-        DATATYPE nametoken typedef ';' {$$=newNode(NODE_ERROR);}|
-        pattern '=' exp {$$=newNode(NODE_ERROR);}|
-        exp {$$=newNode(NODE_ERROR);}
-        ;
+toplevel : FUNCTION nametoken pattern funcopt {$$=newNode(NODE_ERROR);}
+    |   DATATYPE nametoken typedef ';' {$$=newNode(NODE_ERROR);}
+    |   pattern '=' exp {
+                printf("toplevel\n");
+                $$ = newNode(NODE_ASSIGN_STMT);
+                addChild($$, $1);
+                addChild($$, $3);
+        }
+    |   exp {  $$=newNode(NODE_ERROR);}
+    ;
 
 funcopt : ':' typedef '=' exp ';' {$$=newNode(NODE_ERROR);}
         |{$$=newNode(NODE_ERROR);}
         ;
 
-pattern : nametoken {$$=newNode(NODE_ERROR);}|
-        nametoken '(' pattern ')' {$$=newNode(NODE_ERROR);}|
-        pattern ',' pattern {$$=newNode(NODE_ERROR);}|
-        '(' pattern ')' {$$=newNode(NODE_ERROR);}
-        ;
+pattern : nametoken {
+            $$->nodeType = NODE_SYM_REF;
+            $$=$1;
+        }
+    |   nametoken '(' pattern ')' {$$=$1; }
+    |   pattern ',' pattern {$$=newNode(NODE_ERROR);}
+    |   '(' pattern ')' {$$=newNode(NODE_ERROR);}
+    ;
 
 typedef : typeexp {$$=newNode(NODE_ERROR);}|
         typeexp ':'':' '(' typebinds ')'{$$=newNode(NODE_ERROR);}
@@ -89,15 +98,20 @@ basetype : INT {$$=newNode(NODE_ERROR);}
         | CHAR {$$=newNode(NODE_ERROR);}
         ;
 
-exp : const {$$=newNode(NODE_ERROR);}
-    | nametoken {$$=newNode(NODE_ERROR);}
+exp : const {$$ = $1;}
+    | nametoken {
+        $$ = $1;
+    }
     | IF exp THEN exp ELSE exp {$$=newNode(NODE_ERROR);}
     | LET expbinds IN exp {$$=newNode(NODE_ERROR);}
     | '{' expoption1 rbinds expoption2 '}' {$$=newNode(NODE_ERROR);}
     | exp exp{$$=newNode(NODE_ERROR);}
     | exp binop exp{$$=newNode(NODE_ERROR);}
     | unaryop exp{$$=newNode(NODE_ERROR);}
-    | sequence{$$=newNode(NODE_ERROR);}
+    | sequence{
+        $$=$1;
+        $$ -> nodeType=NODE_SEQ;
+    }
     | exp '[' exp ']'{$$=newNode(NODE_ERROR);}
     | '(' exp ')'{$$=newNode(NODE_ERROR);}
     ;
@@ -127,22 +141,35 @@ rbind : pattern IN exp {$$=newNode(NODE_ERROR);}
     | nametoken {$$=newNode(NODE_ERROR);}
     ;
 
-sequence : '[' explist ']'{$$=newNode(NODE_ERROR);}
+sequence : '[' explist ']'{
+            $$=$2;
+        }
     | '[' ']' typeexp{$$=newNode(NODE_ERROR);}
     | '[' exp ':' exp seqoption ']'{$$=newNode(NODE_ERROR);}
     ;
 seqoption : ':' exp{$$=newNode(NODE_ERROR);}
     ;
 
-explist : exp explist {$$=newNode(NODE_ERROR);}
-    | ',' explist{$$=newNode(NODE_ERROR);}
-    |{$$=newNode(NODE_ERROR);}
+explist : exp explist {
+            printf("exp->nodeType: %d\n",$1->nodeType);
+            addChild($2, $1);
+            $$=$2;
+        }
+    | ',' explist {
+            $$=$2;
+        }
+    |   {
+            $$ = newNode(NODE_LIST);
+        }
     ;
 
-const : intconst {$$=newNode(NODE_ERROR);}
-    |   floatconst {$$=newNode(NODE_ERROR);}
-    |   boolconst {$$=newNode(NODE_ERROR);}
-    |   stringconst{$$=newNode(NODE_ERROR);}
+const : intconst {
+            $1->nodeType=NODE_INT;
+            $$ = $1;
+    }
+    |   floatconst {$$=$1;}
+    |   boolconst {$$=$1;}
+    |   stringconst{$$=$1;}
     ;
 
 binop : ','{$$=newNode(NODE_ERROR);}
@@ -167,7 +194,6 @@ struct nodeType *ASTRoot;
 struct nodeType * newOpNode(int op) {
     struct nodeType *node = newNode(NODE_OP);
     node -> op = op;
-
     return node;
 }
 
@@ -177,8 +203,33 @@ int yyerror(const char *s) {
         exit(0);
 }
 
-int main(){
+int main(int argc, char** argv){
+    printf("%d: %s\n",argc,argv[0]);
+    
     yyparse();
-    printf("parse done\n");
- return 0;
+    printf("************************\n");
+    printf("*** NO PARSING ERROR ***\n");
+    printf("************************\n");
+    
+    printTree(ASTRoot, 0);
+
+    FILE* fptr;
+    fptr = fopen("output/NESL2C_test.c","w");
+    if(!fptr){
+        printf("failed create output file! exit\n");
+        exit(1);
+    }
+    // fprintf(fptr, "This is a test\n");
+    fprintf(fptr, "#include<stdio.h>\n#include<stdlib.h>\n\nint main(){\n\t");
+
+    // codegen(fptr, ASTRoot);
+
+    fprintf(fptr, "\n}");
+    printf("************************\n");
+    printf("***** CODEGEN DONE *****\n");
+    printf("************************\n");
+    if(fptr==NULL)
+        fclose(fptr);
+    
+    return 0;
 }

@@ -1,7 +1,11 @@
 %{
 #include <stdio.h>
+#include "node.h"
 #include "y.tab.h"
 #define token(s) {printf("%s\ttoken%d\n",yytext, s);return(s);}
+
+int line_no = 1;
+struct nodeType* newTokenNode(int tokenType);
 
 %}
 
@@ -134,13 +138,17 @@ NQUOTE [^']
             token(stringconst);
 }
 
+"//".*"\n"  {                           //string value
+    printf("%d: %s", line_no++, yytext);
+}
+
+%%
 struct nodeType* newTokenNode(int tokenType) {
     struct nodeType *node = newNode(NODE_TOKEN);
     node->tokenType = tokenType;
 
     return node;
 }
-%%
 yywrap(){
     return(1);
     }

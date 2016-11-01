@@ -91,6 +91,10 @@ void printTree(struct nodeType *node, int ident) {
         case NODE_VAR_OR_PROC:
             printf("%s%s\n", blank, node->string);
             break;
+        case NODE_SEQ:
+            printf("%sNODE_SEQ\n", blank);
+            ident++;
+            break;
         case NODE_CALLPROC:
             printf("%s%s\n", blank, node->string);
             ident++;
@@ -120,8 +124,6 @@ void printTree(struct nodeType *node, int ident) {
             break;
         case NODE_TYPE_ARRAY:
             printf("%sARRAY\n", blank);
-            printf("%s start:%d\n",blank, node->idxstart);
-            printf("%s end:%d\n",blank, node->idxend);
             ident++;
             break;
         case NODE_ARR_REF:
