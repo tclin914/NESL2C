@@ -6,20 +6,49 @@
 struct SymTable SymbolTable;
 
 void codegen(FILE *fptr, struct nodeType* node){
- switch(node->nodeType){
-  case NODE_TYPE_REAL:
-    fprintf(fptr, "ARRAY\n");
-    break;
-  default:
-    fprintf("this nodeType: %d", node->nodeType);
- }
- struct nodeType *child = node->child;
-    if(child != 0) {
-        do {
-            semanticCheck(child);
-            child = child->rsibling;
-        } while(child != node->child);
-    }
+
+  struct nodeType *child = node->child;
+   // do { 
+      switch(node->nodeType){
+      case NODE_ASSIGN_STMT:
+        {
+        struct nodeType* LHS = node->child;
+        struct nodeType* RHS = node->child->rsibling;
+        codegen(fptr, LHS);
+        fprintf(fptr, "= ");
+        codegen(fptr, RHS);
+        fprintf(fptr, ";");
+        break;
+        }
+      case NODE_SYM_REF:
+        fprintf(fptr, "int %s ", node->string);
+        break;
+      case NODE_SEQ:{
+        struct nodeType *idNode = node->child;
+        fprintf(fptr, "{");
+        do{
+          if(idNode->nodeType == NODE_SEQ)
+            codegen(fptr, idNode);
+          else{
+            fprintf(fptr, "%d", idNode->iValue);
+            if(idNode->rsibling != node->child)
+              fprintf(fptr, ",");
+          }
+          idNode = idNode->rsibling;
+        }
+        while(idNode != node->child);
+          fprintf(fptr, "}");
+        break;
+        }
+      default:
+        fprintf("this nodeType: %d", node->nodeType);
+        break;
+      }
+      
+   //   child = child->rsibling;
+   //   } while(child != node->child||);
+  
+//  fprintf(fptr, ";\n");
   return;
 }
 

@@ -222,7 +222,7 @@ int main(int argc, char** argv){
     // fprintf(fptr, "This is a test\n");
     fprintf(fptr, "#include<stdio.h>\n#include<stdlib.h>\n\nint main(){\n\t");
 
-    // codegen(fptr, ASTRoot);
+    codegen(fptr, ASTRoot);
 
     fprintf(fptr, "\n}");
     printf("************************\n");
