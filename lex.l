@@ -44,6 +44,13 @@ NQUOTE [^']
     /* Just to eat the spaces and new lines
            so that they won't appear in output */
 }
+
+">" {
+            token('>');
+}
+"<" {
+            token('<');
+}
 "," {
             token(',');
 }
@@ -108,6 +115,7 @@ NQUOTE [^']
 {I}{F}                  {yylval.node = newTokenNode(IF); token(IF);}
 {E}{L}{S}{E}            {yylval.node = newTokenNode(ELSE); token(ELSE);}
 {T}{H}{E}{N}            {yylval.node = newTokenNode(THEN); token(THEN);}
+{L}{E}{T}               {yylval.node = newTokenNode(LET); token(LET);}
 
 
 [-+]?[0-9]+ { 

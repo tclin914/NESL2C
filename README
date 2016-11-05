@@ -28,3 +28,7 @@ debug:
     (gdb) file a.out
     (gdb) b main
     (gdb) r < test 
+
+NOTE:
+    Nov./03: search highlight the comments in nesl :
+        /%\_.\{-}%

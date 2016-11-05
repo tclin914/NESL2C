@@ -20,7 +20,7 @@ extern struct nodeType* ASTRoot;
 %token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND 
 %token <node> intconst floatconst nametoken boolconst stringconst
-%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '+' '-' '*' '/'
+%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '+' '-' '*' '/' '>'
 
 %type <node> goal nesl toplevel funcopt typedef typebinds typebind
 %type <node> typeexp typelist typeclass basetype exp expoption1
@@ -31,7 +31,7 @@ extern struct nodeType* ASTRoot;
 
 %%
 
-goal : toplevel  {ASTRoot = $1;}
+goal : exp  {ASTRoot = $1;}
     ;
 
 nesl : toplevel { printf("toplevel\n"); $$=newNode(NODE_ERROR);}
@@ -50,7 +50,6 @@ toplevel : FUNCTION nametoken pattern funcopt {$$=newNode(NODE_ERROR);}
     ;
 
 funcopt : ':' typedef '=' exp ';' {$$=newNode(NODE_ERROR);}
-        |{$$=newNode(NODE_ERROR);}
         ;
 
 pattern : nametoken {
@@ -103,12 +102,12 @@ exp : const {$$ = $1;}
         $$ = $1;
     }
     | IF exp THEN exp ELSE exp {$$=newNode(NODE_ERROR);}
-    | LET expbinds IN exp {$$=newNode(NODE_ERROR);}
-    | '{' expoption1 rbinds expoption2 '}' {$$=newNode(NODE_ERROR);}
+    | LET {printf("LET exp\n");} expbinds {printf("LET exp\n");} IN {printf("LET exp\n");} exp {$$=newNode(NODE_ERROR);printf("LET exp\n");}
+    | '{' {printf("LET expi{{{\n");} expoption1 rbinds {printf("LET exprbind\n");} expoption2 '}' {printf("LET exp}}}}\n");$$=newNode(NODE_ERROR);}
     | exp exp{$$=newNode(NODE_ERROR);}
-    | exp binop exp{$$=newNode(NODE_ERROR);}
+    | exp binop exp{printf("BOWAY\n"); $$=newNode(NODE_ERROR);}
     | unaryop exp{$$=newNode(NODE_ERROR);}
-    | sequence{
+    | sequence{ printf("SEQ way\n");
         $$=$1;
         $$ -> nodeType=NODE_SEQ;
     }
@@ -125,10 +124,10 @@ expoption2 : '|' exp{$$=newNode(NODE_ERROR);}
     ;
 
 expbinds :
-    pattern '=' exp expbindsoption{$$=newNode(NODE_ERROR);}
+    pattern {printf("LET exb\n");} '=' exp expbindsoption{$$=newNode(NODE_ERROR);}
     ;
 
-expbindsoption : ';' expbinds {$$=newNode(NODE_ERROR);}
+expbindsoption : ';' {printf("LET epp\n");} expbinds {$$=newNode(NODE_ERROR);}
     | {$$=newNode(NODE_ERROR);}
     ;
 
@@ -142,24 +141,23 @@ rbind : pattern IN exp {$$=newNode(NODE_ERROR);}
     ;
 
 sequence : '[' explist ']'{
-            $$=$2;
+            $$=$2; printf("S way\n");
         }
-    | '[' ']' typeexp{$$=newNode(NODE_ERROR);}
-    | '[' exp ':' exp seqoption ']'{$$=newNode(NODE_ERROR);}
+    | '[' ']' typeexp{$$=newNode(NODE_ERROR); printf("B way\n");}
+    | '[' exp ':' exp seqoption ']'{$$=newNode(NODE_ERROR); printf("B way\n");}
     ;
 seqoption : ':' exp{$$=newNode(NODE_ERROR);}
     ;
 
-explist : exp explist {
-            printf("exp->nodeType: %d\n",$1->nodeType);
-            addChild($2, $1);
-            $$=$2;
+explist : explist ',' exp { printf(", way\n");
+            printf("exp->nodeType: %d\n",$3->nodeType);
+            addChild($1, $3);
+            $$=$1;
         }
-    | ',' explist {
-            $$=$2;
-        }
-    |   {
+    | exp { printf("E way\n");
             $$ = newNode(NODE_LIST);
+            addChild($$,$1);
+            printf("exp->nodeType: %d\n",$1->nodeType);
         }
     ;
 
@@ -172,7 +170,7 @@ const : intconst {
     |   stringconst{$$=$1;}
     ;
 
-binop : ','{$$=newNode(NODE_ERROR);}
+binop : ','{$$=newNode(NODE_OP);}
     | OR {$$=newNode(NODE_ERROR);}| NOR {$$=newNode(NODE_ERROR);}| XOR{$$=newNode(NODE_ERROR);}
     | AND {$$=newNode(NODE_ERROR);}| NAND{$$=newNode(NODE_ERROR);}
     | "==" {$$=newNode(NODE_ERROR);}| "/=" {$$=newNode(NODE_ERROR);}| '<' {$$=newNode(NODE_ERROR);}| '>' {$$=newNode(NODE_ERROR);}| "<=" {$$=newNode(NODE_ERROR);}| ">="{$$=newNode(NODE_ERROR);}
@@ -212,6 +210,11 @@ int main(int argc, char** argv){
     printf("************************\n");
     
     printTree(ASTRoot, 0);
+    
+    semanticCheck(ASTRoot);
+    printf("************************\n");
+    printf("** NO SEMANTIC ERROR ***\n");
+    printf("************************\n");
 
     FILE* fptr;
     fptr = fopen("output/NESL2C_test.c","w");

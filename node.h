@@ -67,10 +67,11 @@ struct nodeType {
     int tokenType;
 
     /* items for Array */
+    int counts;
     int idxstart;
     int idxend;
     int arraydepth;
-    struct nodeType *ref;
+    struct nodeType *arraynext;
 
     /* Values for general use */
     int iValue;

@@ -8,13 +8,22 @@ struct SymTable SymbolTable;
 void codegen(FILE *fptr, struct nodeType* node){
 
   struct nodeType *child = node->child;
-   // do { 
       switch(node->nodeType){
       case NODE_ASSIGN_STMT:
         {
         struct nodeType* LHS = node->child;
         struct nodeType* RHS = node->child->rsibling;
         codegen(fptr, LHS);
+        if(RHS->nodeType == NODE_SEQ)
+        {
+          struct nodeType* next = RHS;
+          int n = RHS->arraydepth;
+          do{
+            fprintf(fptr, "[%d]",next->counts+1); 
+            next = next->arraynext;;
+          } while(next!=NULL);
+        }
+        
         fprintf(fptr, "= ");
         codegen(fptr, RHS);
         fprintf(fptr, ";");
@@ -25,6 +34,7 @@ void codegen(FILE *fptr, struct nodeType* node){
         break;
       case NODE_SEQ:{
         struct nodeType *idNode = node->child;
+        
         fprintf(fptr, "{");
         do{
           if(idNode->nodeType == NODE_SEQ)
@@ -37,18 +47,13 @@ void codegen(FILE *fptr, struct nodeType* node){
           idNode = idNode->rsibling;
         }
         while(idNode != node->child);
-          fprintf(fptr, "}");
+          fprintf(fptr, "},");
         break;
         }
       default:
         fprintf("this nodeType: %d", node->nodeType);
         break;
       }
-      
-   //   child = child->rsibling;
-   //   } while(child != node->child||);
-  
-//  fprintf(fptr, ";\n");
   return;
 }
 
@@ -87,6 +92,8 @@ struct nodeType* nthChild(int n, struct nodeType *node) {
     return child;
 }
 
+
+
 void semanticCheck(struct nodeType *node) {
  //   printf("nodetype:%d\n", node->nodeType);
     switch(node->nodeType) {
@@ -110,15 +117,40 @@ void semanticCheck(struct nodeType *node) {
           return;
         }
         case NODE_SEQ:{
+          struct nodeType *idNode = node->child;
+          int count = 0;
+          int depth = 0;
           
-          return; 
+          do{
+            count++;
+            if(idNode->nodeType == NODE_SEQ){
+              semanticCheck(idNode);
+              if(depth < idNode->arraydepth){
+                depth = idNode->arraydepth;
+                node->arraynext = idNode;
+                }
+            }
+            idNode = idNode->rsibling;
+          }
+          while(idNode != node->child);
+          node->counts = count;
+          node->arraydepth = depth+1;
+          printf("node_counts:%d, node_depth:%d\n",node->counts,node->arraydepth);
+          return;
         }
+
         case NODE_ASSIGN_STMT: {
             struct nodeType *child1 = nthChild(1, node);
             struct nodeType *child2 = nthChild(2, node);
             semanticCheck(child1);
             semanticCheck(child2);
 
+            if(child1->string != NULL && child2->nodeType==NODE_SEQ)
+            {
+              child2->string = (char*)malloc(child1->string);
+              strcpy(child2->string, child1->string);
+            }
+              
             /* We only implement the checking for integer and real types
                you should implement the checking for array type by yourself */
             if(child1->valueType != child2->valueType) {
@@ -129,18 +161,6 @@ void semanticCheck(struct nodeType *node) {
                     printf("type: %d, %d\n",child1->valueType,child2->valueType);
                     }
                 exit(0);
-            }
-            if(child1->nodeType==NODE_ARR_REF){
-              if(child2->nodeType==NODE_ARR_REF){
-                if(child2->arraydepth != child1->arraydepth)
-                  printf("array depth dismatch. child1:%d, child2:%d\n",
-                  child1->arraydepth, child2->arraydepth);
-              }
-              else{
-                if(child1->arraydepth != 0)
-                  printf("LHS is array.\n");   
-              }
-              
             }
             node->valueType = child1->valueType;
             return;

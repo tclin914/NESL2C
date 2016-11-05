@@ -17,7 +17,10 @@ debug :
 	gcc y.tab.o node.o symtab.o -g -ly -ll 
 
 run :
-	./a.out < ~/trunk/bench/NESL/muladd.nesl
+	./a.out < test/sequence_good
+#	vim output/NESL2C_test.c
+	gcc output/NESL2C_test.c
+#	./a.out < ~/trunk/bench/NESL/muladd.nesl
 
 clean :
 	rm lex.yy.c lex.yy.o y.tab.o y.tab.h y.tab.c 
