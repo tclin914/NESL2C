@@ -31,25 +31,43 @@ extern struct nodeType* ASTRoot;
 
 %%
 
-goal : exp  {ASTRoot = $1;}
+goal :  nesl {ASTRoot = $1;}
     ;
 
-nesl : toplevel { printf("toplevel\n"); $$=newNode(NODE_ERROR);}
-        | {$$=newNode(NODE_ERROR);}
+nesl : nesl toplevel { 
+            printf("toplevel\n"); 
+            $$=$1;
+            addChild($1,$2);
+        }
+        | {
+            $$=newNode(NODE_NESL);
+        }
         ;
 
-toplevel : FUNCTION nametoken pattern funcopt {$$=newNode(NODE_ERROR);}
-    |   DATATYPE nametoken typedef ';' {$$=newNode(NODE_ERROR);}
+toplevel : FUNCTION nametoken pattern funcopt {
+                $$=newNode(NODE_EXP);
+                addChild($$, $2);
+                addChild($$, $3);
+                addChild($$, $4);
+            }
+    |   DATATYPE nametoken typedef ';' {
+            $$=newNode(NODE_EXP);
+        }
     |   pattern '=' exp {
-                printf("toplevel\n");
                 $$ = newNode(NODE_ASSIGN_STMT);
                 addChild($$, $1);
                 addChild($$, $3);
         }
-    |   exp {  $$=newNode(NODE_ERROR);}
+    |   exp {
+            $$=newNode(NODE_EXP);
+        }
     ;
 
-funcopt : ':' typedef '=' exp ';' {$$=newNode(NODE_ERROR);}
+funcopt : ':' typedef '=' exp ';' {
+            $$=newNode(NODE_EXP);
+            addChild($$, $2);
+            addChild($$, $4);
+        }
         ;
 
 pattern : nametoken {
@@ -57,96 +75,146 @@ pattern : nametoken {
             $$=$1;
         }
     |   nametoken '(' pattern ')' {$$=$1; }
-    |   pattern ',' pattern {$$=newNode(NODE_ERROR);}
-    |   '(' pattern ')' {$$=newNode(NODE_ERROR);}
+    |   pattern ',' pattern {$$=newNode(NODE_EXP);}
+    |   '(' pattern ')' {$$=newNode(NODE_EXP);}
     ;
 
-typedef : typeexp {$$=newNode(NODE_ERROR);}|
-        typeexp ':'':' '(' typebinds ')'{$$=newNode(NODE_ERROR);}
+typedef : typeexp {$$=newNode(NODE_EXP);}|
+        typeexp ':'':' '(' typebinds ')'{$$=newNode(NODE_EXP);}
         ;
 
-typebinds : typebind {$$=newNode(NODE_ERROR);}|
-        typebind ';' typebinds{$$=newNode(NODE_ERROR);}
+typebinds : typebind {$$=newNode(NODE_EXP);}|
+        typebind ';' typebinds{$$=newNode(NODE_EXP);}
         ;
 
-typebind : nametoken IN typeclass {$$=newNode(NODE_ERROR);}
+typebind : nametoken IN typeclass {$$=newNode(NODE_EXP);}
         ;
 
-typeexp : basetype {$$=newNode(NODE_ERROR);}|
-        nametoken {$$=newNode(NODE_ERROR);}|
-        typeexp '-''>' typeexp {$$=newNode(NODE_ERROR);}|
-        typeexp ',' typeexp {$$=newNode(NODE_ERROR);}|
-        nametoken '(' typelist ')' {$$=newNode(NODE_ERROR);}|
-        '[' typeexp ']' {$$=newNode(NODE_ERROR);}|
-        '(' typeexp ')'{$$=newNode(NODE_ERROR);}
+typeexp : basetype {$$=newNode(NODE_EXP);}|
+        nametoken {$$=newNode(NODE_EXP);}|
+        typeexp '-''>' typeexp {$$=newNode(NODE_EXP);}|
+        typeexp ',' typeexp {$$=newNode(NODE_EXP);}|
+        nametoken '(' typelist ')' {$$=newNode(NODE_EXP);}|
+        '[' typeexp ']' {$$=newNode(NODE_EXP);}|
+        '(' typeexp ')'{$$=newNode(NODE_EXP);}
         ;
 
-typelist : typeexp {$$=newNode(NODE_ERROR);} |
-           typeexp ',' typelist {$$=newNode(NODE_ERROR);}
+typelist : typeexp {$$=newNode(NODE_EXP);} |
+           typeexp ',' typelist {$$=newNode(NODE_EXP);}
          ;
 
-typeclass : NUMBER {$$=newNode(NODE_ERROR);}
-        | ORDINAL {$$=newNode(NODE_ERROR);}
-        | LOGICAL {$$=newNode(NODE_ERROR);}
-        | ANY {$$=newNode(NODE_ERROR);}
+typeclass : NUMBER {$$=newNode(NODE_EXP);}
+        | ORDINAL {$$=newNode(NODE_EXP);}
+        | LOGICAL {$$=newNode(NODE_EXP);}
+        | ANY {$$=newNode(NODE_EXP);}
         ;
 
-basetype : INT {$$=newNode(NODE_ERROR);}
-        | BOOL {$$=newNode(NODE_ERROR);}
-        | FLOAT {$$=newNode(NODE_ERROR);}
-        | CHAR {$$=newNode(NODE_ERROR);}
+basetype : INT {$$=newNode(NODE_EXP);}
+        | BOOL {$$=newNode(NODE_EXP);}
+        | FLOAT {$$=newNode(NODE_EXP);}
+        | CHAR {$$=newNode(NODE_EXP);}
         ;
 
 exp : const {$$ = $1;}
     | nametoken {
+        printf("\texp nametoken\n");
         $$ = $1;
     }
-    | IF exp THEN exp ELSE exp {$$=newNode(NODE_ERROR);}
-    | LET {printf("LET exp\n");} expbinds {printf("LET exp\n");} IN {printf("LET exp\n");} exp {$$=newNode(NODE_ERROR);printf("LET exp\n");}
-    | '{' {printf("LET expi{{{\n");} expoption1 rbinds {printf("LET exprbind\n");} expoption2 '}' {printf("LET exp}}}}\n");$$=newNode(NODE_ERROR);}
-    | exp exp{$$=newNode(NODE_ERROR);}
-    | exp binop exp{printf("BOWAY\n"); $$=newNode(NODE_ERROR);}
-    | unaryop exp{$$=newNode(NODE_ERROR);}
-    | sequence{ printf("SEQ way\n");
+    | IF exp THEN exp ELSE exp {
+            printf("\texp IFELSE\n");
+            $$=newNode(NODE_IFELSE);
+            $2->nodeType=NODE_IFSTMT;
+            addChild($$,$2);
+            $4->nodeType = NODE_THENSTMT;
+            addChild($$,$4);
+            $6->nodeType = NODE_ELSESTMT;
+            addChild($$,$6);
+    }
+    | LET expbinds IN exp {
+            $$=newNode(NODE_EXP);
+            printf("\t exp LET\n");
+            addChild($$,$2);
+            addChild($$,$4);
+    }
+    | '{' expoption1 rbinds expoption2 '}' {
+            printf("\texp rule3\n");
+            $$=newNode(NODE_EXP);
+            if($1->nodeType != NODE_EMPTY)
+                addChild($$,$1);
+            if($3->nodeType != NODE_EMPTY)
+                addChild($$,$3);
+    }
+    | exp exp {
+            printf("\texp exp : function application\n");
+            $$=newNode(NODE_EXP);
+            addChild($$,$1);
+            addChild($$,$2);
+    }
+    | exp binop exp {
+            printf("\texp_binary_Operation_reduce\n"); 
+            $$=newNode(NODE_EXP);    
+    }
+    | unaryop exp{
+            printf("\texp_unaryop\n");
+            $$=newNode(NODE_EXP);
+            addChild($$,$1);
+            addChild($$,$2);
+    }
+    | sequence{ 
+        printf("\tSEQUENCE\n");
         $$=$1;
         $$ -> nodeType=NODE_SEQ;
     }
-    | exp '[' exp ']'{$$=newNode(NODE_ERROR);}
-    | '(' exp ')'{$$=newNode(NODE_ERROR);}
+    | exp '[' exp ']'{
+            printf("\texp of sequence indexing \n");
+            $$=newNode(NODE_EXP);
+            addChild($$,$1);
+            addChild($$,$3);
+    }
+    | '(' exp ')'{
+            printf("\texp with () \n");
+            $$=newNode(NODE_EXP);
+            addChild($$,$2);
+    }
     ;
 
-expoption1 : exp ':' {$$=newNode(NODE_ERROR);}
-    | {$$=newNode(NODE_ERROR);}
+expoption1 : exp ':' {
+        printf("\texpoptinal1\n");
+        $$ =$1;
+    }
+    | {
+        $$=newNode(NODE_EMPTY);
+    }
     ;
 
-expoption2 : '|' exp{$$=newNode(NODE_ERROR);}
-    | {$$=newNode(NODE_ERROR);}
+expoption2 : '|' exp{$$=newNode(NODE_EXP);}
+    | {$$=newNode(NODE_EXP);}
     ;
 
 expbinds :
-    pattern {printf("LET exb\n");} '=' exp expbindsoption{$$=newNode(NODE_ERROR);}
+    pattern {printf("LET exb\n");} '=' exp ';' expbindsoption  {$$=newNode(NODE_EXP);}
     ;
 
-expbindsoption : ';' {printf("LET epp\n");} expbinds {$$=newNode(NODE_ERROR);}
-    | {$$=newNode(NODE_ERROR);}
+expbindsoption :  {printf("LET epp\n");} expbinds {$$=newNode(NODE_EXP);}
+    | {$$=newNode(NODE_EXP);}
     ;
 
-rbinds : rbind rbinds{$$=newNode(NODE_ERROR);}
-    | ';' rbind{$$=newNode(NODE_ERROR);}
-    |{$$=newNode(NODE_ERROR);}
+rbinds : rbind rbinds{$$=newNode(NODE_EXP);}
+    | ';' rbind{$$=newNode(NODE_EXP);}
+    |{$$=newNode(NODE_EXP);}
     ;
 
-rbind : pattern IN exp {$$=newNode(NODE_ERROR);}
-    | nametoken {$$=newNode(NODE_ERROR);}
+rbind : pattern IN exp {$$=newNode(NODE_EXP);}
+    | nametoken {$$=newNode(NODE_EXP);}
     ;
 
 sequence : '[' explist ']'{
             $$=$2; printf("S way\n");
         }
-    | '[' ']' typeexp{$$=newNode(NODE_ERROR); printf("B way\n");}
-    | '[' exp ':' exp seqoption ']'{$$=newNode(NODE_ERROR); printf("B way\n");}
+    | '[' ']' typeexp{$$=newNode(NODE_EXP); printf("B way\n");}
+    | '[' exp ':' exp seqoption ']'{$$=newNode(NODE_EXP); printf("B way\n");}
     ;
-seqoption : ':' exp{$$=newNode(NODE_ERROR);}
+seqoption : ':' exp{$$=newNode(NODE_EXP);}
     ;
 
 explist : explist ',' exp { printf(", way\n");
@@ -171,17 +239,17 @@ const : intconst {
     ;
 
 binop : ','{$$=newNode(NODE_OP);}
-    | OR {$$=newNode(NODE_ERROR);}| NOR {$$=newNode(NODE_ERROR);}| XOR{$$=newNode(NODE_ERROR);}
-    | AND {$$=newNode(NODE_ERROR);}| NAND{$$=newNode(NODE_ERROR);}
-    | "==" {$$=newNode(NODE_ERROR);}| "/=" {$$=newNode(NODE_ERROR);}| '<' {$$=newNode(NODE_ERROR);}| '>' {$$=newNode(NODE_ERROR);}| "<=" {$$=newNode(NODE_ERROR);}| ">="{$$=newNode(NODE_ERROR);}
-    | '+' {$$=newNode(NODE_ERROR);} | '-' {$$=newNode(NODE_ERROR);}| "++" {$$=newNode(NODE_ERROR);}| "<-"{$$=newNode(NODE_ERROR);}
-    | '*' {$$=newNode(NODE_ERROR);} | '/' {$$=newNode(NODE_ERROR);}| "->"{$$=newNode(NODE_ERROR);}
-    | '^' {$$=newNode(NODE_ERROR);}
+    | OR {$$=newNode(NODE_EXP);}| NOR {$$=newNode(NODE_EXP);}| XOR{$$=newNode(NODE_EXP);}
+    | AND {$$=newNode(NODE_EXP);}| NAND{$$=newNode(NODE_EXP);}
+    | '=''=' {$$=newNode(NODE_EXP);}| '/''=' {$$=newNode(NODE_EXP);}| '<' {$$=newNode(NODE_EXP);}| '>' {$$=newNode(NODE_EXP);}| "<=" {$$=newNode(NODE_EXP);}| ">="{$$=newNode(NODE_EXP);}
+    | '+' {$$=newNode(NODE_EXP);} | '-' {$$=newNode(NODE_EXP);}| '+' '+' {$$=newNode(NODE_EXP);}| "<-"{$$=newNode(NODE_EXP);}
+    | '*' {$$=newNode(NODE_EXP);} | '/' {$$=newNode(NODE_EXP);}| '-' '>'{$$=newNode(NODE_EXP);}
+    | '^' {$$=newNode(NODE_EXP);}
     ;
 
-unaryop :   '#' {$$=newNode(NODE_ERROR);}
-    |   '@'  {$$=newNode(NODE_ERROR);}
-    |   '-' {$$=newNode(NODE_ERROR);}
+unaryop :   '#' {$$=newNode(NODE_EXP);}
+    |   '@'  {$$=newNode(NODE_EXP);}
+    |   '-' {$$=newNode(NODE_EXP);}
     ;
 
 

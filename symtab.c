@@ -108,7 +108,7 @@ void semanticCheck(struct nodeType *node) {
             return;
         }
 
-        case NODE_REAL: {
+        case NODE_FLOAT: {
             node->valueType = TypeReal;
             return;
         }

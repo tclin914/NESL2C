@@ -109,7 +109,7 @@ NQUOTE [^']
 {A}{N}{Y}               {yylval.node = newTokenNode(ANY); token(ANY);}
 {I}{N}{T}               {yylval.node = newTokenNode(INT); token(INT);}
 {B}{O}{O}{L}            {yylval.node = newTokenNode(BOOL); token(BOOL);}
-{F}{L}{O}{A}{T}         {yylval.node = newTokenNode(FLOAT); token(FLOAT);}
+{F}{L}{O}{A}{T}         {yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ token(nametoken);}
 {C}{H}{A}{R}            {yylval.node = newTokenNode(CHAR); token(CHAR);}
 {I}{N}                  {yylval.node = newTokenNode(IN); token(IN);}
 {I}{F}                  {yylval.node = newTokenNode(IF); token(IF);}

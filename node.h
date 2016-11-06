@@ -9,30 +9,36 @@ struct nodeType;
 
 #define NODE_TOKEN          1
 #define NODE_OP             2
+
+// typeToken
 #define NODE_INT            3
-#define NODE_REAL           4
-#define NODE_PROGRAM        5
-#define NODE_VAR_DECL       6
+#define NODE_FLOAT          4
+#define NODE_BOOL           5
+#define NODE_CHAR           6
+
+// NODE_TYPE 
 #define NODE_TYPE_INT       7
-#define NODE_TYPE_REAL      8
-#define NODE_TYPE_STRING    9
-#define NODE_ASSIGN_STMT    10
-#define NODE_SYM_REF        11
-#define NODE_TYPE_ARRAY     12
-#define NODE_ARR_REF        13
-#define NODE_TAIL           14
+#define NODE_TYPE_FLOAT     8
+#define NODE_TYPE_CHAR      9
+#define NODE_TYPE_BOOL      10
 
-#define NODE_SEQ            17
+// 
+#define NODE_ASSIGN_STMT    11
+#define NODE_SYM_REF        12
+#define NODE_TYPE_ARRAY     13
+#define NODE_ARR_REF        14
 
-#define NODE_SUB_HEAD       15
-#define NODE_SUB_DEC        16
+//lazy man
+#define NODE_EXP            15
+#define NODE_SEQ            16
+#define NODE_IFSTMT         17
+#define NODE_THENSTMT       18
+#define NODE_ELSESTMT       19
+
+#define NODE_NESL           20
 
 #define NODE_LIST           50
-#define NODE_PLIST          51
-#define NODE_IFSTMT         52
-#define NODE_WHILE          53
-#define NODE_CALLPROC          54
-
+#define NODE_IFELSE         52
 
 #define NODE_FUNC           94
 #define NODE_PROC           95
