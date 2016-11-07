@@ -94,6 +94,24 @@ NQUOTE [^']
 "=" {
             token('=');
 }
+
+"++" {      token(PP);
+}
+
+"->" {
+            token(RARROW);
+}
+
+"<-" {
+            token(LARROW);
+}
+"=="    token(EQQ);
+"/="    token(NEQQ);
+"<="    token(LE);
+">="    token(GE);
+
+
+
 {F}{U}{N}{C}{T}{I}{O}{N} {
     yylval.node = newTokenNode(FUNCTION);
     token(FUNCTION);    

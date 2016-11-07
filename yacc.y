@@ -7,7 +7,7 @@
 
 int yydebug =1;
 
-struct nodeType * nodeOpNode(int op);
+struct nodeType * newOpNode(int op); 
 extern struct nodeType* ASTRoot;
 %}
 
@@ -20,17 +20,28 @@ extern struct nodeType* ASTRoot;
 %token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND 
 %token <node> intconst floatconst nametoken boolconst stringconst
-%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '+' '-' '*' '/' '>'
+%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' 
 
 %type <node> goal nesl toplevel funcopt typedef typebinds typebind
 %type <node> typeexp typelist typeclass basetype exp expoption1
 %type <node> expoption2 expbinds expbindsoption pattern rbinds
 %type <node> rbind sequence seqoption explist const binop unaryop
 
+
+%left ','
+%left OR NOR XOR
+%left AND NAND
+%left EQQ NEQQ '<' '>' LE GE
+%left '+' '-' PP LARROW
+%left '*' '/' RARROW
+%left '^' 
+%left '#' '@' 
+%nonassoc UMINUS
+
 %start goal
 
 %%
-
+ 
 goal :  nesl {ASTRoot = $1;}
     ;
 
@@ -44,14 +55,16 @@ nesl : nesl toplevel {
         }
         ;
 
-toplevel : FUNCTION nametoken pattern funcopt {
+toplevel : FUNCTION nametoken pattern ':' typedef '=' exp ';' {
                 $$=newNode(NODE_EXP);
                 addChild($$, $2);
                 addChild($$, $3);
                 addChild($$, $4);
             }
     |   DATATYPE nametoken typedef ';' {
-            $$=newNode(NODE_EXP);
+            $$=newNode(NODE_DATATYPE);
+            addChild($$,$2);
+            addChild($2,$3);
         }
     |   pattern '=' exp {
                 $$ = newNode(NODE_ASSIGN_STMT);
@@ -83,36 +96,67 @@ typedef : typeexp {$$=newNode(NODE_EXP);}|
         typeexp ':'':' '(' typebinds ')'{$$=newNode(NODE_EXP);}
         ;
 
-typebinds : typebind {$$=newNode(NODE_EXP);}|
-        typebind ';' typebinds{$$=newNode(NODE_EXP);}
+typebinds : typebind {
+            $$=$1;
+        }
+        | typebind ';' typebinds{
+            $$=$3;
+            addChild($$,$1);
+        }
         ;
 
-typebind : nametoken IN typeclass {$$=newNode(NODE_EXP);}
+typebind : nametoken IN typeclass {
+            $$=$3;
+            addChild($$,$1);
+        }
         ;
 
-typeexp : basetype {$$=newNode(NODE_EXP);}|
-        nametoken {$$=newNode(NODE_EXP);}|
-        typeexp '-''>' typeexp {$$=newNode(NODE_EXP);}|
-        typeexp ',' typeexp {$$=newNode(NODE_EXP);}|
-        nametoken '(' typelist ')' {$$=newNode(NODE_EXP);}|
-        '[' typeexp ']' {$$=newNode(NODE_EXP);}|
-        '(' typeexp ')'{$$=newNode(NODE_EXP);}
+typeexp : basetype {
+                $$=$1;
+        }
+        | nametoken {
+                $$=$1;
+        }
+        | typeexp RARROW typeexp {
+                //TODO weird.
+                $$=$3;
+                addChild($$,$1);
+        }
+        | typeexp ',' typeexp {
+                //TODO weird.
+                $$=newNode(NODE_LIST);
+                addChild($$,$1);
+                addChild($$,$3);
+        }
+        | nametoken '(' typelist ')' {
+                $$=newNode(NODE_FUNC); 
+                addChild($$,$1); 
+                addChild($$,$3);
+        }
+        | '[' typeexp ']' {$$=$2;}
+        | '(' typeexp ')'{$$=$2;}
         ;
 
-typelist : typeexp {$$=newNode(NODE_EXP);} |
-           typeexp ',' typelist {$$=newNode(NODE_EXP);}
+typelist : typeexp {
+            $$ = newNode(NODE_LIST);
+            addChild($$,$1);
+            } 
+        | typeexp ',' typelist {
+                $$=$3;
+                addChild($$,$1);
+        }
          ;
 
-typeclass : NUMBER {$$=newNode(NODE_EXP);}
-        | ORDINAL {$$=newNode(NODE_EXP);}
-        | LOGICAL {$$=newNode(NODE_EXP);}
-        | ANY {$$=newNode(NODE_EXP);}
+typeclass : NUMBER {$$=$1;}
+        | ORDINAL  {$$=$1;}
+        | LOGICAL  {$$=$1;}
+        | ANY      {$$=$1;}
         ;
 
-basetype : INT {$$=newNode(NODE_EXP);}
-        | BOOL {$$=newNode(NODE_EXP);}
-        | FLOAT {$$=newNode(NODE_EXP);}
-        | CHAR {$$=newNode(NODE_EXP);}
+basetype : INT {$$=$1;}
+        | BOOL {$$=$1;}
+        | FLOAT {$$=$1;}
+        | CHAR {$$=$1;}
         ;
 
 exp : const {$$ = $1;}
@@ -152,12 +196,13 @@ exp : const {$$ = $1;}
     }
     | exp binop exp {
             printf("\texp_binary_Operation_reduce\n"); 
-            $$=newNode(NODE_EXP);    
+            $$=$2;
+            addChild($$,$1);
+            addChild($$,$3);
     }
     | unaryop exp{
             printf("\texp_unaryop\n");
-            $$=newNode(NODE_EXP);
-            addChild($$,$1);
+            $$=$1;
             addChild($$,$2);
     }
     | sequence{ 
@@ -238,18 +283,24 @@ const : intconst {
     |   stringconst{$$=$1;}
     ;
 
-binop : ','{$$=newNode(NODE_OP);}
-    | OR {$$=newNode(NODE_EXP);}| NOR {$$=newNode(NODE_EXP);}| XOR{$$=newNode(NODE_EXP);}
-    | AND {$$=newNode(NODE_EXP);}| NAND{$$=newNode(NODE_EXP);}
-    | '=''=' {$$=newNode(NODE_EXP);}| '/''=' {$$=newNode(NODE_EXP);}| '<' {$$=newNode(NODE_EXP);}| '>' {$$=newNode(NODE_EXP);}| "<=" {$$=newNode(NODE_EXP);}| ">="{$$=newNode(NODE_EXP);}
-    | '+' {$$=newNode(NODE_EXP);} | '-' {$$=newNode(NODE_EXP);}| '+' '+' {$$=newNode(NODE_EXP);}| "<-"{$$=newNode(NODE_EXP);}
-    | '*' {$$=newNode(NODE_EXP);} | '/' {$$=newNode(NODE_EXP);}| '-' '>'{$$=newNode(NODE_EXP);}
-    | '^' {$$=newNode(NODE_EXP);}
+binop : ','{
+            $$=newOpNode(OP_COMMA);
+        }
+    | OR {$$=newOpNode(OP_OR);}| NOR {$$=newOpNode(OP_NOR);}| XOR{$$=newOpNode(OP_XOR);}
+    | AND {$$=newOpNode(OP_AND);}| NAND {$$=newNode(OP_NAND);}
+    | EQQ {$$=newOpNode(OP_EQQ);}| NEQQ {$$=newOpNode(OP_DIVEQ);}| '<' {$$=newOpNode(OP_LT);}
+        | '>' {$$=newOpNode(OP_GT);}| LE {$$=newOpNode(OP_LE);}| GE {$$=newOpNode(OP_GE);}
+    
+    | '+' {$$=newNode(NODE_EXP);} | '-' {$$=newNode(NODE_EXP);}| PP {$$=newNode(NODE_EXP);}
+        | LARROW {$$=newOpNode(OP_LARROW);}
+    
+    | '*' {$$=newOpNode(OP_MUL);} | '/' {$$=newOpNode(OP_DIV);}| RARROW {$$=newOpNode(OP_RARROW);}
+    | '^' {$$=newOpNode(OP_UPT);}
     ;
 
-unaryop :   '#' {$$=newNode(NODE_EXP);}
-    |   '@'  {$$=newNode(NODE_EXP);}
-    |   '-' {$$=newNode(NODE_EXP);}
+unaryop :   '#' {$$=newOpNode(OP_SHARP);}
+    |   '@'  {$$=newOpNode(OP_AT);}
+    |   '-' %prec UMINUS {$$=newOpNode(OP_UMINUS);}
     ;
 
 

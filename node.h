@@ -36,6 +36,7 @@ struct nodeType;
 #define NODE_ELSESTMT       19
 
 #define NODE_NESL           20
+#define NODE_DATATYPE       21
 
 #define NODE_LIST           50
 #define NODE_IFELSE         52
@@ -60,6 +61,20 @@ struct nodeType;
 #define OP_LE   9
 #define OP_NE   10
 #define OP_NOT  11
+#define OP_OR   12
+#define OP_COMMA  13
+#define OP_AND  14
+#define OP_NOR  15
+#define OP_NAND 16
+#define OP_XOR  17
+#define OP_EQQ  18
+#define OP_DIVEQ  19
+#define OP_LARROW 20
+#define OP_RARROW 21
+#define OP_UPT    22
+#define OP_SHARP  23
+#define OP_AT     24
+#define OP_UMINUS 25
 
 #include "symtab.h"
 struct nodeType {

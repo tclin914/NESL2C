@@ -9,7 +9,7 @@ all :
 
 debug :
 	lex lex.l
-	yacc yacc.y -d
+	yacc yacc.y -d --verbose --debug
 	gcc -c lex.yy.c -g
 	gcc -c y.tab.c -g 
 	gcc -c symtab.c -g 

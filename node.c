@@ -79,6 +79,27 @@ void printTree(struct nodeType *node, int ident) {
                 case OP_NE:
                     printf("%s!=\n", blank);
                     break;
+
+                case OP_OR    : printf("%sOR\n", blank);break;
+                case OP_COMMA : printf("%s , \n", blank);break;
+                case OP_AND   : printf("%sAND\n", blank);break;
+                case OP_NOR   : printf("%sNOR\n", blank);break;
+                case OP_NAND  : printf("%sNAND\n", blank);break;
+                case OP_XOR   : printf("%sXOR\n", blank);break;
+                case OP_EQQ   : printf("%s==\n", blank);break;
+                case OP_DIVEQ : printf("%s/=\n", blank);break;
+                case OP_LARROW: printf("%s<-\n", blank);break;
+                case OP_RARROW: printf("%s->\n", blank);break;
+                case OP_UPT   :printf("%s^\n", blank);break;
+
+
+
+
+
+
+
+
+
             }
             ident++;
             break;
