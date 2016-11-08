@@ -1,4 +1,4 @@
-function convex_hull(points) :([(float,float)])-> [(float,float)] =
+fuNction Convex_hull(points) :([(float,float)])-> [(float,float)] =
 let x = {x : (x,y) in points};
     minx = points[min_index(x)];
     maxx = points[max_index(x)];

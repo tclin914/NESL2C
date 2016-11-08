@@ -73,15 +73,17 @@ toplevel : FUNCTION nametoken pattern ':' typedef '=' exp ';' {
         }
     |   exp {
             $$=newNode(NODE_EXP);
-        }
-    ;
 
-funcopt : ':' typedef '=' exp ';' {
-            $$=newNode(NODE_EXP);
-            addChild($$, $2);
-            addChild($$, $4);
-        }
-        ;
+
+
+// funcopt : ':' typedef '=' exp ';' {
+//     $$=newNode(NODE_EXP);
+//     addChild($$, $2);
+//     addChild($$, $4);
+// }
+// ;
+             }
+    ;
 
 pattern : nametoken {
             $$->nodeType = NODE_SYM_REF;
@@ -188,11 +190,16 @@ exp : const {$$ = $1;}
             if($3->nodeType != NODE_EMPTY)
                 addChild($$,$3);
     }
-    | exp exp {
+    | nametoken '(' explist ')' {
             printf("\texp exp : function application\n");
             $$=newNode(NODE_EXP);
             addChild($$,$1);
             addChild($$,$2);
+    }
+    | sequence{ 
+        printf("\tSEQUENCE\n");
+        $$=$1;
+        $$ -> nodeType=NODE_SEQ;
     }
     | exp binop exp {
             printf("\texp_binary_Operation_reduce\n"); 
@@ -204,11 +211,6 @@ exp : const {$$ = $1;}
             printf("\texp_unaryop\n");
             $$=$1;
             addChild($$,$2);
-    }
-    | sequence{ 
-        printf("\tSEQUENCE\n");
-        $$=$1;
-        $$ -> nodeType=NODE_SEQ;
     }
     | exp '[' exp ']'{
             printf("\texp of sequence indexing \n");
@@ -237,11 +239,11 @@ expoption2 : '|' exp{$$=newNode(NODE_EXP);}
     ;
 
 expbinds :
-    pattern {printf("LET exb\n");} '=' exp ';' expbindsoption  {$$=newNode(NODE_EXP);}
+    pattern '=' exp ';' expbindsoption  {$$=$5; addChild($$,$1); addChild($1,$3);}
     ;
 
-expbindsoption :  {printf("LET epp\n");} expbinds {$$=newNode(NODE_EXP);}
-    | {$$=newNode(NODE_EXP);}
+expbindsoption :  expbinds {$$=$1;}
+    | {$$=newNode(NODE_LIST);}
     ;
 
 rbinds : rbind rbinds{$$=newNode(NODE_EXP);}
@@ -262,15 +264,13 @@ sequence : '[' explist ']'{
 seqoption : ':' exp{$$=newNode(NODE_EXP);}
     ;
 
-explist : explist ',' exp { printf(", way\n");
-            printf("exp->nodeType: %d\n",$3->nodeType);
+explist : explist ',' exp { 
             addChild($1, $3);
             $$=$1;
         }
-    | exp { printf("E way\n");
+    | exp { 
             $$ = newNode(NODE_LIST);
             addChild($$,$1);
-            printf("exp->nodeType: %d\n",$1->nodeType);
         }
     ;
 
@@ -283,10 +283,16 @@ const : intconst {
     |   stringconst{$$=$1;}
     ;
 
-binop : ','{
+binop : 
+    {
+    /*
+        ','{
             $$=newOpNode(OP_COMMA);
         }
-    | OR {$$=newOpNode(OP_OR);}| NOR {$$=newOpNode(OP_NOR);}| XOR{$$=newOpNode(OP_XOR);}
+    
+    |*/ 
+    }
+    OR {$$=newOpNode(OP_OR);}| NOR {$$=newOpNode(OP_NOR);}| XOR{$$=newOpNode(OP_XOR);}
     | AND {$$=newOpNode(OP_AND);}| NAND {$$=newNode(OP_NAND);}
     | EQQ {$$=newOpNode(OP_EQQ);}| NEQQ {$$=newOpNode(OP_DIVEQ);}| '<' {$$=newOpNode(OP_LT);}
         | '>' {$$=newOpNode(OP_GT);}| LE {$$=newOpNode(OP_LE);}| GE {$$=newOpNode(OP_GE);}

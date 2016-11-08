@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include "node.h"
 #include "y.tab.h"
 #define token(s) {printf("%s\ttoken%d\n",yytext, s);return(s);}
@@ -9,34 +10,7 @@ struct nodeType* newTokenNode(int tokenType);
 
 %}
 
-A [aA]
-B [bB]
-C [cC]
-D [dD]
-E [eE]
-F [fF]
-G [gG]
-H [hH]
-I [iI]
-J [jJ]
-K [kK]
-L [lL]
-M [mM]
-N [nN]
-O [oO]
-P [pP]
-Q [qQ]
-R [rR]
-S [sS]
-T [tT]
-U [uU]
-V [vV]
-W [wW]
-X [xX]
-Y [yY]
-Z [zZ]
-NQUOTE [^']
-
+%option caseless
 
 %%
 
@@ -112,28 +86,28 @@ NQUOTE [^']
 
 
 
-{F}{U}{N}{C}{T}{I}{O}{N} {
+"FUNCTION" {
     yylval.node = newTokenNode(FUNCTION);
     token(FUNCTION);    
 }
-{D}{A}{T}{A}{T}{Y}{P}{E} {
+"DATATYPE" {
     yylval.node = newTokenNode(DATATYPE);
     token(DATATYPE);
 }
 
-{N}{U}{M}{B}{E}{R}      {yylval.node = newTokenNode(NUMBER); token(NUMBER);  }
-{O}{R}{D}{I}{N}{A}{L}   {yylval.node = newTokenNode(ORDINAL); token(ORDINAL); }
-{L}{O}{G}{I}{C}{A}{L}   {yylval.node = newTokenNode(LOGICAL); token(LOGICAL); }
-{A}{N}{Y}               {yylval.node = newTokenNode(ANY); token(ANY);}
-{I}{N}{T}               {yylval.node = newTokenNode(INT); token(INT);}
-{B}{O}{O}{L}            {yylval.node = newTokenNode(BOOL); token(BOOL);}
-{F}{L}{O}{A}{T}         {yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ token(nametoken);}
-{C}{H}{A}{R}            {yylval.node = newTokenNode(CHAR); token(CHAR);}
-{I}{N}                  {yylval.node = newTokenNode(IN); token(IN);}
-{I}{F}                  {yylval.node = newTokenNode(IF); token(IF);}
-{E}{L}{S}{E}            {yylval.node = newTokenNode(ELSE); token(ELSE);}
-{T}{H}{E}{N}            {yylval.node = newTokenNode(THEN); token(THEN);}
-{L}{E}{T}               {yylval.node = newTokenNode(LET); token(LET);}
+"NUMBER"      {yylval.node = newTokenNode(NUMBER); token(NUMBER);  }
+"ORDINAL"   {yylval.node = newTokenNode(ORDINAL); token(ORDINAL); }
+"LOGICAL"   {yylval.node = newTokenNode(LOGICAL); token(LOGICAL); }
+"ANY"               {yylval.node = newTokenNode(ANY); token(ANY);}
+"INT"               {yylval.node = newTokenNode(INT); token(INT);}
+"BOOL"            {yylval.node = newTokenNode(BOOL); token(BOOL);}
+"FLOAT"         {yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ token(nametoken);}
+"CHAR"            {yylval.node = newTokenNode(CHAR); token(CHAR);}
+"IN"                  {yylval.node = newTokenNode(IN); token(IN);}
+"IF"                  {yylval.node = newTokenNode(IF); token(IF);}
+"ELSE"            {yylval.node = newTokenNode(ELSE); token(ELSE);}
+"THEN"            {yylval.node = newTokenNode(THEN); token(THEN);}
+"LET"               {yylval.node = newTokenNode(LET); token(LET);}
 
 
 [-+]?[0-9]+ { 
@@ -148,16 +122,16 @@ NQUOTE [^']
     yylval.node->rValue = atof(yytext);
     token(floatconst);
 }
-[_a-zA-Z0-9]+  {
+[_a-z0-9]+  {
             yylval.node = newTokenNode(nametoken);
             yylval.node->string = (char*)malloc(yyleng+1);
             strcpy(yylval.node->string, yytext);
             token(nametoken);
 }
-{T}        {
+'T'        {
             token(boolconst);
 }
-{F} {
+'F' {
             token(boolconst);
 }
 \"[^"]*\"     {
