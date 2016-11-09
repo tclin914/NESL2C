@@ -7,5 +7,12 @@
 //        maxx = points[max_index(x)];
 //        in hsplit(points,minx,maxx) ++ hsplit(points,maxx,minx);
 
-let a={x:(x,y) in points}; minx=points[min_index(x)]; in b 
+//let a={x:(x,y) in points}; minx=points[min_index(x)]; in b 
+let pivot   = a[#a/2];
+      lesser  = {e in a| e < pivot};
+      equal   = {e in a| e == pivot};
+      greater = {e in a| e > pivot};
+      result  = {quicksort(v): v in [lesser,greater]};
+in result[0] ++ equal ++ result[1];
+
 

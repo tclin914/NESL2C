@@ -20,7 +20,7 @@ extern struct nodeType* ASTRoot;
 %token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND 
 %token <node> intconst floatconst nametoken boolconst stringconst
-%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' 
+%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|'
 
 %type <node> goal nesl toplevel funcopt typedef typebinds typebind
 %type <node> typeexp typelist typeclass basetype exp expoption1
@@ -182,18 +182,19 @@ exp : const {$$ = $1;}
             addChild($$,$2);
             addChild($$,$4);
     }
-    | '{' expoption1 rbinds expoption2 '}' {
+    | '{'{printf("\t\t\t\tthis\n");} applytoeach '}' {
             printf("\texp rule3\n");
-            $$=newNode(NODE_EXP);
+           /* $$=newNode(NODE_EXP);
             if($1->nodeType != NODE_EMPTY)
                 addChild($$,$1);
             if($3->nodeType != NODE_EMPTY)
                 addChild($$,$3);
+        */
     }
-    | nametoken '(' explist ')' {
+    | '(' explist ')' {
             printf("\texp exp : function application\n");
             $$=newNode(NODE_EXP);
-            addChild($$,$1);
+            //addChild($$,$1);
             addChild($$,$2);
     }
     | sequence{ 
@@ -225,8 +226,13 @@ exp : const {$$ = $1;}
     }
     ;
 
-expoption1 : exp ':' {
-        printf("\texpoptinal1\n");
+applytoeach : expoption1  rbinds expoption2
+    |   rbinds 
+    |   rbinds  expoption2
+    |   expoption1 rbinds
+
+expoption1 : nametoken '(' nametoken ')' ':' {
+        printf("\t\t\t\texpoptinal1\n");
         $$ =$1;
     }
     | {
@@ -234,7 +240,10 @@ expoption1 : exp ':' {
     }
     ;
 
-expoption2 : '|' exp{$$=newNode(NODE_EXP);}
+expoption2 : '|' exp{
+            $$=newNode(NODE_EXP);
+            printf("\t\t\t\texpoption2\n");
+            }
     | {$$=newNode(NODE_EXP);}
     ;
 
@@ -242,7 +251,10 @@ expbinds :
     pattern '=' exp ';' expbindsoption  {$$=$5; addChild($$,$1); addChild($1,$3);}
     ;
 
-expbindsoption :  expbinds {$$=$1;}
+expbindsoption :  expbinds {
+            printf("\t\t\t\tbindbind\n");
+            $$=$1;
+            }
     | {$$=newNode(NODE_LIST);}
     ;
 
@@ -323,7 +335,8 @@ struct nodeType * newOpNode(int op) {
 int yyerror(const char *s) {
     printf("Syntax error\n");
     //printf("errror: %s",s);
-        exit(0);
+
+    exit(0);
 }
 
 int main(int argc, char** argv){

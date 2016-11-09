@@ -19,6 +19,11 @@ struct nodeType* newTokenNode(int tokenType);
            so that they won't appear in output */
 }
 
+"#"     token('#');
+"@"     token('@');
+"^"     token('^');
+"|"     token('|');
+
 ">" {
             token('>');
 }
