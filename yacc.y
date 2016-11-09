@@ -66,14 +66,14 @@ toplevel : FUNCTION nametoken pattern ':' typedef '=' exp ';' {
             addChild($$,$2);
             addChild($2,$3);
         }
-    |   pattern '=' exp {
+    |   pattern '=' exp ';' {
                 $$ = newNode(NODE_ASSIGN_STMT);
                 addChild($$, $1);
                 addChild($$, $3);
         }
-    |   exp {
+    |   exp ';' {
             $$=newNode(NODE_EXP);
-
+    
 
 
 // funcopt : ':' typedef '=' exp ';' {
@@ -182,7 +182,7 @@ exp : const {$$ = $1;}
             addChild($$,$2);
             addChild($$,$4);
     }
-    | '{'{printf("\t\t\t\tthis\n");} applytoeach '}' {
+    | '{'{printf("\t\t\t\tapplytoeach\n");} applytoeach '}' {
             printf("\texp rule3\n");
            /* $$=newNode(NODE_EXP);
             if($1->nodeType != NODE_EMPTY)
@@ -192,6 +192,12 @@ exp : const {$$ = $1;}
         */
     }
     | '(' explist ')' {
+            printf("\texp exp : function application\n");
+            $$=newNode(NODE_EXP);
+            //addChild($$,$1);
+            addChild($$,$2);
+    }
+    | nametoken '(' explist ')' {
             printf("\texp exp : function application\n");
             $$=newNode(NODE_EXP);
             //addChild($$,$1);
@@ -230,8 +236,8 @@ applytoeach : expoption1  rbinds expoption2
     |   rbinds 
     |   rbinds  expoption2
     |   expoption1 rbinds
-
-expoption1 : nametoken '(' nametoken ')' ':' {
+    ;
+expoption1 : nametoken '(' pattern  ')' {printf("opt1`111\n");}  ':' {
         printf("\t\t\t\texpoptinal1\n");
         $$ =$1;
     }
@@ -258,10 +264,10 @@ expbindsoption :  expbinds {
     | {$$=newNode(NODE_LIST);}
     ;
 
-rbinds : rbind rbinds{$$=newNode(NODE_EXP);}
+rbinds : rbind {printf("\t\t\t\t rbind rbinds\n");}  rbinds{$$=newNode(NODE_EXP);}
     | ';' rbind{$$=newNode(NODE_EXP);}
-    |{$$=newNode(NODE_EXP);}
-    ;
+    | {$$=newNode(NODE_EXP); printf("\t\t\t\tempty rbinds\n");}
+    ; 
 
 rbind : pattern IN exp {$$=newNode(NODE_EXP);}
     | nametoken {$$=newNode(NODE_EXP);}
