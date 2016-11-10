@@ -49,58 +49,61 @@ void printTree(struct nodeType *node, int ident) {
             break;
         case NODE_OP:
             switch(node->op) {
-                case OP_ADD:
-                    printf("%s+\n", blank);
-                    break;
-                case OP_SUB:
-                    printf("%s-\n", blank);
-                    break;
-                case OP_MUL:
-                    printf("%s*\n", blank);
-                    break;
-                case OP_DIV:
-                    printf("%s/\n", blank);
-                    break;
-                case OP_GT:
-                    printf("%s>\n", blank);
-                    break;
-                case OP_LT:
-                    printf("%s<\n", blank);
-                    break;
-                case OP_EQ:
-                    printf("%s=\n", blank);
-                    break;
-                case OP_GE:
-                    printf("%s>=\n", blank);
-                    break;
-                case OP_LE:
-                    printf("%s<=\n", blank);
-                    break;
-                case OP_NE:
-                    printf("%s!=\n", blank);
-                    break;
-
-                case OP_OR    : printf("%sOR\n", blank);break;
-                case OP_COMMA : printf("%s , \n", blank);break;
-                case OP_AND   : printf("%sAND\n", blank);break;
-                case OP_NOR   : printf("%sNOR\n", blank);break;
-                case OP_NAND  : printf("%sNAND\n", blank);break;
-                case OP_XOR   : printf("%sXOR\n", blank);break;
-                case OP_EQQ   : printf("%s==\n", blank);break;
-                case OP_DIVEQ : printf("%s/=\n", blank);break;
-                case OP_LARROW: printf("%s<-\n", blank);break;
-                case OP_RARROW: printf("%s->\n", blank);break;
-                case OP_UPT   :printf("%s^\n", blank);break;
-
-
-
-
-
-
-
-
-
+                case OP_ADD   : printf("%s+\n", blank); break;
+                case OP_SUB   : printf("%s-\n", blank); break;
+                case OP_MUL   : printf("%s*\n", blank); break;
+                case OP_DIV   : printf("%s/\n", blank); break;
+                case OP_GT    : printf("%s>\n", blank); break;
+                case OP_LT    : printf("%s<\n", blank); break;
+                case OP_EQ    : printf("%s=\n", blank); break;
+                case OP_GE    : printf("%s>=\n", blank); break;
+                case OP_LE    : printf("%s<=\n", blank); break;
+                case OP_NE    : printf("%s/= (not equal)\n", blank); break;
+                case OP_NOT   : printf("%sNOT\n", blank); break;
+                case OP_OR    : printf("%sOR\n", blank); break;
+                case OP_COMMA : printf("%s,\n", blank); break;
+                case OP_AND   : printf("%sAND\n", blank); break;
+                case OP_NOR   : printf("%sNOR\n", blank); break;
+                case OP_NAND  : printf("%sNAND\n", blank); break;
+                case OP_XOR   : printf("%sXOR\n", blank); break;
+                case OP_LARROW: printf("%s<-\n", blank); break;
+                case OP_RARROW: printf("%s->\n", blank); break;
+                case OP_UPT   : printf("%s^\n", blank); break;
+                case OP_SHARP : printf("%s#\n", blank); break;
+                case OP_AT    : printf("%s@\n", blank); break;
+                case OP_UMINUS: printf("%sUMINUS - \n", blank); break;
+                
             }
+            ident++;
+            break;
+       
+        case NODE_APPEACH :
+            printf("%sApply to each\n", blank);
+            ident++;
+            break;
+        case NODE_IFELSE  :
+            printf("%sIFELSE\n", blank);
+            ident++;
+            break;
+        case NODE_IFSTMT  :
+            printf("%sIF\n", blank);
+            ident++;
+            break;
+        case NODE_THENSTMT:
+            printf("%sTHEN\n", blank);
+            ident++;
+            break;
+        case NODE_ELSESTMT:
+            printf("%sELSE\n", blank);
+            ident++;
+            break;
+        
+        case NODE_TYPEEXP:
+            printf("%sNODE_TYPEEXP\n", blank);
+            ident++;
+            break;
+        case NODE_INFER:
+            printf("%sNODE_INFER\n", blank);
             ident++;
             break;
         case NODE_NESL:
@@ -126,10 +129,6 @@ void printTree(struct nodeType *node, int ident) {
             break;
         case NODE_LIST:
             printf("%sLIST\n", blank);
-            ident++;
-            break;
-        case NODE_IFSTMT:
-            printf("%sIFELSE\n", blank);
             ident++;
             break;
         case NODE_ERROR:

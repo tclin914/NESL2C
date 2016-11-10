@@ -41,6 +41,10 @@ struct nodeType;
 #define NODE_LIST           50
 #define NODE_IFELSE         52
 
+#define NODE_INFER          53
+#define NODE_TYPEEXP        54
+#define NODE_APPEACH        55
+
 #define NODE_FUNC           94
 #define NODE_PROC           95
 #define NODE_STMT           96
@@ -50,31 +54,29 @@ struct nodeType;
 #define NODE_ERROR          100
 #define NODE_EMPTY          101
 
-#define OP_ADD  1
-#define OP_SUB  2
-#define OP_MUL  3
-#define OP_DIV  4
-#define OP_GT   5
-#define OP_LT   6
-#define OP_EQ   7
-#define OP_GE   8
-#define OP_LE   9
-#define OP_NE   10
-#define OP_NOT  11
-#define OP_OR   12
-#define OP_COMMA  13
-#define OP_AND  14
-#define OP_NOR  15
-#define OP_NAND 16
-#define OP_XOR  17
-#define OP_EQQ  18
-#define OP_DIVEQ  19
-#define OP_LARROW 20
-#define OP_RARROW 21
-#define OP_UPT    22
-#define OP_SHARP  23
-#define OP_AT     24
-#define OP_UMINUS 25
+#define OP_ADD            1
+#define OP_SUB            2
+#define OP_MUL            3
+#define OP_DIV            4
+#define OP_GT             5
+#define OP_LT             6
+#define OP_EQ             7
+#define OP_GE             8
+#define OP_LE             9
+#define OP_NE             10
+#define OP_NOT            11
+#define OP_OR             12
+#define OP_COMMA          13
+#define OP_AND            14
+#define OP_NOR            15
+#define OP_NAND           16
+#define OP_XOR            17
+#define OP_LARROW         20
+#define OP_RARROW         21
+#define OP_UPT            22
+#define OP_SHARP          23
+#define OP_AT             24
+#define OP_UMINUS         25
 
 #include "symtab.h"
 struct nodeType {

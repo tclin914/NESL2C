@@ -96,8 +96,8 @@ TODO comment %...% (low priority)
 "<-" {
             token(LARROW);
 }
-"=="    token(EQQ);
-"/="    token(NEQQ);
+"=="    token(EQ);
+"/="    token(NE);
 "<="    token(LE);
 ">="    token(GE);
 
@@ -116,9 +116,26 @@ TODO comment %...% (low priority)
 "ORDINAL"   {yylval.node = newTokenNode(ORDINAL); token(ORDINAL); }
 "LOGICAL"   {yylval.node = newTokenNode(LOGICAL); token(LOGICAL); }
 "ANY"               {yylval.node = newTokenNode(ANY); token(ANY);}
-"INT"               {yylval.node = newTokenNode(INT); token(INT);}
-"BOOL"            {yylval.node = newTokenNode(BOOL); token(BOOL);}
-"FLOAT"         {yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ token(nametoken);}
+"INT"       {
+                yylval.node = newTokenNode(INT);
+                yylval.node->string = (char*)malloc(yyleng+1);
+                strcpy(yylval.node->string, yytext);
+                token(INT);
+            }
+"BOOL"        {
+        yylval.node = newTokenNode(BOOL); 
+        yylval.node->string = (char*)malloc(yyleng+1);
+        strcpy(yylval.node->string, yytext);
+        token(BOOL);
+        
+        }
+"FLOAT"         {
+        yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ 
+        yylval.node->string = (char*)malloc(yyleng+1);
+        strcpy(yylval.node->string, yytext);
+        token(nametoken);
+        
+        }
 "CHAR"            {yylval.node = newTokenNode(CHAR); token(CHAR);}
 "IN"                  {yylval.node = newTokenNode(IN); token(IN);}
 "IF"                  {yylval.node = newTokenNode(IF); token(IF);}
