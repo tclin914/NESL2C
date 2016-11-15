@@ -17,6 +17,20 @@ TODO
 6. Codegeneration
 7. Validation and optimization
 
+%%%%%%%
+For Branch newgrammar:
+Build:
+    make newtest( contains the debug info.)
+
+Run:
+    ./a.out < test/sequence_good
+    ./a.out < test/function_good
+    ./a.out < test/qs.nesl
+    ./a.out < test/qh.nesl
+
+
+%%%%%%%
+
 Make:
     make all
 Run: 
