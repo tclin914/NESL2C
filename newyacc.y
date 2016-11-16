@@ -19,7 +19,7 @@ extern struct nodeType* ASTRoot;
 
 %token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
-%token <node> intconst floatconst nametoken boolconst stringconst TIME
+%token <node> intconst floatconst ID boolconst stringconst TIME
 %token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|'
 
 /*
@@ -49,12 +49,12 @@ goal: TopLevel
     ;
 
 TopLevel 
-        : FUNCTION FunId Pattern ':' FunTypeDef '=' Exp EndMark
-        | Pattern '=' Exp EndMark
+        : FUNCTION FunId Exp ':' FunTypeDef '=' Exp EndMark
+        | Exp '=' Exp EndMark
         | Exp EndMark
         ;
 
-FunId   : nametoken
+FunId   : ID
         | SpecialId
         ;
 /*
@@ -62,7 +62,7 @@ TypecaseRule
         : '|' TypecaseLHS ':' Exp  
         ;
 TypecaseLHS 
-        : nametoken
+        : ID
         | FUNCTION
         ;
 */
@@ -74,8 +74,8 @@ EndMark : ';'
 FunTypeDef : TypeExp RARROW TypeExp
         ;
 
-TypeExp : nametoken
-        | nametoken '(' TypeList ')'
+TypeExp : ID
+        | ID '(' TypeList ')'
         | '[' TypeExp ']'
         | '('PairTypes ')'
         ;
@@ -104,21 +104,23 @@ ExpBinds
     ;
 
 ExpBind
-    : Pattern '=' Exp
+    : Exp '=' Exp
     ;
 
 TupleExp
-    : OrExp ',' TupleRest
-    | OrExp
+    : OrExp 
+    | Exp ',' OrExp
     ;
 
+/*
 TupleRest
     : TupleExp
     | IfOrLetExp
     ;
-    
+*/
+
 OrExp
-    : AndExp OrOp AndExp
+    : OrExp OrOp AndExp
     | AndExp
     ;
 
@@ -126,7 +128,7 @@ OrOp: OR | NOR | XOR ;
 
 AndExp
     : RelExp
-    | RelExp AndOp RelExp
+    | AndExp AndOp RelExp
     ;
 
 AndOp
@@ -136,11 +138,11 @@ AndOp
 
 RelExp
     : AddExp
-    | AddExp RelOp AddExp
+    | RelExp RelOp AddExp
     ;
 
 RelOp
-    : '=' | EQ | NE
+    :  EQ | NE
     | '<' | '>'
     | LE | GE
     ;
@@ -165,7 +167,7 @@ MulOp
 
 ExpExp 
     : UnExp 
-    | UnExp '^' UnExp
+    | ExpExp '^' UnExp
     ;
 
 UnExp 
@@ -174,12 +176,15 @@ UnExp
     ;
 
 UnOp
-    : '#' | '@' | '-'
+    : '#' | '@' | UMINUS
     ;
 
 SubscriptExp
     : AtomicExp
     | AtomicExp '[' Exp ']'
+/*    | newpattern
+    | newpattern '[' Exp ']' 
+*/
     ;
 /*
 ApplyExp
@@ -190,14 +195,15 @@ ApplyExp
 AtomicExp
     : Const
     | SpecialId '(' Exp ')'
-    | nametoken
-    | nametoken '(' Exp ')'
-    | TIME '(' Exp ')'
+/*    | TIME '(' Exp ')' */
     | '{' ApplyBody '}'
     | '{' ApplyBody '|' Exp '}'
     | '[' ']' TypeExp
     | '[' Exp SequenceTail ']'
     | '(' Exp ')'
+    | ID
+    | ID '(' Exp ')'
+    
     ;
 
 
@@ -216,8 +222,10 @@ RBinds
     ;
     
 RBind
-    : nametoken
-    | Pattern IN Exp
+    : ID
+    | Exp IN Exp
+/*    | pattern IN Exp
+*/
     ;
 
 SequenceTail
@@ -232,19 +240,24 @@ Const
     | boolconst
     | stringconst
     ;
-
-Pattern
+/*
+newpattern :
+    ID
+    | ID '(' Exp ')'
+    | '(' Exp ')'
+    | newpattern ',' ID
+    ;
+pattern
     : AtomicPat
-    | Pattern ',' AtomicPat
+    | pattern ',' AtomicPat
     ;
 
 AtomicPat
-    : nametoken
-    | nametoken '(' Pattern ')'
-    | '(' Pattern ')'
+    : ID
+    | ID '(' pattern ')'
+    | '(' pattern ')'
     ;
-
-
+*/
 
 %%
 

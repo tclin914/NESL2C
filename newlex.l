@@ -115,7 +115,7 @@ TODO comment %...% (low priority)
     token(DATATYPE);
 }
 
-"TIME"      {yylval.node = newTokenNode(TIME); token(TIME);  }
+"OR"      {yylval.node = newTokenNode(OR); token(OR);  }
 "NUMBER"      {yylval.node = newTokenNode(NUMBER); token(NUMBER);  }
 "ORDINAL"   {yylval.node = newTokenNode(ORDINAL); token(ORDINAL); }
 "LOGICAL"   {yylval.node = newTokenNode(LOGICAL); token(LOGICAL); }
@@ -124,7 +124,7 @@ TODO comment %...% (low priority)
                 yylval.node = newTokenNode(INT);
                 yylval.node->string = (char*)malloc(yyleng+1);
                 strcpy(yylval.node->string, yytext);
-                token(nametoken);
+                token(ID);
             }
 "BOOL"        {
         yylval.node = newTokenNode(BOOL); 
@@ -137,7 +137,7 @@ TODO comment %...% (low priority)
         yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ 
         yylval.node->string = (char*)malloc(yyleng+1);
         strcpy(yylval.node->string, yytext);
-        token(nametoken);
+        token(ID);
         
         }
 "CHAR"            {yylval.node = newTokenNode(CHAR); token(CHAR);}
@@ -161,10 +161,10 @@ TODO comment %...% (low priority)
     token(floatconst);
 }
 [_a-z0-9]+  {
-            yylval.node = newTokenNode(nametoken);
+            yylval.node = newTokenNode(ID);
             yylval.node->string = (char*)malloc(yyleng+1);
             strcpy(yylval.node->string, yytext);
-            token(nametoken);
+            token(ID);
 }
 'T'        {
             token(boolconst);
