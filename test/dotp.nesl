@@ -1,0 +1,9 @@
+function dotprod(a,b) =
+  sum({x * y: x in a ; y in b});
+
+function run_dotprod(n) =
+let
+  xs = {float(rand(i))  : i in dist(100, n)} ;
+  ys = {float(rand(i))  : i in dist(100, n)} ;
+  (zs, tm) = time(dotprod(xs,ys))
+in (zs, tm)$

@@ -34,6 +34,7 @@ TODO comment %...% (low priority)
 
 "%"[^%]*"%" 
 
+"$"     token('$');
 "#"     token('#');
 "@"     token('@');
 "^"     token('^');
@@ -115,7 +116,6 @@ TODO comment %...% (low priority)
     token(DATATYPE);
 }
 
-"OR"      {yylval.node = newTokenNode(OR); token(OR);  }
 "NUMBER"      {yylval.node = newTokenNode(NUMBER); token(NUMBER);  }
 "ORDINAL"   {yylval.node = newTokenNode(ORDINAL); token(ORDINAL); }
 "LOGICAL"   {yylval.node = newTokenNode(LOGICAL); token(LOGICAL); }
@@ -139,6 +139,7 @@ TODO comment %...% (low priority)
         strcpy(yylval.node->string, yytext);
         token(ID);
         
+/*"TIME"            {yylval.node = newTokenNode(TIME); token(TIME);} */
         }
 "CHAR"            {yylval.node = newTokenNode(CHAR); token(CHAR);}
 "IN"                  {yylval.node = newTokenNode(IN); token(IN);}
@@ -146,15 +147,20 @@ TODO comment %...% (low priority)
 "ELSE"            {yylval.node = newTokenNode(ELSE); token(ELSE);}
 "THEN"            {yylval.node = newTokenNode(THEN); token(THEN);}
 "LET"               {yylval.node = newTokenNode(LET); token(LET);}
+"AND"               {yylval.node = newTokenNode(AND); token(AND);}
+"NAND"               {yylval.node = newTokenNode(NAND); token(NAND);}
+"NOR"               {yylval.node = newTokenNode(NOR); token(NOR);}
+"XOR"               {yylval.node = newTokenNode(XOR); token(XOR);}
+"OR"      {yylval.node = newTokenNode(OR); token(OR);  }
 
 
-[-+]?[0-9]+ { 
+[0-9]+ { 
     yylval.node = newTokenNode(intconst);
     yylval.node->valueValid = VALUE_I_VALID;
     yylval.node->iValue = atoi(yytext);
     token(intconst); 
 }
-[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
+[0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
     yylval.node = newTokenNode(floatconst);
     yylval.node->valueValid = VALUE_R_VALID;
     yylval.node->rValue = atof(yytext);

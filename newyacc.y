@@ -20,7 +20,7 @@ extern struct nodeType* ASTRoot;
 %token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
 %token <node> intconst floatconst ID boolconst stringconst TIME
-%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|'
+%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|' '$'
 
 /*
 %type <node> goal nesl TopLevel FunId TypecaseRule TypecaseLHS EndMark
@@ -50,6 +50,8 @@ goal: TopLevel
 
 TopLevel 
         : FUNCTION FunId Exp ':' FunTypeDef '=' Exp EndMark
+        | FUNCTION FunId Exp '=' Exp EndMark
+        | DATATYPE ID '(' TypeList ')' EndMark
         | Exp '=' Exp EndMark
         | Exp EndMark
         ;
@@ -96,6 +98,7 @@ Exp : IfOrLetExp
 IfOrLetExp
     : IF Exp THEN Exp ELSE Exp
     | LET ExpBinds ';' IN Exp
+    | LET ExpBinds IN Exp
     ;
 
 ExpBinds
@@ -109,15 +112,14 @@ ExpBind
 
 TupleExp
     : OrExp 
-    | Exp ',' OrExp
+    | OrExp ',' TupleRest
     ;
 
-/*
+
 TupleRest
     : TupleExp
     | IfOrLetExp
     ;
-*/
 
 OrExp
     : OrExp OrOp AndExp
@@ -176,7 +178,7 @@ UnExp
     ;
 
 UnOp
-    : '#' | '@' | UMINUS
+    : '#' | '@' | '-'
     ;
 
 SubscriptExp
