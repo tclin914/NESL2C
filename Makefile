@@ -16,7 +16,7 @@ debug :
 	gcc -c node.c -g 
 	gcc y.tab.o node.o symtab.o -g -ly -ll 
 
-newtest :
+dnewtest :
 	lex newlex.l
 	yacc newyacc.y -d --verbose --debug
 	gcc -c lex.yy.c -g
@@ -24,6 +24,15 @@ newtest :
 	gcc -c symtab.c -g 
 	gcc -c newnode.c -g 
 	gcc y.tab.o node.o symtab.o -g -ly -ll 
+
+newtest :
+	lex newlex.l
+	yacc newyacc.y -d 
+	gcc -c lex.yy.c -g
+	gcc -c y.tab.c -g 
+	gcc -c symtab.c -g 
+	gcc -c newnode.c -g 
+	gcc y.tab.o newnode.o symtab.o -g -ly -ll 
 
 
 run :

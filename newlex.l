@@ -15,23 +15,9 @@ struct nodeType* newTokenNode(int tokenType);
 
 %%
 
-[ \n]* {
-    /* Just to eat the spaces and new lines
-           so that they won't appear in output */
-    /*}
-
-TODO comment %...% (low priority)
-
-"%"    { BEGIN COMMENT; }
-<COMMENT>"%"       {BEGIN 0;}
-<COMMENT>[^*\n]*       
-<COMMENT>\n {
-             }
-*/
 
 
-}
-
+[ \n]*
 "%"[^%]*"%" 
 
 "$"     token('$');
@@ -39,73 +25,29 @@ TODO comment %...% (low priority)
 "@"     token('@');
 "^"     token('^');
 "|"     token('|');
-
-">" {
-            token('>');
-}
-"<" {
-            token('<');
-}
-"," {
-            token(',');
-}
-"(" {
-            token('(');
-}
-")" {
-            token(')');
-}
-"+" {
-            token('+');
-}
-"-" {
-            token('-');
-}
-"*" {
-            token('*');
-}
-":" {
-            token(':');
-}
-"/" {
-            token('/');
-} 
-"[" {
-            token('[');
-}
-"]" {
-            token(']');
-}
-"{" {
-            token('{');
-}
-"}" {
-            token('}');
-}
-
-";" {
-            token(';');
-}
-"=" {
-            token('=');
-}
-
-"++" {      token(PP);
-}
-
-"->" {
-            token(RARROW);
-}
-
-"<-" {
-            token(LARROW);
-}
+">"     token('>');
+"<"     token('<');
+","     token(',');
+"("     token('(');
+")"     token(')');
+"+"     token('+');
+"-"     token('-');
+"*"     token('*');
+":"     token(':');
+"/"     token('/');
+"["     token('[');
+"]"     token(']');
+"{"     token('{');
+"}"     token('}');
+";"     token(';');
+"="     token('=');
+"++"    token(PP);
+"->"    token(RARROW);
+"<-"    token(LARROW);
 "=="    token(EQ);
 "/="    token(NE);
 "<="    token(LE);
 ">="    token(GE);
-
-
 
 "FUNCTION" {
     yylval.node = newTokenNode(FUNCTION);

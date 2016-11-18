@@ -143,7 +143,7 @@ void printTree(struct nodeType *node, int ident) {
             ident++;
             break;
         case NODE_FUNC:
-            printf("%sFUNC\n", blank);
+            printf("%sFUNC: %s\n", blank, node->string);
             ident++;
             break;
         case NODE_PROC:

@@ -77,6 +77,7 @@ struct nodeType;
 #define OP_SHARP          23
 #define OP_AT             24
 #define OP_UMINUS         25
+#define OP_BIND           26
 
 #include "symtab.h"
 struct nodeType {

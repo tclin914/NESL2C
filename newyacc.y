@@ -19,16 +19,20 @@ extern struct nodeType* ASTRoot;
 
 %token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
-%token <node> intconst floatconst ID boolconst stringconst TIME
+%token <node> intconst floatconst ID boolconst stringconst TIME 
 %token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|' '$'
 
-/*
-%type <node> goal nesl TopLevel FunId TypecaseRule TypecaseLHS EndMark
-%type <node> FunTypeDef TypeExp PairTypes TypeList Exp IfOrLetExp ExpBind
-%type <node> TupleExp TupleRest OrExp AndExp AndOp RelExp RelOp AddExp AddOp
-%type <node> MulExp ExpExp UnOp SubscriptExp ApplyExp AtomicExp SpecialId
-%type <node> ApplyBody RBinds RBind SequenceTail Const Pattern AtomicPat
-*/
+
+%type <node> goal TopLevel FunId EndMark FunTypeDef TypeExp PairTypes TypeList
+%type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp OrOp 
+%type <node> AndExp AndOp RelExp RelOp AddExp AddOp MulExp MulOp ExpExp UnExp 
+%type <node> UnOp SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
+%type <node> SequenceTail Const 
+
+%type <node> '<' '>' '+' '-' PP 
+
+%type <node> '*' '/' '^' '#' '@' 
+
 
 %left ','
 %left OR NOR XOR
@@ -44,30 +48,33 @@ extern struct nodeType* ASTRoot;
 
 %%
 
-goal: TopLevel
-    | goal TopLevel
+goal: TopLevel {ASTRoot=newNode(NODE_LIST);addChild(ASTRoot,$1);$$=ASTRoot; }
+    | goal TopLevel {$$=$1; addChild($$,$2);}
     ;
 
 TopLevel 
         : FUNCTION FunId Exp ':' FunTypeDef '=' Exp EndMark
+        {
+            $$=$1;
+            $$->nodeType = NODE_FUNC;
+            $1->string =  (char*)malloc(sizeof(strlen($2->string)));
+            strcpy($$->string, $2->string);
+            $6->nodeType = NODE_OP;
+            $6->op = OP_BIND;
+        }
         | FUNCTION FunId Exp '=' Exp EndMark
         | DATATYPE ID '(' TypeList ')' EndMark
         | Exp '=' Exp EndMark
         | Exp EndMark
         ;
 
-FunId   : ID
-        | SpecialId
+FunId   : ID{
+                $$=$1;
+        }
+        | SpecialId{
+                $$=$1;
+        }
         ;
-/*
-TypecaseRule
-        : '|' TypecaseLHS ':' Exp  
-        ;
-TypecaseLHS 
-        : ID
-        | FUNCTION
-        ;
-*/
 
 EndMark : ';' 
         | '$'
@@ -89,7 +96,6 @@ PairTypes : PairTypes ',' TypeExp
 TypeList : TypeList ',' TypeExp 
         | TypeExp
         ;
-
 
 Exp : IfOrLetExp
     | TupleExp
@@ -184,20 +190,12 @@ UnOp
 SubscriptExp
     : AtomicExp
     | AtomicExp '[' Exp ']'
-/*    | newpattern
-    | newpattern '[' Exp ']' 
-*/
     ;
-/*
-ApplyExp
-    : AtomicExp
-    | AtomicExp AtomicExp
-    ;
-*/
+
 AtomicExp
     : Const
     | SpecialId '(' Exp ')'
-/*    | TIME '(' Exp ')' */
+/*  TODO extract TIME(EXP) FLOAT(EXP) */
     | '{' ApplyBody '}'
     | '{' ApplyBody '|' Exp '}'
     | '[' ']' TypeExp
@@ -205,9 +203,7 @@ AtomicExp
     | '(' Exp ')'
     | ID
     | ID '(' Exp ')'
-    
     ;
-
 
 SpecialId
     : ANY
@@ -226,14 +222,14 @@ RBinds
 RBind
     : ID
     | Exp IN Exp
-/*    | pattern IN Exp
+/*    TODO pattern IN Exp
 */
     ;
 
 SequenceTail
     : ':' Exp
     | ':' Exp ':' Exp
-    | 
+    | {$$ = newNode(NODE_EMPTY);} 
     ;
 
 Const
@@ -242,24 +238,6 @@ Const
     | boolconst
     | stringconst
     ;
-/*
-newpattern :
-    ID
-    | ID '(' Exp ')'
-    | '(' Exp ')'
-    | newpattern ',' ID
-    ;
-pattern
-    : AtomicPat
-    | pattern ',' AtomicPat
-    ;
-
-AtomicPat
-    : ID
-    | ID '(' pattern ')'
-    | '(' pattern ')'
-    ;
-*/
 
 %%
 
