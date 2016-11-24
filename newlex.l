@@ -20,34 +20,34 @@ struct nodeType* newTokenNode(int tokenType);
 [ \n]*
 "%"[^%]*"%" 
 
-"$"     token('$');
-"#"     token('#');
-"@"     token('@');
-"^"     token('^');
-"|"     token('|');
-">"     token('>');
-"<"     token('<');
-","     token(',');
-"("     token('(');
-")"     token(')');
-"+"     token('+');
-"-"     token('-');
-"*"     token('*');
-":"     token(':');
-"/"     token('/');
-"["     token('[');
-"]"     token(']');
-"{"     token('{');
-"}"     token('}');
-";"     token(';');
-"="     token('=');
-"++"    token(PP);
-"->"    token(RARROW);
-"<-"    token(LARROW);
-"=="    token(EQ);
-"/="    token(NE);
-"<="    token(LE);
-">="    token(GE);
+"$"    {yylval.node = newTokenNode(NODE_MARK); token('$');     }   
+"#"    {yylval.node = newTokenNode(NODE_MARK); token('#');     }
+"@"    {yylval.node = newTokenNode(NODE_MARK); token('@');     }
+"^"    {yylval.node = newTokenNode(NODE_MARK); token('^');     }
+"|"    {yylval.node = newTokenNode(NODE_MARK); token('|');     }
+">"    {yylval.node = newTokenNode(NODE_MARK); token('>');     }
+"<"    {yylval.node = newTokenNode(NODE_MARK); token('<');     }
+","    {yylval.node = newTokenNode(NODE_MARK); token(',');     }
+"("    {yylval.node = newTokenNode(NODE_MARK); token('(');     }
+")"    {yylval.node = newTokenNode(NODE_MARK); token(')');     }
+"+"    {yylval.node = newTokenNode(NODE_MARK); token('+');     }
+"-"    {yylval.node = newTokenNode(NODE_MARK); token('-');     }
+"*"    {yylval.node = newTokenNode(NODE_MARK); token('*');     }
+":"    {yylval.node = newTokenNode(NODE_MARK); token(':');     }
+"/"    {yylval.node = newTokenNode(NODE_MARK); token('/');     }
+"["    {yylval.node = newTokenNode(NODE_MARK); token('[');     }
+"]"    {yylval.node = newTokenNode(NODE_MARK); token(']');     }
+"{"    {yylval.node = newTokenNode(NODE_MARK); token('{');     }
+"}"    {yylval.node = newTokenNode(NODE_MARK); token('}');     }
+";"    {yylval.node = newTokenNode(NODE_MARK); token(';');     }
+"="    {yylval.node = newTokenNode(NODE_MARK); token('=');     }
+"++"   {yylval.node = newTokenNode(NODE_MARK); token(PP);      }
+"->"   {yylval.node = newTokenNode(NODE_MARK); token(RARROW);  }
+"<-"   {yylval.node = newTokenNode(NODE_MARK); token(LARROW);  }
+"=="   {yylval.node = newTokenNode(NODE_MARK); token(EQ);      }
+"/="   {yylval.node = newTokenNode(NODE_MARK); token(NE);      }
+"<="   {yylval.node = newTokenNode(NODE_MARK); token(LE);      }
+">="   {yylval.node = newTokenNode(NODE_MARK); token(GE);      }
 
 "FUNCTION" {
     yylval.node = newTokenNode(FUNCTION);
