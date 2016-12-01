@@ -79,6 +79,31 @@ void printTree(struct nodeType *node, int ident) {
             ident++;
             break;
       
+        case NODE_FUNC_CALL:
+            printf("%scallFunc\n", blank);
+            ident++;
+            break;
+        case NODE_TYPE_PAIR:
+            printf("%sTYPE_PAIR\n", blank);
+            ident++;
+            break;
+        case NODE_TYPE_SEQ:
+            printf("%sTYPE_SEQ\n", blank);
+            ident++;
+            break;
+        case NODE_SEQ_REF:
+            printf("%sSEQ_REF\n", blank);
+            ident++;
+            break;
+       
+        case NODE_IN:
+            printf("%sIN\n", blank);
+            ident++;
+            break;
+        case NODE_FILTER:
+            printf("%sFILTER\n", blank);
+            ident++;
+            break;
         case NODE_APPLYBODY:
             printf("%sAPPLYBODY\n", blank);
             ident++;

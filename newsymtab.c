@@ -1,4 +1,4 @@
-#include "node.h"
+#include "newnode.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -96,80 +96,38 @@ struct nodeType* nthChild(int n, struct nodeType *node) {
 
 void semanticCheck(struct nodeType *node) {
  //   printf("nodetype:%d\n", node->nodeType);
-    switch(node->nodeType) {
-        case NODE_SYM_REF:
-        {
-          if(!findSymbol(node->string)){
-            addVariable(node->string, node->nodeType, node);
-          }
-          break;
+    switch(node->nodeType){
+      case NODE_FUNC:
+      {
+        if(!findSymbol(node->string)){
+          addVariable(node->string,node->nodeType,node);
         }
-        case NODE_INT: {
-            node->valueType = TypeInt;
-            return;
-        }
+        break;
+      }
 
-        case NODE_FLOAT: {
-            node->valueType = TypeReal;
-            return;
-        }
-
-        case NODE_OP:{
-          return;
-        }
-        case NODE_SEQ:{
-          struct nodeType *idNode = node->child;
-          int count = 0;
-          int depth = 0;
-          
+      case NODE_PATTERN:
+      {
+        
+        struct nodeType *child = node->child;
+        struct nodeType *idNode = child;
+        do{
+          idNode=child;
           do{
-            count++;
-            if(idNode->nodeType == NODE_SEQ){
-              semanticCheck(idNode);
-              if(depth < idNode->arraydepth){
-                depth = idNode->arraydepth;
-                node->arraynext = idNode;
-                }
+            if(idNode->nodeType==NODE_TOKEN){
+              if(!findSymbol(idNode->string)){
+                addVariable(idNode->string,node->nodeType,node);
+              }
             }
             idNode = idNode->rsibling;
-          }
-          while(idNode != node->child);
-          node->counts = count;
-          node->arraydepth = depth+1;
-          printf("node_counts:%d, node_depth:%d\n",node->counts,node->arraydepth);
-          return;
-        }
+          }while(idNode!=child);
+          child = child->child;
 
-        case NODE_ASSIGN_STMT: {
-            struct nodeType *child1 = nthChild(1, node);
-            struct nodeType *child2 = nthChild(2, node);
-            semanticCheck(child1);
-            semanticCheck(child2);
+        }while(child!=NULL);
+        break;
+      }
 
-            if(child1->string != NULL && child2->nodeType==NODE_SEQ)
-            {
-              child2->string = (char*)malloc(child1->string);
-              strcpy(child2->string, child1->string);
-            }
-              
-            /* We only implement the checking for integer and real types
-               you should implement the checking for array type by yourself */
-            if(child1->valueType != child2->valueType) {
-                if(node->nodeType == NODE_OP)
-                    printf("Error: type mismatch for operator\n");
-                else{
-                    printf("Error: type mismatch for assignment\n");
-                    printf("type: %d, %d\n",child1->valueType,child2->valueType);
-                    }
-                exit(0);
-            }
-            node->valueType = child1->valueType;
-            return;
-        }
-         
-          
+    
     }
-
     /* Default action for other nodes not listed in the switch-case */
     struct nodeType *child = node->child;
     if(child != 0) {

@@ -26,8 +26,9 @@ struct nodeType;
 // 
 #define NODE_ASSIGN_STMT    11
 #define NODE_SYM_REF        12
-#define NODE_TYPE_ARRAY     13
-#define NODE_ARR_REF        14
+#define NODE_TYPE_SEQ       13
+#define NODE_SEQ_REF        14
+#define NODE_TYPE_PAIR      34
 
 //lazy man
 #define NODE_NESL           15
@@ -46,8 +47,8 @@ struct nodeType;
 #define NODE_BODY           29
 #define NODE_SIEVE          30
 #define NODE_EMPSEQ         31
-
-
+#define NODE_FILTER         32  
+#define NODE_IN             33
 
 
 
@@ -68,6 +69,8 @@ struct nodeType;
 #define NODE_APPEACH        55
 
 #define NODE_FUNC           94
+#define NODE_FUNC_CALL      95
+
 #define NODE_VAR_OR_PROC    99
 #define NODE_ERROR          100
 #define NODE_EMPTY          101

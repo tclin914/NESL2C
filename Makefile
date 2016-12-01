@@ -30,9 +30,9 @@ newtest :
 	yacc newyacc.y -d 
 	gcc -c lex.yy.c -g
 	gcc -c y.tab.c -g 
-	gcc -c symtab.c -g 
+	gcc -c newsymtab.c -g 
 	gcc -c newnode.c -g 
-	gcc y.tab.o newnode.o symtab.o -g -ly -ll 
+	gcc y.tab.o newnode.o newsymtab.o -g -ly -ll 
 
 
 run :

@@ -61,8 +61,12 @@ TopLevel
             strcpy($$->string, $2->string);
             $6->nodeType = NODE_OP;
             $6->op = OP_BIND;
-            $3->nodeType = NODE_PATTERN;
-            addChild($$,$3);
+            
+            struct nodetype *pattern = newNode(NODE_PATTERN);
+            addChild(pattern,$3);
+            //$3->nodeType = NODE_PATTERN;
+            //addChild($$,$3);
+            addChild($$,pattern);
             addChild($$,$5);
             //addChild($6,$7);
             //addChild($$,$6);
@@ -79,7 +83,11 @@ TopLevel
             //addChild($$,$4);
             //addChild($4,$3);
             //addChild($4,$5);
-            addChild($$,$3);
+            struct nodetype *pattern = newNode(NODE_PATTERN);
+            addChild(pattern,$3);
+            //$3->nodeType = NODE_PATTERN;
+            //addChild($$,$3);
+            addChild($$,pattern);
             addChild($$,$5);
             deleteNode($6);
         }
@@ -104,10 +112,10 @@ TopLevel
         ;
 
 FunId   : ID{
-                $$=$1;
+            $$=$1;
         }
         | SpecialId{
-                $$=$1;
+            $$=$1;
         }
         ;
 
@@ -116,24 +124,28 @@ EndMark : ';'
         ;
 
 FunTypeDef : TypeExp RARROW TypeExp{   
-                $$ = $2; 
-                $$->nodeType = NODE_OP;
-                $$->op = OP_RARROW;
-                addChild($$,$1); 
-                addChild($$,$3);}
+            $$ = $2; 
+            $$->nodeType = NODE_OP;
+            $$->op = OP_RARROW;
+            addChild($$,$1); 
+            addChild($$,$3);}
         ;
 
-TypeExp : ID {  $$=$1;  }
+TypeExp : ID {  
+            $$ = $1;  
+        }
         | ID '(' TypeList ')' {
+            // TODO figure out what's this.
             $$=$1;
             addChild($$,$3);
         }
         | '[' TypeExp ']' {
-            $$ = newNode(NODE_SEQ);
+            $$ = newNode(NODE_TYPE_SEQ);
             addChild($$,$2);
         }
         | '('PairTypes ')' {
-            $$ = $2;
+            $$ = newNode(NODE_TYPE_PAIR);
+            addChild($$,$2);
         }
         ;
 
@@ -148,12 +160,13 @@ PairTypes : PairTypes ',' TypeExp {
         ;
 
 TypeList : TypeList ',' TypeExp {
-            $$ = $1;
-            addChild($$,$3);
-        }
-        | TypeExp{
             $$ = newNode(NODE_LIST);
             addChild($$,$1);
+            addChild($$,$3);
+            deleteNode($2);
+        }
+        | TypeExp{
+            $$ = $1;
         }
         ;
 
@@ -161,9 +174,9 @@ Exp : IfOrLetExp {
         $$ = $1;
     }
     | TupleExp {
-     //  $$ = $1;    
-      $$=newNode(NODE_TUPLE);
-      addChild($$,$1);
+        $$ = $1;    
+     // $$=newNode(NODE_TUPLE);
+     // addChild($$,$1);
     }
     ;
 
@@ -206,13 +219,13 @@ ExpBinds
 
 ExpBind
     : Exp '=' Exp{
-       $$ = $2;
-       $$->nodeType = NODE_OP;
-       $$->op = OP_BIND;
-       addChild($$,$1);
-       addChild($$,$3);
-       //FIXME Make the LHS Exp become pattern.
-       $1->nodeType = NODE_PATTERN;
+        $$ = $2;
+        $$->nodeType = NODE_OP;
+        $$->op = OP_BIND;
+        struct nodetype *pattern = newNode(NODE_PATTERN);
+        addChild($$,pattern);
+        addChild(pattern, $1);
+        addChild($$,$3);
     }
     ;
 
@@ -223,8 +236,11 @@ TupleExp
         $$ = $1;
     }
     | OrExp ',' TupleRest {
-        $$ = $1;
+        $$ = newNode(NODE_TUPLE);
+        addChild($$,$1);
         addChild($$,$3);
+        //$$ = $1;
+        //addChild($$,$3);
         //FIXME
     }
     ;
@@ -341,7 +357,7 @@ UnOp
 SubscriptExp
     : AtomicExp {$$ = $1;}
     | AtomicExp '[' Exp ']'{
-        $$=newNode(NODE_SYM_REF); 
+        $$=newNode(NODE_SEQ_REF); 
         //$$->string = (char*)malloc(strlen($1->string));
         //strcpy($$->string,$1->string);
         addChild($$,$1);
@@ -362,7 +378,9 @@ AtomicExp
     }
     | '{' ApplyBody '|' Exp '}' {
         $$ = $2;
-        addChild($$,$4);
+        struct nodeType* filter = newNode(NODE_FILTER);
+        addChild($$,filter);
+        addChild(filter, $4);
     }
     | '[' ']' TypeExp {
         //Empty Sequence
@@ -381,7 +399,8 @@ AtomicExp
         $$ = $1;
     }
     | ID '(' Exp ')'{
-        $$ = $1;
+        $$ = newNode(NODE_FUNC_CALL);
+        addChild($$,$1);
         addChild($$,$3);
     }
     ;
@@ -407,14 +426,17 @@ ApplyBody
 
 RBinds
     : RBinds ';' RBind{
-        $$ = $1; 
+        $$ = newNode(NODE_LIST);
+        //$$ = $1; 
+        //addChild($$,$3);
+        addChild($$,$1);
         addChild($$,$3);
         deleteNode($2);
     
     }
     | RBind {
-        $$ = newNode(NODE_LIST);
-        addChild($$,$1);
+        $$ =$1;
+        //addChild($$,$1);
     }
     ;
     
@@ -424,12 +446,11 @@ RBind
     }
     | Exp IN Exp{
         $$ = $2;
-        $1->nodeType = NODE_PATTERN;
+        $$->nodeType = NODE_IN;
+        $1->nodeType = NODE_TOKEN;
         addChild($$,$1);
         addChild($$,$3);
     }
-/*    TODO pattern IN Exp
-*/
     ;
 
 SequenceTail
@@ -492,7 +513,7 @@ int main(int argc, char** argv){
     
     printTree(ASTRoot, 0);
     
-    //semanticCheck(ASTRoot);
+    semanticCheck(ASTRoot);
     //printf("************************\n");
     //printf("** NO SEMANTIC ERROR ***\n");
     //printf("************************\n");
