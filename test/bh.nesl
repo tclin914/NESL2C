@@ -1,0 +1,366 @@
+
+% This is the Nesl code for the 3D Barnes-Hut algorithm. For a full
+description of the algorithm, read "A hierarchical O(NlogN) force
+calculation algorithm" in Nature, 324(4), December 1986.
+%
+
+% for 3D Barnes Hut with quadrupole moments in rectilinear coordinates %
+% returns the vector of accelerations for one timestep on the input
+vector of points - you may want to write the result to a file % 
+
+% this file includes:
+;;
+;; 1. types.nesl: definitions of datatypes used by the program
+;; 2. rpts.nesl:  code for generating a sample input - a randomly 
+;;    distributed set of points
+;; 3. main.nesl:  code for the barnes-hut algorithm
+;;
+;; The separation parameter theta is defined in this file as 0.5,
+;; but its value can be changed as desired.
+;;
+;; The algorithm is invoked using the function barnes_hut(count,block)
+;; where count is an int specifying the number of points and block 
+;; is an int specifying how many particles to traverse the tree for in 
+;; parallel at a time. The code generates a random set of "count" points
+;; in 3D and calculates the force on each particle for one iteration.
+;;
+;; The function returns a vector of pairs (particle, force).
+;; particle is of type (dx,dy,dz,vx,vy,vz,mass) where the d's are the 
+;; displacements and the v's are the velocities in 3D. 
+;; force is of type (fx,fy,fz). All values are floats. 
+
+%
+
+% type declarations and functions for manipulating them %
+% ------------------------(types.nesl)------------------%
+
+datatype vect  	(float,float,float);
+datatype box	(vect,vect);
+datatype cmass	(float,vect);
+
+function mass(cmass(m,coords)) = m $
+function mpos(cmass(m,coords)) = coords $
+function pos(coords,particle_index) = coords $
+function indx(coords,particle_index) = particle_index $
+function size(box(coords,sz)) = sz $
+function kids(d,centroid,matx,cell_box,kd) = kd $
+function make_box((x0,y0,z0),(dx,dy,dz)) = box(vect(x0,y0,z0),vect(dx,dy,dz)) $
+
+function addv(vect(x1,y1,z1),vect(x2,y2,z2)) = vect((x1+x2),(y1+y2),(z1+z2)) $
+function subv(vect(x1,y1,z1),vect(x2,y2,z2)) = vect((x1-x2),(y1-y2),(z1-z2)) $
+function mulvs(vect(x1,y1,z1),s) = vect((x1*s),(y1*s),(z1*s)) $
+
+function outvp(vect(x1,y1,z1),vect(x2,y2,z2)) =
+(vect(x1*x2,x1*y2,x1*z2),vect(y1*x2,y1*y2,y1*z2),vect(z1*x2,z1*y2,z1*z2)) $
+
+function dotvp(vect(x1,y1,z1),vect(x2,y2,z2)) = x1*x2 + y1*y2 + z1*z2  $
+
+function mulms((r1,r2,r3),s) = (mulvs(r1,s),mulvs(r2,s),mulvs(r3,s)) $
+
+function mulmv((r1,r2,r3),v) = vect(dotvp(r1,v),dotvp(r2,v),dotvp(r3,v)) $
+
+function subm((a1,a2,a3),(b1,b2,b3)) = (subv(a1,b1), subv(a2,b2), subv(a3,b3)) $
+
+function addm((a1,a2,a3),(b1,b2,b3)) = (addv(a1,b1), addv(a2,b2), addv(a3,b3)) $
+
+function get_zero_cmass(ignore) =
+cmass(0.0,vect(0.0,0.0,0.0)) $
+
+function get_zero_matrix(ignore) =
+(vect(0.0,0.0,0.0),vect(0.0,0.0,0.0),vect(0.0,0.0,0.0)) $
+
+function get_id_matrix(ignore) =
+(vect(1.0,0.0,0.0),vect(0.0,1.0,0.0),vect(0.0,0.0,1.0)) $
+
+function max3(a,b,c) = max(a,max(b,c)) $
+
+function unzip3(v) =
+let
+        (xs,yzs) = unzip(v);
+        (ys,zs) = unzip(yzs);
+in
+        (xs,ys,zs) $
+
+
+function sumv(vec) =
+let
+        (vecx,vecy,vecz) = unzip3(vec);
+in
+        (sum(vecx),sum(vecy),sum(vecz)) $
+
+
+function sum_m(mat_vec) =
+let
+        (r1,r2,r3) = unzip3(mat_vec);
+        r1sum = sumv({(a,b,c) : vect(a,b,c) in r1});
+        r2sum = sumv({(a,b,c) : vect(a,b,c) in r2});
+        r3sum = sumv({(a,b,c) : vect(a,b,c) in r3});
+in
+        (vect(r1sum),vect(r2sum),vect(r3sum)) $
+
+
+function nested_get(a,i) =
+let 
+	lens = {#i:i};
+        vals = a->flatten(i)
+in 
+	partition(vals,lens) $
+
+% to generate a random distribution of points in 3D     %
+%-------------------------(rpts.nesl)-------------------%
+
+% each point is a vector of floats [x,y,z,vel_x,vel_y,vel_z,mass] %
+
+function generate_point(n) = 
+let 
+    pos_vec = {(rand(i)-5.0,rand(i)-5.0,rand(i)-5.0): i in dist(10.0,n)};
+    vel_vec = {(rand(i)-5.0,rand(i)-5.0,rand(i)-5.0): i in dist(10.0,n)};
+    mass = 1.0;
+in 
+    {[x,y,z,vx,vy,vz,mass]: (x,y,z) in pos_vec ; (vx,vy,vz) in vel_vec} $
+
+    
+function rpts(n) = generate_point(n) $
+
+
+%--------------------(main.nesl)-------------------------%
+
+
+theta=0.5;    % this parameter should be set according to desired accuracy %
+
+
+% splits vector of points into quadrants given x and y axes %
+
+function make_quads(v,x_axis,y_axis) =
+let
+        flags = {x >= x_axis : (x,y,rest) in v };
+        lr = split(v,flags);
+        flag2314 = {{ y > y_axis : (x,y,rest) in lr } : lr};
+        quad3241 = {split(lr,fl): lr ; fl in flag2314};
+in
+        flatten(quad3241) $
+
+% creates one corner (of min x,y,z coords) for each child octant given
+corner and dimensions of parent octant %
+
+function make_corners(x0,y0,z0,hdx,hdy,hdz) =
+let
+        x_half = x0+hdx;
+        y_half = y0+hdy;
+        z_half = z0+hdz;
+	corners = dist((0.0,0.0,0.0),8);
+        corners = rep(corners,(x0,y0,z0),0);
+        corners = rep(corners,(x0,y_half,z0),1);
+        corners = rep(corners,(x_half,y0,z0),2);
+        corners = rep(corners,(x_half,y_half,z0),3);
+        corners = rep(corners,(x0,y0,z_half),4);
+        corners = rep(corners,(x0,y_half,z_half),5);
+        corners = rep(corners,(x_half,y0,z_half),6);
+        corners = rep(corners,(x_half,y_half,z_half),7);
+in 
+	corners $
+
+
+% calculates quadrupole moment of parent from moments of its children %
+
+function quad_moment(coords,(d,cm,qmatx,rest)) = 
+let
+	cmpos = mpos(cm);
+	cmass = mass(cm);
+	dr = subv(cmpos,coords);
+	drdr = outvp(dr,dr);
+	drsq = dotvp(dr,dr);
+	idrsq = get_id_matrix(0);
+	idrsq = mulms(idrsq,drsq);
+	tmpm = mulms(drdr,3.0);
+	tmpm = subm(tmpm,idrsq);
+	tmpm = mulms(tmpm,cmass);
+in
+	if (d/=1) then addm(tmpm,qmatx)  else tmpm $
+
+
+function get_quad_moment (pos,v) = sum_m({quad_moment(pos,v):v});
+
+
+% builds the Barnes-Hut tree %
+
+function make_tree(v,cell_box) = 
+
+if (#v == 1) then {(1,cmass(m,vect(x,y,z)),get_zero_matrix(0),make_box(cell_box),[-1]) : (x,y,z,vx,vy,vz,m) in v}
+
+else let
+	((x0,y0,z0),dx,dy,dz) = cell_box;
+	hdx = dx/2.0;
+	hdy = dy/2.0;
+	hdz = dz/2.0;
+	flags_up_down = { z >= z0+hdz : (x,y,z,rest) in v };
+	down_up = split(v,flags_up_down);
+	kids = flatten({ make_quads(down_up,x0+hdx,y0+hdy) : down_up });
+	corners = make_corners(x0,y0,z0,hdx,hdy,hdz);
+
+	quadlist = {kids,corner,(hdx,hdy,hdz) : kids ; corner in corners | #kids > 0};
+	desc = {make_tree(qd) : qd in quadlist };
+	children = { d[0] : d in desc };
+	child_num = #children;
+	desc_nos = {desc_no : (desc_no,rest) in children};
+	child_pos = plus_scan(desc_nos); 
+	child_pos = {cs + 1 : cs in child_pos };
+	desc_no = sum(desc_nos) + 1;
+	total_mass = sum({ mass(cm) : (d,cm,rest) in children });
+	(mxs,mys,mzs) = unzip3({ (m*x,m*y,m*z) : (d,cmass(m,vect(x,y,z)),rest) in children});
+	mx = (sum(mxs))/total_mass;
+	my = (sum(mys))/total_mass;
+	mz = (sum(mzs))/total_mass;
+	quad = get_quad_moment(vect(mx,my,mz),children);
+	flat_desc = flatten(desc);
+in
+	 [(desc_no,cmass(total_mass,vect(mx,my,mz)),quad,box(vect(x0,y0,z0),vect(dx,dy,dz)),child_pos)] ++
+		flat_desc $
+
+
+function make_main_tree(v) = 
+let
+	(x_coords,y_coords,z_coords) = unzip3({(x,y,z) : (x,y,z,rest) in v});
+	x0 = min_val(x_coords);
+	y0 = min_val(y_coords);
+	z0 = min_val(z_coords);
+	dx = max_val(x_coords) - x0;
+	dy = max_val(y_coords) - y0;
+	dz = max_val(z_coords) - z0;
+in
+	make_tree(v,((x0,y0,z0),(dx,dy,dz))) $
+
+
+% tests if a cell is well-separated from a particle %
+
+function well_separated(d,mpos,vect(dx,dy,dz),ppos) =
+if (d==1) then t   % if cell is a leaf then well-separated %
+else 
+	let
+		dr = subv(mpos,ppos);
+		dsq = dotvp(dr,dr);
+	 	cell_size = max3(dx,dy,dz);
+        in
+                (cell_size < theta*sqrt(dsq)) $
+	
+
+% calculates force on a particle due to a cell %
+
+function force(d,cm,quad,(ppos,pi)) = 
+let 
+	M = mass(cm);
+	cm_pos = mpos(cm);
+	dr = subv(cm_pos,ppos);
+	vect(dx,dy,dz) = dr;
+in
+    if ((dx==0.0) and (dy==0.0) and (dz==0.0)) then (pi,(0.0,0.0,0.0)) else
+	let
+	    drsq = dotvp(dr,dr);
+	    drabs = sqrt(drsq);
+	    mrcubed = M/(drsq*drabs);
+	    acc = (dx*mrcubed,dy*mrcubed,dz*mrcubed);
+	in if (d==1) then (pi,acc) else
+	    let
+		acc0 = vect(acc);
+		dr5inv = 1.0/(drsq*drsq*drabs);
+		quad_dr = mulmv(quad,dr);
+		dr_quad_dr = dotvp(dr,quad_dr);
+		phi_quad = -2.5 * dr_quad_dr*dr5inv/drsq;
+		ai = mulvs(dr,phi_quad);
+		acc0 = subv(acc0,ai);
+		quad_dr = mulvs(quad_dr,dr5inv);
+		vect(acc) = subv(acc0,quad_dr);
+	    in	
+		(pi,acc) $
+
+
+% calculates interactions between particles and cells level by level in tree %
+
+function get_force(curr_level,acc,tr,n,intrs) = 
+let
+    flags = { well_separated(d,mpos(centroid),size(cell_box),pos(particle)):
+	     ((d,centroid,quad,cell_box,kids),particle,cell_ind) in curr_level };
+    
+    divided = split(curr_level,flags);
+    next_inds = divided[0];
+    indices = {{i+cell_ind : i in kids(tree_cell) } :
+	       (tree_cell,particle,cell_ind) in next_inds};
+    nested_kids = nested_get(tr,indices);
+    nested_next_level  = {{nested_kids,particle,indices : 
+			   indices;nested_kids} :
+			  (tree_cell,particle,cell_ind) in next_inds; 
+			  nested_kids; indices};
+    
+    next_level = flatten(nested_next_level);
+	
+    this_level = divided[1];
+    intrs = intrs + #this_level;
+    forces = { force(d,centroid,quad,particle) :
+	      ((d,centroid,quad,rest),particle,cell_ind) in this_level};
+    collected = int_collect(forces);
+    new_accs = dist((0.0,0.0,0.0),n);
+    d_accs = { i,sumv(v) : (i,v) in collected };
+    new_accs = new_accs <- d_accs;
+    acc = {(ax-d_ax,ay-d_ay,az-d_az) : (ax,ay,az) in acc; (d_ax,d_ay,d_az) in new_accs};
+in
+    if (#next_level == 0) then (acc,intrs)
+    else get_force(next_level,acc,tr,n,intrs) $
+    
+	
+% calculates force on a particles processing a block at a time
+(in case of limited memory) %
+
+function get_blk_force(start,size,tr,acc,points,n,tot_intrs) = 
+let
+    acc0 = dist((0.0,0.0,0.0),n);
+    end = start+size;
+    end = if (end > n) then n else end;
+    sub_pts = subseq(points,start,end);
+    start = end;
+    root = tr[0];
+    init_level = {root,p,0 : p in sub_pts};
+    (blk_acc,intrs) = get_force(init_level,acc0,tr,n,0);
+    acc = {(ax+b_ax,ay+b_ay,az+b_az) : (ax,ay,az) in acc; (b_ax,b_ay,b_az) in blk_acc};
+    tot_intrs = tot_intrs + intrs;
+in
+    if (start==n) then (acc,tot_intrs) else get_blk_force(start,size,tr,acc,points,n,tot_intrs) $
+    
+    
+function blkwise_force(points,n,tr,block) = 
+let
+	acc = dist((0.0,0.0,0.0),n);
+in
+	get_blk_force(0,block,tr,acc,points,n,0) $
+
+
+function get_accs(particles,block) = 
+let
+	tr = make_main_tree(particles);
+	n = #particles;
+	indices = plus_scan(dist(1,n));
+	points = {vect(x,y,z),i : (x,y,z,rest) in particles; i in indices };
+	(acc,intr) = blkwise_force(points,n,tr,block);
+in
+	(acc,intr) $
+	
+
+function format(v) = {a[0],a[1],a[2],a[3],a[4],a[5],a[6]: a in v} $
+
+% the main function that computes accelerations on 'count' points,
+by traversing the tree for 'block' points at a time in parallel %
+
+% (blockwise calculation is useful in case of limited memory) %
+
+function barnes_hut(count,block) = 
+let
+    v = format(rpts(count));
+    (v_acc,interactions) = get_accs(v,block);
+in
+    (v,v_acc) $
+
+function bh(count, block) = 
+let
+    v = format(rpts(count));
+    ((_,k), ti) = time(get_accs(v,block));
+in
+    (k, ti)$

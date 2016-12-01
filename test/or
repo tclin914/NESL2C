@@ -1,0 +1,2 @@
+%((if (3<5) then 5 else 3 ) or (if (2>4) then 2 else 4 )); %
+(if (3<5) then 5 else 3) , (if (2>4) then 2 else 4 );

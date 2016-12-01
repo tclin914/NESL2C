@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "node.h"
+#include "newnode.h"
 #include "y.tab.h"
 #define token(s) {printf("%s\ttoken%d\n",yytext, s);return(s);}
 
@@ -15,93 +15,39 @@ struct nodeType* newTokenNode(int tokenType);
 
 %%
 
-[ \n]* {
-    /* Just to eat the spaces and new lines
-           so that they won't appear in output */
-    /*}
-
-TODO comment %...% (low priority)
-
-"%"    { BEGIN COMMENT; }
-<COMMENT>"%"       {BEGIN 0;}
-<COMMENT>[^*\n]*       
-<COMMENT>\n {
-             }
-*/
-}
 
 
-"#"     token('#');
-"@"     token('@');
-"^"     token('^');
-"|"     token('|');
+[ \n]*
+"%"[^%]*"%" 
 
-">" {
-            token('>');
-}
-"<" {
-            token('<');
-}
-"," {
-            token(',');
-}
-"(" {
-            token('(');
-}
-")" {
-            token(')');
-}
-"+" {
-            token('+');
-}
-"-" {
-            token('-');
-}
-"*" {
-            token('*');
-}
-":" {
-            token(':');
-}
-"/" {
-            token('/');
-} 
-"[" {
-            token('[');
-}
-"]" {
-            token(']');
-}
-"{" {
-            token('{');
-}
-"}" {
-            token('}');
-}
-
-";" {
-            token(';');
-}
-"=" {
-            token('=');
-}
-
-"++" {      token(PP);
-}
-
-"->" {
-            token(RARROW);
-}
-
-"<-" {
-            token(LARROW);
-}
-"=="    token(EQ);
-"/="    token(NE);
-"<="    token(LE);
-">="    token(GE);
-
-
+"$"    {yylval.node = newTokenNode(NODE_MARK); token('$');     }   
+"#"    {yylval.node = newTokenNode(NODE_MARK); token('#');     }
+"@"    {yylval.node = newTokenNode(NODE_MARK); token('@');     }
+"^"    {yylval.node = newTokenNode(NODE_MARK); token('^');     }
+"|"    {yylval.node = newTokenNode(NODE_MARK); token('|');     }
+">"    {yylval.node = newTokenNode(NODE_MARK); token('>');     }
+"<"    {yylval.node = newTokenNode(NODE_MARK); token('<');     }
+","    {yylval.node = newTokenNode(NODE_MARK); token(',');     }
+"("    {yylval.node = newTokenNode(NODE_MARK); token('(');     }
+")"    {yylval.node = newTokenNode(NODE_MARK); token(')');     }
+"+"    {yylval.node = newTokenNode(NODE_MARK); token('+');     }
+"-"    {yylval.node = newTokenNode(NODE_MARK); token('-');     }
+"*"    {yylval.node = newTokenNode(NODE_MARK); token('*');     }
+":"    {yylval.node = newTokenNode(NODE_MARK); token(':');     }
+"/"    {yylval.node = newTokenNode(NODE_MARK); token('/');     }
+"["    {yylval.node = newTokenNode(NODE_MARK); token('[');     }
+"]"    {yylval.node = newTokenNode(NODE_MARK); token(']');     }
+"{"    {yylval.node = newTokenNode(NODE_MARK); token('{');     }
+"}"    {yylval.node = newTokenNode(NODE_MARK); token('}');     }
+";"    {yylval.node = newTokenNode(NODE_MARK); token(';');     }
+"="    {yylval.node = newTokenNode(NODE_MARK); token('=');     }
+"++"   {yylval.node = newTokenNode(NODE_MARK); token(PP);      }
+"->"   {yylval.node = newTokenNode(NODE_MARK); token(RARROW);  }
+"<-"   {yylval.node = newTokenNode(NODE_MARK); token(LARROW);  }
+"=="   {yylval.node = newTokenNode(NODE_MARK); token(EQ);      }
+"/="   {yylval.node = newTokenNode(NODE_MARK); token(NE);      }
+"<="   {yylval.node = newTokenNode(NODE_MARK); token(LE);      }
+">="   {yylval.node = newTokenNode(NODE_MARK); token(GE);      }
 
 "FUNCTION" {
     yylval.node = newTokenNode(FUNCTION);
@@ -120,7 +66,7 @@ TODO comment %...% (low priority)
                 yylval.node = newTokenNode(INT);
                 yylval.node->string = (char*)malloc(yyleng+1);
                 strcpy(yylval.node->string, yytext);
-                token(INT);
+                token(ID);
             }
 "BOOL"        {
         yylval.node = newTokenNode(BOOL); 
@@ -133,8 +79,9 @@ TODO comment %...% (low priority)
         yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ 
         yylval.node->string = (char*)malloc(yyleng+1);
         strcpy(yylval.node->string, yytext);
-        token(nametoken);
+        token(ID);
         
+/*"TIME"            {yylval.node = newTokenNode(TIME); token(TIME);} */
         }
 "CHAR"            {yylval.node = newTokenNode(CHAR); token(CHAR);}
 "IN"                  {yylval.node = newTokenNode(IN); token(IN);}
@@ -142,25 +89,30 @@ TODO comment %...% (low priority)
 "ELSE"            {yylval.node = newTokenNode(ELSE); token(ELSE);}
 "THEN"            {yylval.node = newTokenNode(THEN); token(THEN);}
 "LET"               {yylval.node = newTokenNode(LET); token(LET);}
+"AND"               {yylval.node = newTokenNode(AND); token(AND);}
+"NAND"               {yylval.node = newTokenNode(NAND); token(NAND);}
+"NOR"               {yylval.node = newTokenNode(NOR); token(NOR);}
+"XOR"               {yylval.node = newTokenNode(XOR); token(XOR);}
+"OR"      {yylval.node = newTokenNode(OR); token(OR);  }
 
 
-[-+]?[0-9]+ { 
+[0-9]+ { 
     yylval.node = newTokenNode(intconst);
     yylval.node->valueValid = VALUE_I_VALID;
     yylval.node->iValue = atoi(yytext);
     token(intconst); 
 }
-[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
+[0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
     yylval.node = newTokenNode(floatconst);
     yylval.node->valueValid = VALUE_R_VALID;
     yylval.node->rValue = atof(yytext);
     token(floatconst);
 }
 [_a-z0-9]+  {
-            yylval.node = newTokenNode(nametoken);
+            yylval.node = newTokenNode(ID);
             yylval.node->string = (char*)malloc(yyleng+1);
             strcpy(yylval.node->string, yytext);
-            token(nametoken);
+            token(ID);
 }
 'T'        {
             token(boolconst);

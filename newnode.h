@@ -9,6 +9,7 @@ struct nodeType;
 
 #define NODE_TOKEN          1
 #define NODE_OP             2
+#define NODE_MARK           22
 
 // typeToken
 #define NODE_INT            3
@@ -25,18 +26,40 @@ struct nodeType;
 // 
 #define NODE_ASSIGN_STMT    11
 #define NODE_SYM_REF        12
-#define NODE_TYPE_ARRAY     13
-#define NODE_ARR_REF        14
+#define NODE_TYPE_SEQ       13
+#define NODE_SEQ_REF        14
+#define NODE_TYPE_PAIR      34
 
 //lazy man
-#define NODE_EXP            15
-#define NODE_SEQ            16
-#define NODE_IFSTMT         17
-#define NODE_THENSTMT       18
-#define NODE_ELSESTMT       19
+#define NODE_NESL           15
+#define NODE_EXP            16
+#define NODE_SEQ            17
+#define NODE_SEQTAIL        18
+#define NODE_IFSTMT         19
+#define NODE_THENSTMT       20
+#define NODE_ELSESTMT       21
+#define NODE_DATATYPE       23
+#define NODE_TUPLE          24
+#define NODE_BIND           25
+#define NODE_PATTERN        26
+#define NODE_LET            27 
+#define NODE_APPLYBODY      28
+#define NODE_BODY           29
+#define NODE_SIEVE          30
+#define NODE_EMPSEQ         31
+#define NODE_FILTER         32  
+#define NODE_IN             33
 
-#define NODE_NESL           20
-#define NODE_DATATYPE       21
+
+
+
+
+
+
+
+
+
+#define NOTE_IMPLEMENT      49
 
 #define NODE_LIST           50
 #define NODE_IFELSE         52
@@ -46,10 +69,8 @@ struct nodeType;
 #define NODE_APPEACH        55
 
 #define NODE_FUNC           94
-#define NODE_PROC           95
-#define NODE_STMT           96
-#define NODE_CMP_STMT       97
-#define NODE_PROC_AND_FUNC_DECL 98
+#define NODE_FUNC_CALL      95
+
 #define NODE_VAR_OR_PROC    99
 #define NODE_ERROR          100
 #define NODE_EMPTY          101
@@ -77,6 +98,8 @@ struct nodeType;
 #define OP_SHARP          23
 #define OP_AT             24
 #define OP_UMINUS         25
+#define OP_BIND           26
+#define OP_PP             27
 
 #include "symtab.h"
 struct nodeType {

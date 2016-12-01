@@ -7,7 +7,7 @@
 
 int yydebug =1;
 
-struct nodeType * nodeOpNode(int op);
+struct nodeType * newOpNode(int op); 
 extern struct nodeType* ASTRoot;
 %}
 
@@ -18,148 +18,346 @@ extern struct nodeType* ASTRoot;
 }
 
 %token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
-%token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND 
+%token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
 %token <node> intconst floatconst nametoken boolconst stringconst
-%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '+' '-' '*' '/'
+%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|'
 
-%type <node> goal nesl toplevel funcopt typedef typebinds typebind
+%type <node> goal nesl toplevel applytoeach typedef typebinds typebind
 %type <node> typeexp typelist typeclass basetype exp expoption1
 %type <node> expoption2 expbinds expbindsoption pattern rbinds
 %type <node> rbind sequence seqoption explist const binop unaryop
 
+
+%left ','
+%left OR NOR XOR
+%left AND NAND
+%left EQ NE '<' '>' LE GE
+%left '+' '-' PP LARROW
+%left '*' '/' RARROW
+%left '^' 
+%left '#' '@' 
+%nonassoc UMINUS
+
 %start goal
 
 %%
-
-goal : toplevel  {ASTRoot = $1;}
+ 
+goal :  nesl {ASTRoot = $1;}
     ;
 
-nesl : toplevel { printf("toplevel\n"); $$=newNode(NODE_ERROR);}
-        | {$$=newNode(NODE_ERROR);}
+nesl : nesl toplevel { 
+            printf("toplevel\n"); 
+            $$=$1;
+            addChild($1,$2);
+        }
+        | {
+            $$=newNode(NODE_NESL);
+        }
         ;
 
-toplevel : FUNCTION nametoken pattern funcopt {$$=newNode(NODE_ERROR);}
-    |   DATATYPE nametoken typedef ';' {$$=newNode(NODE_ERROR);}
-    |   pattern '=' exp {
-                printf("toplevel\n");
+toplevel : FUNCTION nametoken pattern ':' typedef '=' exp ';' {
+                $$=newNode(NODE_FUNC);
+                addChild($$, $2);
+                addChild($$, $3);
+                addChild($$, $5);
+                addChild($$, $7);
+                //struct nodeType * expl = newNode(NODE_LIST);
+                //addChild(expl, $7);
+                //addChild($$,expl);
+            }
+    |   DATATYPE nametoken typedef ';' {
+            $$=newNode(NODE_DATATYPE);
+            addChild($$,$2);
+            addChild($2,$3);
+        }
+    |   pattern '=' exp ';' {
                 $$ = newNode(NODE_ASSIGN_STMT);
                 addChild($$, $1);
                 addChild($$, $3);
         }
-    |   exp {  $$=newNode(NODE_ERROR);}
-    ;
+    |   exp ';' {
+            $$=newNode(NODE_EXP);
+    
 
-funcopt : ':' typedef '=' exp ';' {$$=newNode(NODE_ERROR);}
-        |{$$=newNode(NODE_ERROR);}
-        ;
+
+// funcopt : ':' typedef '=' exp ';' {
+//     $$=newNode(NODE_EXP);
+//     addChild($$, $2);
+//     addChild($$, $4);
+// }
+// ;
+             }
+    ;
 
 pattern : nametoken {
-            $$->nodeType = NODE_SYM_REF;
+            //$$->nodeType = NODE_SYM_REF;
             $$=$1;
         }
-    |   nametoken '(' pattern ')' {$$=$1; }
-    |   pattern ',' pattern {$$=newNode(NODE_ERROR);}
-    |   '(' pattern ')' {$$=newNode(NODE_ERROR);}
+    |   nametoken '(' pattern ')' {
+            $$=newNode(NODE_LIST); 
+            addChild($$,$1); 
+            addChild($$,$3); 
+    }
+    |   pattern ',' pattern {
+            $$=newNode(NODE_LIST);
+            addChild($$,$1);
+            addChild($$,$3);
+    }
+    |   '(' pattern ')' {
+            //$$=newNode(NODE_INFER);
+            //addChild($$,$1);
+            $1->nodeType=NODE_INFER;
+    }
     ;
 
-typedef : typeexp {$$=newNode(NODE_ERROR);}|
-        typeexp ':'':' '(' typebinds ')'{$$=newNode(NODE_ERROR);}
+typedef : typeexp {
+            $$ = newNode(NODE_TYPEEXP);
+            addChild($$, $1);
+            //$$=newNode(NODE_TYPEEXP);
+            //addChild($$,$1);
+        }
+        | typeexp ':'':' '(' typebinds ')'{$$=newNode(NODE_EXP);}
         ;
 
-typebinds : typebind {$$=newNode(NODE_ERROR);}|
-        typebind ';' typebinds{$$=newNode(NODE_ERROR);}
+typebinds : typebind {
+            $$=$1;
+        }
+        | typebind ';' typebinds{
+            $$=$3;
+            addChild($$,$1);
+        }
         ;
 
-typebind : nametoken IN typeclass {$$=newNode(NODE_ERROR);}
+typebind : nametoken IN typeclass {
+            $$=$3;
+            addChild($$,$1);
+        }
         ;
 
-typeexp : basetype {$$=newNode(NODE_ERROR);}|
-        nametoken {$$=newNode(NODE_ERROR);}|
-        typeexp '-''>' typeexp {$$=newNode(NODE_ERROR);}|
-        typeexp ',' typeexp {$$=newNode(NODE_ERROR);}|
-        nametoken '(' typelist ')' {$$=newNode(NODE_ERROR);}|
-        '[' typeexp ']' {$$=newNode(NODE_ERROR);}|
-        '(' typeexp ')'{$$=newNode(NODE_ERROR);}
+typeexp : basetype {
+                $$=$1;
+        }
+        | nametoken {
+                $$=$1;
+        }
+        | typeexp RARROW typeexp {
+                //TODO weird.
+                $$=newOpNode(OP_RARROW);
+                addChild($$,$1);
+                addChild($$,$3);
+        }
+        | typeexp ',' typeexp {
+                //TODO weird.
+                $$=newNode(NODE_LIST);
+                addChild($$,$1);
+                addChild($$,$3);
+        }
+        | nametoken '(' typelist ')' {
+                $$=newNode(NODE_FUNC); 
+                addChild($$,$1); 
+                addChild($$,$3);
+        }
+        | '[' typeexp ']' {$$=newNode(NODE_SEQ); addChild($$,$2);}
+        | '(' typeexp ')'{$$=$2;}
         ;
 
-typelist : typeexp {$$=newNode(NODE_ERROR);} |
-           typeexp ',' typelist {$$=newNode(NODE_ERROR);}
+typelist : typeexp {
+            $$ = newNode(NODE_LIST);
+            addChild($$,$1);
+            } 
+        | typeexp ',' typelist {
+                $$=$3;
+                addChild($$,$1);
+        }
          ;
 
-typeclass : NUMBER {$$=newNode(NODE_ERROR);}
-        | ORDINAL {$$=newNode(NODE_ERROR);}
-        | LOGICAL {$$=newNode(NODE_ERROR);}
-        | ANY {$$=newNode(NODE_ERROR);}
+typeclass : NUMBER {$$=$1;}
+        | ORDINAL  {$$=$1;}
+        | LOGICAL  {$$=$1;}
+        | ANY      {$$=$1;}
         ;
 
-basetype : INT {$$=newNode(NODE_ERROR);}
-        | BOOL {$$=newNode(NODE_ERROR);}
-        | FLOAT {$$=newNode(NODE_ERROR);}
-        | CHAR {$$=newNode(NODE_ERROR);}
+basetype : INT  {$$=$1;}
+        | BOOL  {$$=$1;}
+        | FLOAT {$$=$1;}
+        | CHAR  {$$=$1;}
         ;
 
 exp : const {$$ = $1;}
     | nametoken {
+        printf("\texp nametoken\n");
         $$ = $1;
     }
-    | IF exp THEN exp ELSE exp {$$=newNode(NODE_ERROR);}
-    | LET expbinds IN exp {$$=newNode(NODE_ERROR);}
-    | '{' expoption1 rbinds expoption2 '}' {$$=newNode(NODE_ERROR);}
-    | exp exp{$$=newNode(NODE_ERROR);}
-    | exp binop exp{$$=newNode(NODE_ERROR);}
-    | unaryop exp{$$=newNode(NODE_ERROR);}
-    | sequence{
+    | IF exp THEN exp ELSE exp {
+            printf("\texp IFELSE\n");
+            $$=newNode(NODE_IFELSE);
+            struct nodeType * ifexp = newNode(NODE_IFSTMT);
+            addChild(ifexp,$2);
+            addChild($$,ifexp);
+            struct nodeType * thenexp = newNode(NODE_THENSTMT);
+            addChild(thenexp,$4);
+            addChild($$,thenexp);
+            struct nodeType * elseexp = newNode(NODE_ELSESTMT);
+            addChild(elseexp,$6);
+            addChild($$,elseexp);
+    }
+    | LET expbinds IN exp {
+            $$=newNode(NODE_EXP);
+            printf("\t exp LET\n");
+            addChild($$,$2);
+            addChild($$,$4);
+    }
+    | '{' applytoeach '}' {
+            printf("\texp rule3\n");
+            $$=newNode(NODE_APPEACH);
+            addChild($$,$2);
+    }
+    | '(' explist ')' {
+            printf("\texp exp : function application\n");
+            $$=newNode(NODE_EXP);
+            //addChild($$,$1);
+            addChild($$,$2);
+    }
+    | nametoken '(' explist ')' {
+            printf("\texp exp : function application\n");
+            $$=newNode(NODE_FUNC);
+            addChild($$,$1);
+            addChild($$,$3);
+    }
+    | sequence{ 
+        printf("\tSEQUENCE\n");
         $$=$1;
         $$ -> nodeType=NODE_SEQ;
     }
-    | exp '[' exp ']'{$$=newNode(NODE_ERROR);}
-    | '(' exp ')'{$$=newNode(NODE_ERROR);}
+    | exp binop exp {
+            printf("\texp_binary_Operation_reduce\n"); 
+            $$=$2;
+            addChild($$,$1);
+            addChild($$,$3);
+    }
+    | unaryop exp{
+            printf("\texp_unaryop\n");
+            $$=$1;
+            addChild($$,$2);
+    }
+    | exp '[' exp ']'{
+            printf("\texp of sequence indexing \n");
+            $$=newNode(NODE_EXP);
+            addChild($$,$1);
+            addChild($$,$3);
+    }
+    | '(' exp ')'{
+            printf("\texp with () \n");
+            $$=newNode(NODE_EXP);
+            addChild($$,$2);
+    }
     ;
 
-expoption1 : exp ':' {$$=newNode(NODE_ERROR);}
-    | {$$=newNode(NODE_ERROR);}
+applytoeach : expoption1 rbinds expoption2 {
+            $$ = $2;
+            addChild($$,$1);
+            addChild($$,$3);
+    }
+    |   rbinds {
+            $$ = $1;
+    }
+    |   rbinds  expoption2 {
+            $$ = $1;
+            addChild($$,$2);
+    }
+    |   expoption1 rbinds {
+            $$ = $2;
+            addChild($$,$1);
+    }
+    ;
+expoption1 : nametoken '(' pattern  ')' ':' {
+        printf("\t\t\t\texpoptinal1\n");
+        // TODO new node Type Def.
+        $$ = newNode(NODE_LIST);
+        addChild($$,$1);
+        addChild($$,$3);
+    }
+    | {
+        $$=newNode(NODE_EMPTY);
+    }
     ;
 
-expoption2 : '|' exp{$$=newNode(NODE_ERROR);}
-    | {$$=newNode(NODE_ERROR);}
+expoption2 : '|' exp{
+            $$=$1;
+            printf("\t\t\t\texpoption2\n");
+            }
+    | {$$=newNode(NODE_EMPTY);}
     ;
 
 expbinds :
-    pattern '=' exp expbindsoption{$$=newNode(NODE_ERROR);}
+     pattern '=' exp ';' expbindsoption {
+            //FIXME ASSIGNMENT is BINDING in nesl.
+
+            struct nodeType * ass = newNode(NODE_ASSIGN_STMT);
+            addChild(ass, $1);
+            addChild(ass, $3);
+            $$=$5; 
+            addChild($$,ass);
+    }
     ;
 
-expbindsoption : ';' expbinds {$$=newNode(NODE_ERROR);}
-    | {$$=newNode(NODE_ERROR);}
+expbindsoption :  expbinds {
+            printf("\t\t\t\tbindbind\n");
+            $$=$1;
+            }
+    | {$$=newNode(NODE_LIST);}
     ;
 
-rbinds : rbind rbinds{$$=newNode(NODE_ERROR);}
-    | ';' rbind{$$=newNode(NODE_ERROR);}
-    |{$$=newNode(NODE_ERROR);}
+rbinds : rbind rbinds{
+            //FIXME rbinds is LIST or another rbind?
+            $$ = $2;
+            addChild($$,$1);
+            //$$=newNode(NODE_EXP);
+
+    }
+    | ';' rbind {
+            $$=$1;
+    }
+    | {$$=newNode(NODE_LIST); /*printf("\t\t\t\tempty rbinds\n");*/}
+    ; 
+
+rbind : pattern IN exp {
+            $$=$3;
+            addChild($$,$1);
+    }
+    | nametoken {
+            $$=$1;
+    }
     ;
 
-rbind : pattern IN exp {$$=newNode(NODE_ERROR);}
-    | nametoken {$$=newNode(NODE_ERROR);}
-    ;
-
-sequence : '[' explist ']'{
-            $$=$2;
+sequence : '[' explist ']'{ 
+                $$ = newNode(NODE_SEQ);
+                addChild($$,$2); 
+                printf("S way\n");
         }
-    | '[' ']' typeexp{$$=newNode(NODE_ERROR);}
-    | '[' exp ':' exp seqoption ']'{$$=newNode(NODE_ERROR);}
+    | '[' ']' typeexp{
+                $$=newNode(NODE_SEQ);
+                addChild($$,$3);
+    }
+    | '[' exp ':' exp seqoption ']'{
+                $$=newNode(NODE_SEQ); 
+                addChild($$,$2);
+                addChild($$,$4);
+                addChild($$,$5);
+    }
     ;
-seqoption : ':' exp{$$=newNode(NODE_ERROR);}
+seqoption : ':' exp {
+            $$=$1; }
+    | {$$ = newNode(NODE_EMPTY);}   
     ;
 
-explist : exp explist {
-            printf("exp->nodeType: %d\n",$1->nodeType);
-            addChild($2, $1);
-            $$=$2;
+explist : explist ',' exp { 
+            addChild($1, $3);
+            $$=$1;
         }
-    | ',' explist {
-            $$=$2;
-        }
-    |   {
+    | exp { 
             $$ = newNode(NODE_LIST);
+            addChild($$,$1);
         }
     ;
 
@@ -172,18 +370,30 @@ const : intconst {
     |   stringconst{$$=$1;}
     ;
 
-binop : ','{$$=newNode(NODE_ERROR);}
-    | OR {$$=newNode(NODE_ERROR);}| NOR {$$=newNode(NODE_ERROR);}| XOR{$$=newNode(NODE_ERROR);}
-    | AND {$$=newNode(NODE_ERROR);}| NAND{$$=newNode(NODE_ERROR);}
-    | "==" {$$=newNode(NODE_ERROR);}| "/=" {$$=newNode(NODE_ERROR);}| '<' {$$=newNode(NODE_ERROR);}| '>' {$$=newNode(NODE_ERROR);}| "<=" {$$=newNode(NODE_ERROR);}| ">="{$$=newNode(NODE_ERROR);}
-    | '+' {$$=newNode(NODE_ERROR);} | '-' {$$=newNode(NODE_ERROR);}| "++" {$$=newNode(NODE_ERROR);}| "<-"{$$=newNode(NODE_ERROR);}
-    | '*' {$$=newNode(NODE_ERROR);} | '/' {$$=newNode(NODE_ERROR);}| "->"{$$=newNode(NODE_ERROR);}
-    | '^' {$$=newNode(NODE_ERROR);}
+binop : 
+    {
+    /*
+        ','{
+            $$=newOpNode(OP_COMMA);
+        }
+    
+    |*/ 
+    }
+    OR {$$=newOpNode(OP_OR);}| NOR {$$=newOpNode(OP_NOR);}| XOR{$$=newOpNode(OP_XOR);}
+    | AND {$$=newOpNode(OP_AND);}| NAND {$$=newNode(OP_NAND);}
+    | EQ {$$=newOpNode(OP_EQ);}| NE {$$=newOpNode(OP_NE);}| '<' {$$=newOpNode(OP_LT);}
+        | '>' {$$=newOpNode(OP_GT);}| LE {$$=newOpNode(OP_LE);}| GE {$$=newOpNode(OP_GE);}
+    
+    | '+' {$$=newNode(NODE_EXP);} | '-' {$$=newNode(NODE_EXP);}| PP {$$=newNode(NODE_EXP);}
+        | LARROW {$$=newOpNode(OP_LARROW);}
+    
+    | '*' {$$=newOpNode(OP_MUL);} | '/' {$$=newOpNode(OP_DIV);}| RARROW {$$=newOpNode(OP_RARROW);}
+    | '^' {$$=newOpNode(OP_UPT);}
     ;
 
-unaryop :   '#' {$$=newNode(NODE_ERROR);}
-    |   '@'  {$$=newNode(NODE_ERROR);}
-    |   '-' {$$=newNode(NODE_ERROR);}
+unaryop :   '#' {$$=newOpNode(OP_SHARP);}
+    |   '@'  {$$=newOpNode(OP_AT);}
+    |   '-' %prec UMINUS {$$=newOpNode(OP_UMINUS);}
     ;
 
 
@@ -200,7 +410,8 @@ struct nodeType * newOpNode(int op) {
 int yyerror(const char *s) {
     printf("Syntax error\n");
     //printf("errror: %s",s);
-        exit(0);
+
+    exit(0);
 }
 
 int main(int argc, char** argv){
@@ -212,6 +423,11 @@ int main(int argc, char** argv){
     printf("************************\n");
     
     printTree(ASTRoot, 0);
+    
+    semanticCheck(ASTRoot);
+    printf("************************\n");
+    printf("** NO SEMANTIC ERROR ***\n");
+    printf("************************\n");
 
     FILE* fptr;
     fptr = fopen("output/NESL2C_test.c","w");

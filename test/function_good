@@ -1,10 +1,19 @@
-function order(s, k) =
-let pivot  = s[#s/2];
-lesser = {e in s| e < pivot};
-in if (k < #lesser) then order(lesser, k)
-    else
-    let greater = {e in s| e > pivot};
-    in if (k >= #s - #greater) then
-order(greater, k - (#s - #greater))
-    else pivot;
+fuNction Convex_hull(points) :([(float,float)])-> [(float,float)] =
+let x = {x : (x,y) in points};
+    minx = points[min_index(x)];
+    maxx = points[max_index(x)];
+in hsplit(points,minx,maxx) ++ hsplit(points,maxx,minx);
+
+
+
+
+//function order(s, k) =
+//let pivot  = s[#s/2];
+//lesser = {e in s| e < pivot};
+//in if (k < #lesser) then order(lesser, k)
+//    else
+//    let greater = {e in s| e > pivot};
+//    in if (k >= #s - #greater) then
+//order(greater, k - (#s - #greater))
+//    else pivot;
 

@@ -1,0 +1,3 @@
+{x,y in points | x^2 + y^2 < 1.0};
+function mass(cmass(m,coords)):int->int = m ;
+

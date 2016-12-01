@@ -1,0 +1,14 @@
+function muladd(nums1, nums2, nums3) =
+  {a*b+c : a in nums1; b in nums2; c in nums3};
+
+function dbg(i) = 
+let nums1 = {rand(i): i in dist(100, i)};
+    nums2 = {rand(i): i in dist(100, i)};
+    nums3 = {rand(i): i in dist(100, i)};
+    in (nums1, nums2, nums3, muladd(nums1, nums2, nums3)) ;
+
+function bench(i) =
+let nums1 = {rand(i): i in dist(100, i)};
+    nums2 = {rand(i): i in dist(100, i)};
+    nums3 = {rand(i): i in dist(100, i)};
+    (res, tm) = time(muladd(nums1, nums2, nums3)) in (res[0], tm) $

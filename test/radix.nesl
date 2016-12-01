@@ -1,0 +1,53 @@
+function count_buckets(values, buckets, i) =
+if (i == #values) then buckets
+else 
+    let 
+	key = values[i];
+	count = buckets[key];
+	newbuckets = rep(buckets, count + 1, key)
+    in count_buckets(values, newbuckets, i + 1) $
+
+function new_location(values, offsets, i) =
+if (i == #values) then values
+else 
+    let 
+	key = values[i];
+	count = offsets[key];
+	newvalues = rep(values, count, i); 
+	newoffsets = rep(offsets, count + 1, key)
+    in new_location(newvalues, newoffsets, i + 1) $
+
+function get_offsets(buckets, copies) =
+let 
+    trans_buckets = transpose(buckets);
+    scanned_buckets = plus_scan(flatten(trans_buckets)); 
+    offsets = transpose(partition(scanned_buckets,{#b : b in trans_buckets}));
+in offsets $
+
+function parallel_counting_rank(a, m) =
+let 
+    block_size = isqrt(#a); 
+    blocks = group_by(a, block_size);
+    counts = {count_buckets(b, dist(0, m), 0): b in blocks}; 
+    offsets = get_offsets(counts, sqrt);
+    ranks = {new_location(b, o, 0):  b in blocks; o in offsets};
+in flatten(ranks) $
+
+function radix_rank_r(keys, ranks,bits_per_pass) 
+  : ([int],[int],int)->[int] =
+if any(keys) == all(keys) then permute(index(#ranks), ranks)
+else 
+    let 
+	num_buckets = lshift(1, bits_per_pass);
+	mask = num_buckets-1;
+	subkeys = {k and mask: k in keys}; 
+	newkeys = {rshift(k, bits_per_pass): k in keys}; 
+	index = parallel_counting_rank(subkeys, num_buckets)
+    in radix_rank_r(permute(newkeys, index), 
+		    permute(ranks, index), 
+		    bits_per_pass) $
+function radix_rank(v) = let result = radix_rank_r(v, index(#v), 8) in 1$
+
+function radix(i) =
+let nums = {rand(i): i in dist(100, i)};
+    (res, tm) = time(radix_rank(nums)) in (res, tm) $
