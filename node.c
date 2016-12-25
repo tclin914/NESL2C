@@ -44,7 +44,7 @@ void printTree(struct nodeType *node, int ident) {
 
     switch(node->nodeType) {
         case NODE_TOKEN:
-            printf("%sToken %s\n", blank, node->string);
+            printf("%s %s\n", blank, node->string);
             ident++;
             break;
         case NODE_OP:

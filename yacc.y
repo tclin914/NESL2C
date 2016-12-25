@@ -1,6 +1,7 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "lex.yy.c"
 #include "node.h"
 #include "symtab.h"
@@ -504,9 +505,18 @@ int yyerror(const char *s) {
 }
 
 int main(int argc, char** argv){
-    printf("%d: %s\n",argc,argv[0]);
+    printf("%d: %s\n",argc,argv[1]);
+    yyin = fopen(argv[1], "r");
+    
+    char *classname;
+    classname = (char*)malloc(sizeof(char)*100);
+    classname = strtok(argv[1],"/.");
+    classname = strtok(NULL,"/.");
+    strcat(classname,".c");
+    printf("%s\n",classname);
     
     yyparse();
+    fclose(yyin);
     printf("************************\n");
     printf("*** NO PARSING ERROR ***\n");
     printf("************************\n");
@@ -514,9 +524,12 @@ int main(int argc, char** argv){
     printTree(ASTRoot, 0);
     
     semanticCheck(ASTRoot);
-    //printf("************************\n");
-    //printf("** NO SEMANTIC ERROR ***\n");
-    //printf("************************\n");
+    printf("************************\n");
+    printf("** NO SEMANTIC ERROR ***\n");
+    printf("************************\n");
+    yyout = fopen(classname,"w+");
+    fprintf(yyout, "macros\n");
+    fclose(yyout);
 
     //FILE* fptr;
     //fptr = fopen("output/NESL2C_test.c","w");
