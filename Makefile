@@ -1,11 +1,17 @@
-objects = y.tab.o node.o symtab.o 
+CFLAGS = -g
+objects = y.tab.o node.o symtab.o codegen.o
+
+all: NESL2C
+
+debug : $(objects)
+	cc $(CFLAGS) -o NESL2C $(objects)
 
 NESL2C : $(objects)
 	cc -o NESL2C $(objects)
 
 y.tab.o: yacc.y lex.yy.o
-	yacc yacc.y -d
-	cc -c y.tab.c
+	yacc yacc.y -d 
+	cc -c y.tab.c -g
 
 lex.yy.o: lex.l
 	lex lex.l

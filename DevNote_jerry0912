@@ -1,0 +1,52 @@
+###SETUP Environment
+CentOS7:
+
+When creating VM for centOS7 by virtualBOX:
+1. enable the GUI 
+2. enable the Internet
+
+
+## GET Source and libs 
+# clisp source
+$ wget https://sourceforge.net/projects/clisp/files/latest/download?source=typ_redirect
+
+# libsigsegv
+$ wget http://ftp.gnu.org/gnu/libsigsegv/libsigsegv-2.10.tar.gz
+
+# glib2
+$ yum install glib2-devel.i686
+
+# ffcall
+$ wget ftp://195.220.108.108/linux/dag/redhat/el3/en/x86_64/dag/RPMS/ffcall-1.10-1.1.el3.dag.x86_64.rpm
+
+# lex 
+$ sudo yum install flex-devel.x86_64
+
+# yacc 
+$ sudo yum install byacc
+
+## BUILD CLISP FROM SOURCE
+# read the unix/INSTALL 
+# modify some codes to make it compilable.
+# in /home/cch/trunk/nesl/cvl/serial/facilt.c
+modify line 47 48 to:
+	cvl_timer_p->tv_sec = rusage.ru_utime.tv_sec;
+	cvl_timer_p->tv_nsec = rusage.ru_utime.tv_usec*1000;
+modify line 63 64 to:
+	 return (double)(t1->tv_sec - t2->tv_sec) +
+	 (1.0e-9)*(double)(t1->tv_nsec - t2->tv_nsec);
+in /home/cch/trunk/nesl/vcode/parse.h:
+comment the codes into:
+	//#ifdef __linux
+	//extern int 	yyleng;
+	//#else
+	extern yy_size_t 	yyleng;
+	//#endif
+
+##INSTALL
+
+###HOW TO USE
+$ clisp
+$ (load "neslsrc/build.lisp")
+$ (nesl)
+$ ...(coding)

@@ -70,6 +70,8 @@ struct nodeType;
 
 #define NODE_FUNC           94
 #define NODE_FUNC_CALL      95
+#define NODE_FUNC_INPUT     96
+#define NODE_FUNC_TYPE      97
 
 #define NODE_VAR_OR_PROC    99
 #define NODE_ERROR          100

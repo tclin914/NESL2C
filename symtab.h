@@ -6,8 +6,16 @@
 void semanticCheck(struct nodeType* node);
 void codegen(FILE* fptr,struct nodeType* node);
 
+
+// TODO 
+// 1. add TypeArray when detect '[]' stuff 
+// 2. use the most outside type to represent the node.
+// 3. add TypeChar for char or string.
 enum StdType {TypeInt, TypeReal, TypeArray};
 
+// TODO 
+// 1. bind the parameter name with the typedefine nodes.
+// 2. add the parameter names into symtable during analysis.
 struct SymTableEntry {
     char name[100];
     enum StdType type;

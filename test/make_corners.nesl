@@ -1,0 +1,18 @@
+function make_corners(x0,y0,z0,hdx,hdy,hdz):(float, float, float, float, float, float) -> [(float, float, float)] =
+let
+        x_half = x0+hdx;
+        y_half = y0+hdy;
+        z_half = z0+hdz;
+	corners = dist((0.0,0.0,0.0),8);
+        corners = rep(corners,(x0,y0,z0),0);
+        corners = rep(corners,(x0,y_half,z0),1);
+        corners = rep(corners,(x_half,y0,z0),2);
+        corners = rep(corners,(x_half,y_half,z0),3);
+        corners = rep(corners,(x0,y0,z_half),4);
+        corners = rep(corners,(x0,y_half,z_half),5);
+        corners = rep(corners,(x_half,y0,z_half),6);
+        corners = rep(corners,(x_half,y_half,z_half),7);
+in 
+	corners $
+
+

@@ -63,12 +63,17 @@ TopLevel
             $6->nodeType = NODE_OP;
             $6->op = OP_BIND;
             
-            struct nodetype *pattern = newNode(NODE_PATTERN);
-            addChild(pattern,$3);
+            //struct nodetype *pattern = newNode(NODE_PATTERN);
+            //addChild(pattern,$3);
             //$3->nodeType = NODE_PATTERN;
-            //addChild($$,$3);
-            addChild($$,pattern);
-            addChild($$,$5);
+            //addChild($$,pattern);
+            addChild($$,$3);
+            
+            struct nodetype *types = newNode(NODE_FUNC_TYPE);
+            addChild(types, $5);
+            addChild($$,types);
+            
+            //addChild($$,$5);
             //addChild($6,$7);
             //addChild($$,$6);
             addChild($$,$7);
@@ -81,14 +86,16 @@ TopLevel
             strcpy($$->string, $2->string);
             $4->nodeType = NODE_OP;
             $4->op = OP_BIND;
-            //addChild($$,$4);
-            //addChild($4,$3);
-            //addChild($4,$5);
-            struct nodetype *pattern = newNode(NODE_PATTERN);
-            addChild(pattern,$3);
+            
+            //struct nodetype *input = newNode(NODE_FUNC_INPUT);
+            //addChild($$,input);
+            addChild($$, $3);
+            
+            //struct nodetype *pattern = newNode(NODE_PATTERN);
+            //addChild(pattern,$3);
             //$3->nodeType = NODE_PATTERN;
             //addChild($$,$3);
-            addChild($$,pattern);
+            //addChild($$,pattern);
             addChild($$,$5);
             deleteNode($6);
         }
@@ -133,6 +140,11 @@ FunTypeDef : TypeExp RARROW TypeExp{
         ;
 
 TypeExp : ID {  
+            if(strcmp($$->string,"float")==0){
+                printf("hit!!\n");
+                $1->valueType = TypeReal;
+            }
+                printf("not hit!!\n");
             $$ = $1;  
         }
         | ID '(' TypeList ')' {
@@ -145,18 +157,28 @@ TypeExp : ID {
             addChild($$,$2);
         }
         | '('PairTypes ')' {
-            $$ = newNode(NODE_TYPE_PAIR);
-            addChild($$,$2);
+            //$$ = newNode(NODE_TYPE_PAIR);
+            //addChild($$,$2);
+            $$ = $2;
         }
         ;
 
 PairTypes : PairTypes ',' TypeExp {
-            $$=newNode(NODE_TUPLE);
-            addChild($$,$1);
+            $$ = $1;
+            $2->nodeType = NODE_TOKEN;
+            $2->string = ",";
+            addChild($$,$2);
             addChild($$,$3);
+
+            //$$=newNode(NODE_TUPLE);
+            //addChild($$,$1);
+            //addChild($$,$3);
         }
         | TypeExp {
-            $$=$1;
+            $$ = newNode(NODE_TYPE_PAIR);
+            addChild($$,$1);
+
+            //$$=$1;   
         }
         ;
 
@@ -168,6 +190,7 @@ TypeList : TypeList ',' TypeExp {
         }
         | TypeExp{
             $$ = $1;
+            
         }
         ;
 
@@ -232,17 +255,22 @@ ExpBind
 
 TupleExp
     : OrExp {
-     //   $$ = newNode(NODE_TUPLE);
-     //   addChild($$, $1);
-        $$ = $1;
+        $$ = newNode(NODE_TUPLE);
+        addChild($$, $1);
+        //$$ = $1;
     }
     | OrExp ',' TupleRest {
-        $$ = newNode(NODE_TUPLE);
+        //$$ = newNode(NODE_TUPLE);
+        //addChild($$,$1);
+        //addChild($$,$3);
+        
+        $$ =$3;
         addChild($$,$1);
-        addChild($$,$3);
         //$$ = $1;
         //addChild($$,$3);
-        //FIXME
+        // FIXME
+        // TODO
+        // Reverse the tuple list.
     }
     ;
 
