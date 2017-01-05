@@ -40,6 +40,89 @@ struct nodeType* nthChild(int n, struct nodeType *node) {
     return child;
 }
 
+
+
+void deltuplePass(struct nodeType *node){
+    if(node->nodeType == NODE_DEL){
+      node->parent->child = node->child;
+      node->child ->parent = node->parent;
+      
+      if(node->rsibling != node){
+        struct nodeType* RHS = node->rsibling;
+        RHS->lsibling = node->child;
+        node->child->rsibling = RHS;
+      }
+      if(node->lsibling!=node){
+        struct nodeType *LHS = node->lsibling;
+        LHS->rsibling = node->child;
+        node->child->lsibling = LHS;
+      } 
+    }
+    
+    
+    struct nodeType *child = node->child;
+    if(child != 0) {
+        do {
+            deltuplePass(child);
+            child = node->child;
+            child = child->rsibling;
+        } while(child != node->child);
+    }
+
+
+
+}
+void tuplePass(struct nodeType *node){
+    
+    switch(node->nodeType){
+      case NODE_TUPLE:{
+        struct nodeType *it = node;
+        struct nodeType *RHS;
+        int count = 1;
+          RHS = it->rsibling;
+          do{
+            //if(RHS->nodeType==NODE_TUPLE)
+            count ++;
+            RHS = RHS->rsibling;
+          }while(RHS!=it);
+          printf("Tuple count:%d\n",count);
+          //if(count ==0){
+          //}
+
+        break;
+      }
+      case NODE_TUPLE_HEAD:{
+        struct nodeType *it = node;
+        struct nodeType *RHS;
+        int count = 1;
+          RHS = it->rsibling;
+          do{
+            if(RHS->nodeType==NODE_TUPLE)
+              count ++;
+            RHS = RHS->rsibling;
+          }while(RHS!=it);
+          printf("tuple head count:%d\n",count);
+          
+          if(count ==1){
+            node->nodeType = NODE_DEL;
+            
+            //deleteNode(it);
+          }
+
+        break;
+      }
+      default:{
+        struct nodeType *child = node->child;
+        if(child != 0) {
+          do {
+            tuplePass(child);
+            child = child->rsibling;
+          } while(child != node->child);
+        }
+      }
+  }
+}
+
 void semanticCheck(struct nodeType *node) {
  //   printf("nodetype:%d\n", node->nodeType);
     switch(node->nodeType){
@@ -73,9 +156,8 @@ void semanticCheck(struct nodeType *node) {
         }while(child!=NULL);
         break;
       }
-
-    
     }
+    
     /* Default action for other nodes not listed in the switch-case */
     struct nodeType *child = node->child;
     if(child != 0) {

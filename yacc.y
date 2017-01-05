@@ -141,10 +141,8 @@ FunTypeDef : TypeExp RARROW TypeExp{
 
 TypeExp : ID {  
             if(strcmp($$->string,"float")==0){
-                printf("hit!!\n");
                 $1->valueType = TypeReal;
             }
-                printf("not hit!!\n");
             $$ = $1;  
         }
         | ID '(' TypeList ')' {
@@ -167,7 +165,7 @@ PairTypes : PairTypes ',' TypeExp {
             $$ = $1;
             $2->nodeType = NODE_TOKEN;
             $2->string = ",";
-            addChild($$,$2);
+            //addChild($$,$2);
             addChild($$,$3);
 
             //$$=newNode(NODE_TUPLE);
@@ -198,7 +196,20 @@ Exp : IfOrLetExp {
         $$ = $1;
     }
     | TupleExp {
-        $$ = $1;    
+       /* 
+        if($1->child->child == NULL){
+            $$->nodeType = NODE_TUPLE_HEAD;
+            $$ = $1->child;
+        }
+        */
+        /*
+        if($1->nodeType!=NODE_OP){   
+        $$ = newNode(NODE_TUPLE_HEAD);
+        addChild($$,$1);
+        }
+        else $$=$1;
+        */
+        $$ = $1; 
      // $$=newNode(NODE_TUPLE);
      // addChild($$,$1);
     }
@@ -220,12 +231,16 @@ IfOrLetExp
     | LET ExpBinds ';' IN Exp {
         $$= newNode(NODE_LET);
         addChild($$,$2);
-        addChild($$,$5);
+        struct nodeType* LET_REST = newNode(NODE_EXP);
+        addChild($$, LET_REST);
+        addChild(LET_REST,$5);
     }
     | LET ExpBinds IN Exp{
         $$ = newNode(NODE_LET);
         addChild($$,$2);
-        addChild($$,$4);
+        struct nodeType* LET_REST = newNode(NODE_EXP);
+        addChild($$, LET_REST);
+        addChild(LET_REST,$4);
     }
     ;
 
@@ -255,17 +270,17 @@ ExpBind
 
 TupleExp
     : OrExp {
-        $$ = newNode(NODE_TUPLE);
-        addChild($$, $1);
-        //$$ = $1;
+        //$$ = newNode(NODE_TUPLE);
+        //addChild($$, $1);
+        $$ = $1;
     }
     | OrExp ',' TupleRest {
-        //$$ = newNode(NODE_TUPLE);
-        //addChild($$,$1);
-        //addChild($$,$3);
-        
-        $$ =$3;
+        $$ = newNode(NODE_TUPLE);
         addChild($$,$1);
+        addChild($$,$3);
+        
+        //$$ =$3;
+        //addChild($$,$1);
         //$$ = $1;
         //addChild($$,$3);
         // FIXME
@@ -548,10 +563,11 @@ int main(int argc, char** argv){
     printf("************************\n");
     printf("*** NO PARSING ERROR ***\n");
     printf("************************\n");
-    
+//    tuplePass(ASTRoot);   
+//    deltuplePass(ASTRoot);   
     printTree(ASTRoot, 0);
     
-    semanticCheck(ASTRoot);
+    //semanticCheck(ASTRoot);
     printf("************************\n");
     printf("** NO SEMANTIC ERROR ***\n");
     printf("************************\n");

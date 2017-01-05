@@ -79,6 +79,15 @@ void printTree(struct nodeType *node, int ident) {
             ident++;
             break;
       
+        case NODE_DEL:
+            printf("%sNODE_DEL\n", blank);
+            ident++;
+            break;
+        case NODE_TUPLE_HEAD:
+            printf("%sNODE_TUPLE_HEAD\n", blank);
+            ident++;
+            break;
+
         case NODE_FUNC_TYPE:
             printf("%sTYPE_DEFS:\n", blank);
             ident++;
@@ -88,7 +97,7 @@ void printTree(struct nodeType *node, int ident) {
             ident++;
             break;
         case NODE_FUNC_CALL:
-            printf("%scallFunc\n", blank);
+            printf("%sNODE_FUNC_CALL\n", blank);
             ident++;
             break;
         case NODE_TYPE_PAIR:

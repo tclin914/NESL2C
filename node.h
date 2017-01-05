@@ -49,7 +49,8 @@ struct nodeType;
 #define NODE_EMPSEQ         31
 #define NODE_FILTER         32  
 #define NODE_IN             33
-
+#define NODE_TUPLE_HEAD     35
+#define NODE_DEL            36
 
 
 
