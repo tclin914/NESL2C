@@ -12,6 +12,13 @@ struct nodeType;
 #define NODE_MARK           22
 
 // typeToken
+#define TOKE_ID             0
+#define TOKE_INT            1
+#define TOKE_FLOAT          2
+#define TOKE_BOOL           3
+#define TOKE_CHAR           4
+#define TOKE_STRING         5
+
 #define NODE_INT            3
 #define NODE_FLOAT          4
 #define NODE_BOOL           5
@@ -43,7 +50,7 @@ struct nodeType;
 #define NODE_BIND           25
 #define NODE_PATTERN        26
 #define NODE_LET            27 
-#define NODE_APPLYBODY      28
+#define NODE_APPLYBODY1     28
 #define NODE_BODY           29
 #define NODE_SIEVE          30
 #define NODE_EMPSEQ         31
@@ -51,8 +58,11 @@ struct nodeType;
 #define NODE_IN             33
 #define NODE_TUPLE_HEAD     35
 #define NODE_DEL            36
-
-
+#define NODE_RBINDS         37
+#define NODE_APPLYBODY2     38
+#define NODE_APPLYBODY3     39
+#define NODE_APPLYBODY4     40
+#define NODE_STRING         41
 
 
 

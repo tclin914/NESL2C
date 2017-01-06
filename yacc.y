@@ -70,10 +70,10 @@ TopLevel
             addChild($$,$3);
             
             struct nodetype *types = newNode(NODE_FUNC_TYPE);
-            addChild(types, $5);
-            addChild($$,types);
+            //addChild(types, $5);
+            //addChild($$,types);
             
-            //addChild($$,$5);
+            addChild($$,$5);
             //addChild($6,$7);
             //addChild($$,$6);
             addChild($$,$7);
@@ -100,6 +100,8 @@ TopLevel
             deleteNode($6);
         }
         | DATATYPE ID '(' TypeList ')' EndMark{
+            //FIXME float, int ... is also token ID
+            // but different tokenType
             $$ = $1;
             $$->nodeType = NODE_DATATYPE;
             addChild($$,$2);
@@ -120,6 +122,8 @@ TopLevel
         ;
 
 FunId   : ID{
+            //FIXME float, int ... is also token ID
+            // but different tokenType
             $$=$1;
         }
         | SpecialId{
@@ -140,13 +144,16 @@ FunTypeDef : TypeExp RARROW TypeExp{
         ;
 
 TypeExp : ID {  
+            //FIXME float, int ... is also token ID
+            // but different tokenType
             if(strcmp($$->string,"float")==0){
                 $1->valueType = TypeReal;
             }
             $$ = $1;  
         }
         | ID '(' TypeList ')' {
-            // TODO figure out what's this.
+            //FIXME float, int ... is also token ID
+            // but different tokenType
             $$=$1;
             addChild($$,$3);
         }
@@ -421,6 +428,14 @@ AtomicExp
         $$ = $2;
     }
     | '{' ApplyBody '|' Exp '}' {
+        if($2->nodeType == NODE_APPLYBODY1){
+            $2->nodeType =NODE_APPLYBODY3;
+            //addChild($2,$4);
+        }
+        else {
+            $2->nodeType =NODE_APPLYBODY4;
+           //` addChild($2,$4);
+        }
         $$ = $2;
         struct nodeType* filter = newNode(NODE_FILTER);
         addChild($$,filter);
@@ -432,20 +447,36 @@ AtomicExp
         addChild($$,$1);
     }
     | '[' Exp SequenceTail ']'{
+        if($2->nodeType!=NODE_TUPLE){
         $$ = newNode(NODE_SEQ);
         addChild($$,$2);
-        addChild($$,$3);   
+        //addChild($$,$3);   
+        }
+        else{ 
+            $$ =$2;
+            $$->nodeType=NODE_SEQ;
+        }
+        if($3->nodeType!=NODE_EMPTY)
+          addChild($$,$3);   
     }
     | '(' Exp ')' {
-        $$ = $2;
+        $$ = newNode(NODE_TYPE_PAIR);
+        addChild($$,$2);
+        //$$ = $2;
     }
     | ID {
+            //FIXME float, int ... is also token ID
+            // but different tokenType
         $$ = $1;
     }
     | ID '(' Exp ')'{
+            //FIXME float, int ... is also token ID
+            // but different tokenType
         $$ = newNode(NODE_FUNC_CALL);
         addChild($$,$1);
-        addChild($$,$3);
+        struct nodeType *pair = newNode(NODE_TYPE_PAIR);
+        addChild(pair, $3);
+        addChild($$,pair);
     }
     ;
 
@@ -458,40 +489,43 @@ SpecialId
 
 ApplyBody
     : Exp ':' RBinds{
-        $$ = newNode(NODE_APPLYBODY);           
+        
+        $$ = newNode(NODE_APPLYBODY2);           
         addChild($$,$1);
         addChild($$,$3);
     }
     | RBinds {
-        $$ = newNode(NODE_APPLYBODY);
+        $$ = newNode(NODE_APPLYBODY1);
         addChild($$,$1);
     }
     ;
 
 RBinds
     : RBinds ';' RBind{
-        $$ = newNode(NODE_LIST);
-        //$$ = $1; 
+        $$ = $1; 
         //addChild($$,$3);
-        addChild($$,$1);
+        //addChild($$,$1);
         addChild($$,$3);
         deleteNode($2);
     
     }
     | RBind {
-        $$ =$1;
-        //addChild($$,$1);
+        $$ = newNode(NODE_RBINDS);
+        //$$ =$1;
+        addChild($$,$1);
     }
     ;
     
 RBind
     : ID {
+        //FIXME float, int ... is also token ID
+        // but different tokenType
         $$ = $1;
     }
     | Exp IN Exp{
         $$ = $2;
         $$->nodeType = NODE_IN;
-        $1->nodeType = NODE_TOKEN;
+        //$1->nodeType = NODE_TOKEN;
         addChild($$,$1);
         addChild($$,$3);
     }
@@ -526,8 +560,9 @@ Const
         $$->nodeType = NODE_BOOL;
     }
     | stringconst{
+        //FIXME change into SEQ of CHAR.
         $$ = $1;
-        $$->nodeType = NODE_CHAR;
+        $$->nodeType = NODE_STRING;
     }
     ;
 
@@ -566,14 +601,14 @@ int main(int argc, char** argv){
 //    tuplePass(ASTRoot);   
 //    deltuplePass(ASTRoot);   
     printTree(ASTRoot, 0);
-    
+    printNESL(ASTRoot); 
     //semanticCheck(ASTRoot);
     printf("************************\n");
     printf("** NO SEMANTIC ERROR ***\n");
     printf("************************\n");
-    yyout = fopen(classname,"w+");
-    fprintf(yyout, "macros\n");
-    fclose(yyout);
+    //yyout = fopen(classname,"w+");
+    //fprintf(yyout, "macros\n");
+    //fclose(yyout);
 
     //FILE* fptr;
     //fptr = fopen("output/NESL2C_test.c","w");

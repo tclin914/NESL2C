@@ -78,7 +78,15 @@ void printTree(struct nodeType *node, int ident) {
             }
             ident++;
             break;
-      
+        case NODE_STRING:
+            printf("%sNODE_STRING: %s\n", blank, node->string);
+            ident++;
+            break;
+        case NODE_RBINDS:
+            printf("%sNODE_RBINDS\n", blank);
+            ident++;
+            break;
+            
         case NODE_DEL:
             printf("%sNODE_DEL\n", blank);
             ident++;
@@ -121,8 +129,20 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sFILTER\n", blank);
             ident++;
             break;
-        case NODE_APPLYBODY:
-            printf("%sAPPLYBODY\n", blank);
+        case NODE_APPLYBODY1:
+            printf("%sAPPLYBODY1\n", blank);
+            ident++;
+            break;
+        case NODE_APPLYBODY2:
+            printf("%sAPPLYBODY2\n", blank);
+            ident++;
+            break;
+        case NODE_APPLYBODY3:
+            printf("%sAPPLYBODY3\n", blank);
+            ident++;
+            break;
+        case NODE_APPLYBODY4:
+            printf("%sAPPLYBODY4\n", blank);
             ident++;
             break;
         case NODE_SEQTAIL:
