@@ -63,27 +63,27 @@ struct nodeType* newTokenNode(int tokenType);
 "LOGICAL"   {yylval.node = newTokenNode(LOGICAL); token(LOGICAL); }
 "ANY"               {yylval.node = newTokenNode(ANY); token(ANY);}
 "INT"       {
-                yylval.node = newTokenNode(INT);
+                yylval.node = newTokenNode(TOKE_INT);
                 yylval.node->string = (char*)malloc(yyleng+1);
                 strcpy(yylval.node->string, yytext);
                 token(ID);
             }
 "BOOL"        {
-        yylval.node = newTokenNode(BOOL); 
+        yylval.node = newTokenNode(TOKE_BOOL); 
         yylval.node->string = (char*)malloc(yyleng+1);
         strcpy(yylval.node->string, yytext);
         token(BOOL);
         
         }
 "FLOAT"         {
-        yylval.node = newTokenNode(FLOAT); /*token(FLOAT);*/ 
+        yylval.node = newTokenNode(TOKE_FLOAT); /*token(FLOAT);*/ 
         yylval.node->string = (char*)malloc(yyleng+1);
         strcpy(yylval.node->string, yytext);
         token(ID);
         
 /*"TIME"            {yylval.node = newTokenNode(TIME); token(TIME);} */
         }
-"CHAR"            {yylval.node = newTokenNode(CHAR); token(CHAR);}
+"CHAR"            {yylval.node = newTokenNode(TOKE_CHAR); token(CHAR);}
 "IN"                  {yylval.node = newTokenNode(IN); token(IN);}
 "IF"                  {yylval.node = newTokenNode(IF); token(IF);}
 "ELSE"            {yylval.node = newTokenNode(ELSE); token(ELSE);}
@@ -109,7 +109,7 @@ struct nodeType* newTokenNode(int tokenType);
     token(floatconst);
 }
 [_a-z0-9]+  {
-            yylval.node = newTokenNode(ID);
+            yylval.node = newTokenNode(TOKE_ID);
             yylval.node->string = (char*)malloc(yyleng+1);
             strcpy(yylval.node->string, yytext);
             token(ID);
@@ -121,6 +121,9 @@ struct nodeType* newTokenNode(int tokenType);
             token(boolconst);
 }
 \"[^"]*\"     {
+            yylval.node = newTokenNode(TOKE_STRING);
+            yylval.node->string = (char*)malloc(yyleng+1);
+            strcpy(yylval.node->string, yytext);
             token(stringconst);
 }
 

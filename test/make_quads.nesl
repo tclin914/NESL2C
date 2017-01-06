@@ -1,0 +1,10 @@
+% splits vector of points into quadrants given x and y axes %
+
+function make_quads(v,x_axis,y_axis) =
+let
+flags = {x >= x_axis : (x,y,rest) in v };
+lr = split(v,flags);
+flag2314 = {{ y > y_axis : (x,y,rest) in lr } : lr};
+quad3241 = {split(lr,fl): lr ; fl in flag2314};
+in
+flatten(quad3241) $
