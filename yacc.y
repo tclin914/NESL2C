@@ -586,30 +586,67 @@ int main(int argc, char** argv){
     printf("%d: %s\n",argc,argv[1]);
     yyin = fopen(argv[1], "r");
     
+    /**
+    * Extract filename from argument.
+    */
     char *classname;
     classname = (char*)malloc(sizeof(char)*100);
     classname = strtok(argv[1],"/.");
     classname = strtok(NULL,"/.");
-    strcat(classname,".c");
-    printf("%s\n",classname);
     
+    /**
+    * Parse
+    */
     yyparse();
     fclose(yyin);
     printf("************************\n");
     printf("*** NO PARSING ERROR ***\n");
     printf("************************\n");
-//    tuplePass(ASTRoot);   
-//    deltuplePass(ASTRoot);   
+
+    /**
+    * PrintTree
+    */
     printTree(ASTRoot, 0);
-    printNESL(ASTRoot); 
+    
+    /**
+    * Generate NESL to compare difference.
+    */
+    char *reveseNESL ;
+    reveseNESL = (char*)malloc(sizeof(char)*100);
+    strcpy(reveseNESL,"reverseoutput/");
+    strcat(reveseNESL, classname);
+    strcat(reveseNESL, ".nesl");
+    printf("%s\n",reveseNESL);
+    yyout = fopen(reveseNESL,"w+");
+    printNESL(ASTRoot, yyout); 
+    fclose(yyout);
+    printf("************************\n");
+    printf("** REVERSE NESL DONE ***\n");
+    printf("************************\n");
+    
+    /**
+    * Semantic Check: type
+    */
+    // TODO 
+    //typeCheck(ASTRoot);
+    
     //semanticCheck(ASTRoot);
-    printf("************************\n");
-    printf("** NO SEMANTIC ERROR ***\n");
-    printf("************************\n");
-    //yyout = fopen(classname,"w+");
+    //printf("************************\n");
+    //printf("** NO SEMANTIC ERROR ***\n");
+    //printf("************************\n");
+
+    /**
+    * Generate C file.
+    */
+    char *translatedC = (char*)malloc(sizeof(char)*100);
+    strcpy(translatedC, classname);
+    strcat(translatedC,".c");
+    
+    //yyout = fopen(translatedC,"w+");
     //fprintf(yyout, "macros\n");
     //fclose(yyout);
-
+    
+    
     //FILE* fptr;
     //fptr = fopen("output/NESL2C_test.c","w");
     //if(!fptr){
@@ -628,5 +665,9 @@ int main(int argc, char** argv){
     //if(fptr==NULL)
     //    fclose(fptr);
     
+    printf("************************\n");
+    printf("***  END OF NESL2C  ****\n");
+    printf("************************\n");
+
     return 0;
 }

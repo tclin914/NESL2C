@@ -41,14 +41,15 @@ struct nodeType* nthChild(int n, struct nodeType *node) {
 }
 
 
-void printNESL(struct nodeType *node){
+
+void printNESL(struct nodeType *node, FILE* yyout){
   switch(node->nodeType){
     case NODE_LIST:{
       struct nodeType *child = node->child;
       if(child!=0){
         do{
-          printNESL(child);
-          printf("\n");
+          printNESL(child, yyout);
+          fprintf(yyout, "\n");
           child = child->rsibling;
         }while( child!=node->child);
       }
@@ -56,22 +57,22 @@ void printNESL(struct nodeType *node){
     }
     case NODE_FUNC:{
       struct nodeType *child = node->child;
-      printf("function %s",node->string);
-      printNESL(child);
-      printf(":\n");
-      printNESL(child->rsibling);
-      printf("=\n");
-      printNESL(child->rsibling->rsibling);
-      printf(";\n");
+      fprintf(yyout,"function %s",node->string);
+      printNESL(child, yyout);
+      fprintf(yyout,":\n");
+      printNESL(child->rsibling, yyout);
+      fprintf(yyout,"=\n");
+      printNESL(child->rsibling->rsibling, yyout);
+      fprintf(yyout,";\n");
       break;
     }
     case NODE_TUPLE:{
      struct nodeType *child = node->child;
-      printNESL(child);
+      printNESL(child, yyout);
       child = child->rsibling;
       while(child!=node->child){
-        printf(",");
-        printNESL(child);
+        fprintf(yyout,",");
+        printNESL(child, yyout);
         child = child->rsibling;
       }
       break;
@@ -79,82 +80,82 @@ void printNESL(struct nodeType *node){
     case NODE_TYPE_PAIR:{
       struct nodeType *child = node->child;
 
-      printf("(");
-      printNESL(child);
+      fprintf(yyout,"(");
+      printNESL(child, yyout);
       child = child->rsibling;
       while(child!=node->child){
-        printf(",");
-        printNESL(child);
+        fprintf(yyout,",");
+        printNESL(child, yyout);
         child = child->rsibling;
       }
-      printf(")");
+      fprintf(yyout,")");
       break;
     }
     case NODE_OP:{
       switch(node->op){
         case OP_BIND:
-          printNESL(node->child);
-          printf("=");
-          printNESL(node->child->rsibling);
+          printNESL(node->child, yyout);
+          fprintf(yyout,"=");
+          printNESL(node->child->rsibling, yyout);
           break;
         case OP_ADD:
-          printNESL(node->child);
-          printf(" + ");
-          printNESL(node->child->rsibling);
+          printNESL(node->child, yyout);
+          fprintf(yyout," + ");
+          printNESL(node->child->rsibling, yyout);
           break;
         case OP_SUB:
-          printNESL(node->child);
-          printf("-");
-          printNESL(node->child->rsibling);
+          printNESL(node->child, yyout);
+          fprintf(yyout,"-");
+          printNESL(node->child->rsibling, yyout);
           break;
         case OP_MUL:
-          printNESL(node->child);
-          printf("*");
-          printNESL(node->child->rsibling);
+          printNESL(node->child, yyout);
+          fprintf(yyout,"*");
+          printNESL(node->child->rsibling, yyout);
           break;
         case OP_DIV:
-          printNESL(node->child);
-          printf("/");
-          printNESL(node->child->rsibling);
+          printNESL(node->child, yyout);
+          fprintf(yyout,"/");
+          printNESL(node->child->rsibling, yyout);
           break;
         case OP_RARROW:
-          printNESL(node->child);
-          printf("->");
-          printNESL(node->child->rsibling);
+          printNESL(node->child, yyout);
+          fprintf(yyout,"->");
+          printNESL(node->child->rsibling, yyout);
           break;
         case OP_LT:
-          printNESL(node->child);
-          printf("<");
-          printNESL(node->child->rsibling);
+          printNESL(node->child, yyout);
+          fprintf(yyout,"<");
+          printNESL(node->child->rsibling, yyout);
           break;
         case OP_AT:
-          printf("@");
-          printNESL(node->child);
+          fprintf(yyout,"@");
+          printNESL(node->child, yyout);
           break;
         case OP_UMINUS:
-          printf("-");
-          printNESL(node->child);
+          fprintf(yyout,"-");
+          printNESL(node->child, yyout);
           break;
         case OP_SHARP:
-          printf("#");
-          printNESL(node->child);
+          fprintf(yyout,"#");
+          printNESL(node->child, yyout);
           break;
         
-        case OP_GT:     printNESL(node->child); printf(">"); printNESL(node->child->rsibling);  break;
-        case OP_EQ:     printNESL(node->child); printf(" == "); printNESL(node->child->rsibling);  break;
-        case OP_GE:     printNESL(node->child); printf(" >= "); printNESL(node->child->rsibling);  break;
-        case OP_LE:     printNESL(node->child); printf(" <= "); printNESL(node->child->rsibling);  break;
-        case OP_NE:     printNESL(node->child); printf(" != "); printNESL(node->child->rsibling);  break;
-        case OP_NOT:    printNESL(node->child); printf(" NOT "); printNESL(node->child->rsibling); break;
-        case OP_OR:     printNESL(node->child); printf(" OR "); printNESL(node->child->rsibling);  break;
-        case OP_COMMA:  printNESL(node->child); printf(" , "); printNESL(node->child->rsibling); break;
-        case OP_AND:    printNESL(node->child); printf(" AND "); printNESL(node->child->rsibling);  break;
-        case OP_NOR:    printNESL(node->child); printf(" NOR "); printNESL(node->child->rsibling);  break;
-        case OP_NAND:   printNESL(node->child); printf(" NAND "); printNESL(node->child->rsibling); break;
-        case OP_XOR:    printNESL(node->child); printf(" XOR "); printNESL(node->child->rsibling);  break;
-        case OP_LARROW: printNESL(node->child); printf(" <- "); printNESL(node->child->rsibling);  break;
-        case OP_UPT:    printNESL(node->child); printf(" ^ "); printNESL(node->child->rsibling);  break;
-        case OP_PP:     printNESL(node->child); printf(" ++ "); printNESL(node->child->rsibling); break;
+        case OP_GT:     printNESL(node->child, yyout); fprintf(yyout,">"); printNESL(node->child->rsibling, yyout);  break;
+        case OP_EQ:     printNESL(node->child, yyout); fprintf(yyout," == "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_GE:     printNESL(node->child, yyout); fprintf(yyout," >= "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_LE:     printNESL(node->child, yyout); fprintf(yyout," <= "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_NE:     printNESL(node->child, yyout); fprintf(yyout," != "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_NOT:    printNESL(node->child, yyout); fprintf(yyout," NOT "); printNESL(node->child->rsibling, yyout); break;
+        case OP_OR:     printNESL(node->child, yyout); fprintf(yyout," OR "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_COMMA:  printNESL(node->child, yyout); fprintf(yyout," , "); printNESL(node->child->rsibling, yyout); break;
+        case OP_AND:    printNESL(node->child, yyout); fprintf(yyout," AND "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_NOR:    printNESL(node->child, yyout); fprintf(yyout," NOR "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_NAND:   printNESL(node->child, yyout); fprintf(yyout," NAND "); printNESL(node->child->rsibling, yyout); break;
+        case OP_XOR:    printNESL(node->child, yyout); fprintf(yyout," XOR "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_LARROW: printNESL(node->child, yyout); fprintf(yyout," <- "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_UPT:    printNESL(node->child, yyout); fprintf(yyout," ^ "); printNESL(node->child->rsibling, yyout);  break;
+        case OP_PP:     printNESL(node->child, yyout); fprintf(yyout," ++ "); printNESL(node->child->rsibling, yyout); break;
 
 
 
@@ -165,13 +166,13 @@ void printNESL(struct nodeType *node){
     case NODE_TOKEN:{
       switch(node->tokenType){
         case TOKE_ID:
-          printf("%s",node->string);
+          fprintf(yyout,"%s",node->string);
           break;
         case TOKE_INT:
-          printf("INT");
+          fprintf(yyout,"INT");
           break;
         case TOKE_FLOAT:
-          printf("FLOAT");
+          fprintf(yyout,"FLOAT");
           break;
         
       
@@ -180,11 +181,11 @@ void printNESL(struct nodeType *node){
       break;
     }
     case NODE_LET:{
-      printf("let ");
-      printNESL(node->child);
-      printf("in ");
-      printNESL(node->child->rsibling);
-      //printf(";\n");
+      fprintf(yyout,"let ");
+      printNESL(node->child, yyout);
+      fprintf(yyout,"in ");
+      printNESL(node->child->rsibling, yyout);
+      //fprintf(yyout,";\n");
       break; 
     } 
     case NODE_PATTERN:
@@ -192,7 +193,7 @@ void printNESL(struct nodeType *node){
       struct nodeType *child = node->child;
       if(child!=0){
         do{
-          printNESL(child);
+          printNESL(child, yyout);
           child = child->rsibling;
         }while(child!=node->child);
       }
@@ -202,117 +203,117 @@ void printNESL(struct nodeType *node){
       struct nodeType *child = node->child;
       if(child!=0){
         do{
-          printNESL(child);
-          printf(";\n");
+          printNESL(child, yyout);
+          fprintf(yyout,";\n");
           child = child->rsibling;
         }while(child!=node->child);
       }
       break;
     }
     case NODE_FUNC_CALL:{
-      printNESL(node->child);
-      //printf("(");
-      printNESL(node->child->rsibling);
-      //printf(")");
+      printNESL(node->child, yyout);
+      //fprintf(yyout,"(");
+      printNESL(node->child->rsibling, yyout);
+      //fprintf(yyout,")");
 
       break;
     }
     case NODE_FLOAT:{
-      printf("%f",node->rValue);
+      fprintf(yyout,"%f",node->rValue);
       break;
     }
     case NODE_INT:{
-      printf("%d",node->iValue);
+      fprintf(yyout,"%d",node->iValue);
       break;
     }
 
     case NODE_IN:{
-      printNESL(node->child);
-      printf(" IN ");
-      printNESL(node->child->rsibling);
+      printNESL(node->child, yyout);
+      fprintf(yyout," IN ");
+      printNESL(node->child->rsibling, yyout);
       break;
     }
     case NODE_APPLYBODY1:{
-      printf("{ ");
-      printNESL(node->child);
-      printf("}");
+      fprintf(yyout,"{ ");
+      printNESL(node->child, yyout);
+      fprintf(yyout,"}");
       break;
     }
     case NODE_APPLYBODY2:{
-      printf("{ ");
-      printNESL(node->child);
-      printf(" : ");
-      printNESL(node->child->rsibling);
-      printf("}");
+      fprintf(yyout,"{ ");
+      printNESL(node->child, yyout);
+      fprintf(yyout," : ");
+      printNESL(node->child->rsibling, yyout);
+      fprintf(yyout,"}");
       
       break;
     }
     case NODE_APPLYBODY3:{
-      printf("{ ");
-      printNESL(node->child);
-      printf(" | ");
-      printNESL(node->child->rsibling);
-      printf("}");
+      fprintf(yyout,"{ ");
+      printNESL(node->child, yyout);
+      fprintf(yyout," | ");
+      printNESL(node->child->rsibling, yyout);
+      fprintf(yyout,"}");
       
       break;
     }
     case NODE_APPLYBODY4:{
-      printf("{ ");
-      printNESL(node->child);
-      printf(" : ");
-      printNESL(node->child->rsibling);
-      printf(" | ");
-      printNESL(node->child->rsibling->rsibling);
-      printf("}");
+      fprintf(yyout,"{ ");
+      printNESL(node->child, yyout);
+      fprintf(yyout," : ");
+      printNESL(node->child->rsibling, yyout);
+      fprintf(yyout," | ");
+      printNESL(node->child->rsibling->rsibling, yyout);
+      fprintf(yyout,"}");
       
       break;
     }
     case NODE_TYPE_SEQ:
     case NODE_SEQ:{
       struct nodeType *child = node->child;
-      printf("[");
+      fprintf(yyout,"[");
       if(child!=0){
-        printNESL(child);
+        printNESL(child, yyout);
         child = child->rsibling;
         while(child!=node->child){
-          printf(", ");
-          printNESL(child);
+          fprintf(yyout,", ");
+          printNESL(child, yyout);
           child = child->rsibling;
         }
       }
-      printf("]");
+      fprintf(yyout,"]");
       break;
     }
     case NODE_IFELSE:{
-      printNESL(node->child);
-      printNESL(node->child->rsibling);
-      printNESL(node->child->rsibling->rsibling);
+      printNESL(node->child, yyout);
+      printNESL(node->child->rsibling, yyout);
+      printNESL(node->child->rsibling->rsibling, yyout);
       break;
     }
     case NODE_IFSTMT:{
-      printf("if ");
-      printNESL(node->child);
+      fprintf(yyout,"if ");
+      printNESL(node->child, yyout);
       break;
     }
     case NODE_THENSTMT:{
-      printf("then ");
-      printNESL(node->child);
-      printf("\n");
+      fprintf(yyout,"then ");
+      printNESL(node->child, yyout);
+      fprintf(yyout,"\n");
       break;
     }
     case NODE_ELSESTMT:{
-      printf("else \n");
-      printNESL(node->child);
+      fprintf(yyout,"else \n");
+      printNESL(node->child, yyout);
       break;
     }
     case NODE_RBINDS:{
       struct nodeType * child = node->child;
       if(child!=0){
-        printNESL(child);
+        printNESL(child, yyout);
         child=child->rsibling;
         while(child!=node->child){
-          printf(";");
-          printNESL(child);
+          fprintf(yyout,";");
+          printNESL(child, yyout);
 
           child = child->rsibling;
         }
@@ -320,18 +321,18 @@ void printNESL(struct nodeType *node){
       break;
     }
     case NODE_SEQ_REF:{
-      printNESL(node->child);
-      printf("[");
-      printNESL(node->child->rsibling);
-      printf("]");
+      printNESL(node->child, yyout);
+      fprintf(yyout,"[");
+      printNESL(node->child->rsibling, yyout);
+      fprintf(yyout,"]");
       break;
     }
     case NODE_FILTER:{
-      printNESL(node->child);
+      printNESL(node->child, yyout);
       break;
     }
     case NODE_STRING:{
-      printf("%s", node->string);
+      fprintf(yyout,"%s", node->string);
       break;
     }
 
