@@ -132,6 +132,11 @@ struct nodeType {
     int arraydepth;
     struct nodeType *arraynext;
 
+    /* Tuple */
+    int tuplecount;
+    int tuplechildcount;
+    struct nodeType * tuplenode;
+
     /* Values for general use */
     int iValue;
     double rValue;
@@ -140,7 +145,8 @@ struct nodeType {
     
     /* Indicates which OP */
     char op;
-
+    
+    
     enum StdType valueType;
     struct SymTableEntry *entry;
 };

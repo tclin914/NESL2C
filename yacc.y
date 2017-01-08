@@ -147,7 +147,7 @@ TypeExp : ID {
             //FIXME float, int ... is also token ID
             // but different tokenType
             if(strcmp($$->string,"float")==0){
-                $1->valueType = TypeReal;
+                $1->valueType = TypeFloat;
             }
             $$ = $1;  
         }
@@ -628,7 +628,7 @@ int main(int argc, char** argv){
     * Semantic Check: type
     */
     // TODO 
-    //typeCheck(ASTRoot);
+    typeCheck(ASTRoot);
     
     //semanticCheck(ASTRoot);
     //printf("************************\n");
