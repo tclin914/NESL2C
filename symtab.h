@@ -11,8 +11,9 @@ void codegen(FILE* fptr,struct nodeType* node);
 // 1. add TypeArray when detect '[]' stuff 
 // 2. use the most outside type to represent the node.
 // 3. add TypeChar for char or string.
-enum StdType {TypeInt, TypeFloat, TypeSEQ, TypeChar, TypeBool, 
-              TypeTuple1,TypeTuple2,TypeTuple3,TypeTuple4,TypeTuple5};
+enum StdType {TypeInt, TypeFloat, TypeChar, TypeBool, 
+              TypeSEQ_I,TypeSEQ_F,TypeSEQ_C,TypeSEQ_B,
+              TypeTuple1,TypeTuple2,TypeTuple3,TypeTuple4};
 
 // TODO 
 // 1. bind the parameter name with the typedefine nodes.

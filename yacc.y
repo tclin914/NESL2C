@@ -140,14 +140,19 @@ FunTypeDef : TypeExp RARROW TypeExp{
             $$->nodeType = NODE_OP;
             $$->op = OP_RARROW;
             addChild($$,$1); 
-            addChild($$,$3);}
+            addChild($$,$3);
+        }
         ;
 
 TypeExp : ID {  
             //FIXME float, int ... is also token ID
-            // but different tokenType
+            // but different tokenTypei
+            
             if(strcmp($$->string,"float")==0){
                 $1->valueType = TypeFloat;
+            }
+            else if(strcmp($$->string, "int")==0){
+                $1->valueType = TypeInt;
             }
             $$ = $1;  
         }
@@ -168,22 +173,22 @@ TypeExp : ID {
         }
         ;
 
-PairTypes : PairTypes ',' TypeExp {
-            $$ = $1;
-            $2->nodeType = NODE_TOKEN;
-            $2->string = ",";
-            //addChild($$,$2);
-            addChild($$,$3);
-
-            //$$=newNode(NODE_TUPLE);
-            //addChild($$,$1);
+PairTypes : TypeExp ',' PairTypes{
+            //$$ = $1;
+            //$2->nodeType = NODE_TOKEN;
+            //$2->string = ",";
+            ////addChild($$,$2);
             //addChild($$,$3);
+
+            $$=newNode(NODE_TUPLE);
+            addChild($$,$1);
+            addChild($$,$3);
         }
         | TypeExp {
-            $$ = newNode(NODE_TYPE_PAIR);
-            addChild($$,$1);
+            //$$ = newNode(NODE_TYPE_PAIR);
+            //addChild($$,$1);
 
-            //$$=$1;   
+            $$=$1;   
         }
         ;
 
@@ -460,7 +465,7 @@ AtomicExp
           addChild($$,$3);   
     }
     | '(' Exp ')' {
-        $$ = newNode(NODE_TYPE_PAIR);
+        $$ = newNode(NODE_PAIR);
         addChild($$,$2);
         //$$ = $2;
     }
@@ -474,7 +479,7 @@ AtomicExp
             // but different tokenType
         $$ = newNode(NODE_FUNC_CALL);
         addChild($$,$1);
-        struct nodeType *pair = newNode(NODE_TYPE_PAIR);
+        struct nodeType *pair = newNode(NODE_PAIR);
         addChild(pair, $3);
         addChild($$,pair);
     }

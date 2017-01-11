@@ -63,6 +63,7 @@ struct nodeType;
 #define NODE_APPLYBODY3     39
 #define NODE_APPLYBODY4     40
 #define NODE_STRING         41
+#define NODE_PAIR           42
 
 
 
@@ -132,9 +133,13 @@ struct nodeType {
     int arraydepth;
     struct nodeType *arraynext;
 
+    /*param & typeDef*/
+    int paramcount;
+    int declarecount;
+
     /* Tuple */
     int tuplecount;
-    int tuplechildcount;
+    int childcount;
     struct nodeType * tuplenode;
 
     /* Values for general use */
