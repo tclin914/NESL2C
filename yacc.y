@@ -167,9 +167,9 @@ TypeExp : ID {
             addChild($$,$2);
         }
         | '('PairTypes ')' {
-            //$$ = newNode(NODE_TYPE_PAIR);
-            //addChild($$,$2);
-            $$ = $2;
+            $$ = newNode(NODE_TYPE_PAIR);
+            addChild($$,$2);
+            //$$ = $2;
         }
         ;
 
@@ -468,6 +468,7 @@ AtomicExp
         $$ = newNode(NODE_PAIR);
         addChild($$,$2);
         //$$ = $2;
+
     }
     | ID {
             //FIXME float, int ... is also token ID
@@ -612,6 +613,8 @@ int main(int argc, char** argv){
     * PrintTree
     */
     printTree(ASTRoot, 0);
+    removePair(ASTRoot);
+    printTree(ASTRoot,0);
     
     /**
     * Generate NESL to compare difference.
@@ -628,12 +631,14 @@ int main(int argc, char** argv){
     printf("************************\n");
     printf("** REVERSE NESL DONE ***\n");
     printf("************************\n");
-    
+   
+
+
     /**
     * Semantic Check: type
     */
     // TODO 
-    typeCheck(ASTRoot);
+    //typeCheck(ASTRoot);
     
     //semanticCheck(ASTRoot);
     //printf("************************\n");

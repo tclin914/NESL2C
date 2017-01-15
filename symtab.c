@@ -40,8 +40,59 @@ struct nodeType* nthChild(int n, struct nodeType *node) {
     return child;
 }
 
+void tupleTransform(struct nodeType *node){
+  struct nodeType * foo  = node->child->lsibling;
+  if(foo->nodeType == NODE_TUPLE){
+    struct nodeType *c1 = nthChild(1,foo);
+    struct nodeType *c2 = nthChild(2,foo);
+    c1->parent = node;
+    c2->parent = node;
+    c1->rsibling = c2;
+    c2->lsibling = c1;
+    c2->rsibling = node->child;
+    node->child->lsibling = c2;
+    c1->lsibling = foo->lsibling;
+    foo->lsibling->rsibling = c1;
+    tupleTransform(node);
+  }
+}
+
+void removePair(struct nodeType *node){
+  struct nodeType *child = node->child;
+  struct nodeType *RHS = node->rsibling;
+  struct nodeType *LHS = node->lsibling;
+  int counts=0;
+  int hasTuple=0;
+  int i =0;
+  switch(node->nodeType){
+    case NODE_SEQ:
+      if(child!=0){
+        do{
+          if(child->nodeType == NODE_TUPLE)
+            hasTuple =1;
+          counts++;
+          child = child->rsibling;
+        }while(child!=node->child);
+      } 
+      if(hasTuple){
+          tupleTransform(node);
+      }
+      printf("SEQ:count:%d\n",counts);
+      
+      break;
+    default:
+      if(child!=0){
+        do{
+          removePair(child);
+          child = child->rsibling;
+        }while(child != node->child);
+      }
+      break;
+  }
+}
+
+
 void looptogether(struct nodeType *node1, struct nodeType *node2){
-  //TODO
 
   if(node2->nodeType == NODE_TYPE_PAIR){
     node2= node2->child;
@@ -517,7 +568,9 @@ void printNESL(struct nodeType *node, FILE* yyout){
     case NODE_FUNC:{
       struct nodeType *child = node->child;
       fprintf(yyout,"function %s",node->string);
+      //fprintf(yyout,"(");
       printNESL(child, yyout);
+      //fprintf(yyout,")");
       fprintf(yyout,":\n");
       printNESL(child->rsibling, yyout);
       fprintf(yyout,"=\n");
@@ -527,6 +580,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
     }
     case NODE_TUPLE:{
      struct nodeType *child = node->child;
+      //fprintf(yyout,"(");
       printNESL(child, yyout);
       child = child->rsibling;
       while(child!=node->child){
@@ -534,6 +588,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
         printNESL(child, yyout);
         child = child->rsibling;
       }
+      //fprintf(yyout,")");
       break;
     }
     case NODE_PAIR:
@@ -760,13 +815,13 @@ void printNESL(struct nodeType *node, FILE* yyout){
       break;
     }
     case NODE_THENSTMT:{
-      fprintf(yyout,"then ");
+      fprintf(yyout," then ");
       printNESL(node->child, yyout);
       fprintf(yyout,"\n");
       break;
     }
     case NODE_ELSESTMT:{
-      fprintf(yyout,"else \n");
+      fprintf(yyout," else \n");
       printNESL(node->child, yyout);
       break;
     }

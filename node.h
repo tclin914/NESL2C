@@ -147,7 +147,7 @@ struct nodeType {
     double rValue;
     char valueValid;
     char *string;
-    
+    struct nodeType * typeNode;
     /* Indicates which OP */
     char op;
     
