@@ -92,11 +92,11 @@ void removePair(struct nodeType *node){
 }
 
 
-void looptogether(struct nodeType *node1, struct nodeType *node2){
+void typeBinding(struct nodeType *node1, struct nodeType *node2){
 
   if(node2->nodeType == NODE_TYPE_PAIR){
     node2= node2->child;
-    looptogether(node1, node2);
+    typeBinding(node1, node2);
   }
 
   else if(node1->nodeType == NODE_TUPLE && node2->nodeType == NODE_TUPLE){
@@ -105,7 +105,7 @@ void looptogether(struct nodeType *node1, struct nodeType *node2){
     child2 = node2->child;
     if(node1->child!=0 && node2->child!=0){
       do{
-        looptogether(child1, child2);
+        typeBinding(child1, child2);
         child1 = child1->rsibling;
         child2 = child2->rsibling;
       }while((child1!=node1->child) && (child2!=node2->child));
@@ -120,7 +120,7 @@ void looptogether(struct nodeType *node1, struct nodeType *node2){
     RHS1 = node1->rsibling;
     RHS2 = node2->rsibling;
     if(RHS1!=node1 && RHS2 != node2){
-      //looptogether(RHS1,RHS2);
+      //typeBinding(RHS1,RHS2);
     }
   }
   else if(node1->nodeType == NODE_TOKEN && node2->nodeType==NODE_TUPLE){
@@ -208,11 +208,11 @@ void typeCheck(struct nodeType *node){
     struct nodeType *inputParam = node->child->child;
     struct nodeType *typeDef = node->child->rsibling->child;
     struct nodeType *functionType = typeDef->rsibling;
-    //looptogether(inputParam, typeDef);
+    //typeBinding(inputParam, typeDef);
     //countTuple(inputParam);
     //countTuple(typeDef);
     if(typeDef->childcount == inputParam->childcount){
-      looptogether(inputParam, typeDef);
+      typeBinding(inputParam, typeDef);
     }
 
     // input param
