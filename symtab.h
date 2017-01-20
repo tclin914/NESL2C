@@ -25,6 +25,7 @@ struct SymTableEntry {
 };
 
 struct SymTable {
+    struct SymTable * parent ;
     int size;
     struct SymTableEntry entries[100];
 };

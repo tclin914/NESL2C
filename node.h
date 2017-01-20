@@ -148,12 +148,15 @@ struct nodeType {
     char valueValid;
     char *string;
     struct nodeType * typeNode;
+    
     /* Indicates which OP */
     char op;
     
     
     enum StdType valueType;
+    
     struct SymTableEntry *entry;
+    struct SymTable *table; 
 };
 
 struct nodeType* newNode(int type);

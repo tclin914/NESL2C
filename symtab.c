@@ -3,21 +3,36 @@
 #include <stdlib.h>
 #include <string.h>
 #define help(s) {printf("\thelp: %s\n",s);}
-struct SymTable SymbolTable;
 
-struct SymTableEntry* findSymbol(char *s) {
+//struct SymTable SymbolTable;
+struct SymTable * newSymTable(struct SymTable * parent){
+  struct SymTable *table = (struct SymTable*)malloc(sizeof(struct SymTable));
+  table->parent = parent;
+  return table;
+}
+
+struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s) {
+    //struct SymTableEntry * entry;
+    if(s==0)
+      return 0;//FIXME return error.
+
     for(int i=0; i<SymbolTable.size; i++) {
         if(strcmp(s, SymbolTable.entries[i].name) == 0) {
             return &SymbolTable.entries[i];
         }
+    
     }
-
-    return 0;
+    if(SymbolTable->parent !=0)
+      return findSymbol(SymTable->parent, s);  
+    else
+      return 0;
 }
 
 struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link) {
+    struct SymTable *SymbolTable = link->SymTable;
+    
     printf("s:%s, valueType:%d\n",s, type);
-    if(findSymbol(s) != 0) {
+    if(findSymbol(link->SymTable, s) != 0) {
         printf("Error: duplicate declaration of variable %s\n", s);
         exit(0);
     }
@@ -866,7 +881,7 @@ void semanticCheck(struct nodeType *node) {
       case NODE_FUNC:
       {
         
-        if(!findSymbol(node->string)){
+        if(!findSymbol(node->table, node->string)){
           int vtype = node->child->rsibling->child->child->rsibling->valueType;
           addVariable(node->string, vtype, node);
         }
@@ -882,7 +897,7 @@ void semanticCheck(struct nodeType *node) {
           idNode=child;
           do{
             if(idNode->nodeType==NODE_TOKEN){
-              if(!findSymbol(idNode->string)){
+              if(!findSymbol(node->table, idNode->string)){
                 addVariable(idNode->string,node->nodeType,node);
               }
             }
