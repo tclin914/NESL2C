@@ -147,62 +147,6 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
   }
 }
 
-void countTuple(struct nodeType *node){
-  
-  switch(node->nodeType){
-    case NODE_TUPLE:{
-      struct nodeType *child = node->child;
-      int count=0;
-      int tuplechildcount=0;
-      if(child!=0){
-        do{
-          count++;
-          if(child->nodeType == NODE_TUPLE){
-            countTuple(child);
-            tuplechildcount++;
-          }
-          child = child->rsibling;
-        }while(child!=node->child);
-      }
-      node->childcount = count;
-      printf("NODE_TUPLE count:%d\n", node->childcount);
-    break;
-    }
-
-    case NODE_PAIR:{
-      struct nodeType *child = node->child;
-      int childcount=0;
-      int tuplecount=0;
-      if(child!=0){
-        do{
-            childcount++;
-            child = child->rsibling;
-        }while(child!=node->child);
-        node->childcount = childcount; 
-        printf("NODE_PAIR count:%d\n", node->childcount);
-      }
-    break;
-    }
-    
-    case NODE_TYPE_PAIR:{
-      struct nodeType *child = node->child;
-      int childcount=0;
-      int tuplecount=0;
-      if(child!=0){
-        do{
-          childcount++;
-          child = child->rsibling;
-        }while(child!=node->child);
-        node->childcount = childcount;
-        printf("NODE_TYPE_PAIR count:%d\n", node->childcount);
-      }
-      break;
-    }
-
-  }
-}
-
-
 void typeCheck(struct nodeType *node){
   switch(node->nodeType){
   case NODE_LIST:{
@@ -224,8 +168,6 @@ void typeCheck(struct nodeType *node){
     struct nodeType *typeDef = node->child->rsibling->child;
     struct nodeType *functionType = typeDef->rsibling;
     //typeBinding(inputParam, typeDef);
-    //countTuple(inputParam);
-    //countTuple(typeDef);
     if(typeDef->childcount == inputParam->childcount){
       typeBinding(inputParam, typeDef);
     }
