@@ -4,7 +4,8 @@
 #include <string.h>
 #define help(s) {printf("\thelp: %s\n",s);}
 
-//struct SymTable SymbolTable;
+
+struct SymTable * rootTable;
 struct SymTable * newSymTable(struct SymTable * parent){
   struct SymTable *table = (struct SymTable*)malloc(sizeof(struct SymTable));
   table->parent = parent;
@@ -16,35 +17,35 @@ struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s) {
     if(s==0)
       return 0;//FIXME return error.
 
-    for(int i=0; i<SymbolTable.size; i++) {
-        if(strcmp(s, SymbolTable.entries[i].name) == 0) {
-            return &SymbolTable.entries[i];
+    for(int i=0; i<SymbolTable->size; i++) {
+        if(strcmp(s, SymbolTable->entries[i].name) == 0) {
+            return &SymbolTable->entries[i];
         }
     
     }
     if(SymbolTable->parent !=0)
-      return findSymbol(SymTable->parent, s);  
+      return findSymbol(SymbolTable->parent, s);  
     else
       return 0;
 }
 
 struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link) {
-    struct SymTable *SymbolTable = link->SymTable;
+    struct SymTable *SymbolTable = link->table;
     
     printf("s:%s, valueType:%d\n",s, type);
-    if(findSymbol(link->SymTable, s) != 0) {
+    if(findSymbol(link->table, s) != 0) {
         printf("Error: duplicate declaration of variable %s\n", s);
         exit(0);
     }
 
-    int index = SymbolTable.size;
-    SymbolTable.size++;
+    int index = SymbolTable->size;
+    (SymbolTable->size)++;
 
-    strcpy(SymbolTable.entries[index].name, s);
-    SymbolTable.entries[index].type = type;
-    SymbolTable.entries[index].link = link;
+    strcpy(SymbolTable->entries[index].name, s);
+    SymbolTable->entries[index].type = type;
+    SymbolTable->entries[index].link = link;
     
-    return &SymbolTable.entries[index];
+    return &SymbolTable->entries[index];
 }
 
 struct nodeType* nthChild(int n, struct nodeType *node) {
@@ -73,6 +74,8 @@ void tupleTransform(struct nodeType *node){
 }
 
 void removePair(struct nodeType *node){
+  
+  // doing the tupleTransform
   struct nodeType *child = node->child;
   struct nodeType *RHS = node->rsibling;
   struct nodeType *LHS = node->lsibling;
@@ -109,9 +112,16 @@ void removePair(struct nodeType *node){
 
 void typeBinding(struct nodeType *node1, struct nodeType *node2){
 
+  if(node1->nodeType == NODE_TYPE_PAIR){
+    node1= node1->child;
+    typeBinding(node1, node2);
+    return;
+  }
+
   if(node2->nodeType == NODE_TYPE_PAIR){
     node2= node2->child;
     typeBinding(node1, node2);
+    return ;
   }
 
   else if(node1->nodeType == NODE_TUPLE && node2->nodeType == NODE_TUPLE){
@@ -145,6 +155,104 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
     printf("node1:%s, type:%s\n", node1->string,"tuple");
 
   }
+}
+
+void semanticPass( struct nodeType *node){
+
+  rootTable = (struct SymTable*)malloc(sizeof(struct SymTable));
+  setTable(node, rootTable);
+  typeAnalysis(node);
+}
+
+void typeAnalysis( struct nodeType *node){
+  switch(node->nodeType){
+    case NODE_FUNC:{
+     
+      if(node->child->rsibling->op == OP_RARROW){
+        // Bind the inputParameter with TypeDeclaration
+        typeBinding(node->child, node->child->rsibling->child);
+
+        // Analyse the returnType of the function, RHS of op_rarrow.
+        typeAnalysis(node->child->rsibling->child->rsibling);
+
+        // Assign the returnType to the functionNode
+        typeAnalysis(node->child->rsibling->rsibling);
+        switch(node->child->rsibling->rsibling->valueType){
+          case TypeInt:
+          case TypeBool:
+          case TypeFloat:
+          case TypeChar:
+            break;
+          case TypeSEQ_I:
+          case TypeSEQ_F:
+          case TypeSEQ_B:
+          case TypeSEQ_C:
+            break;
+        }
+        // Add the function node into SymbolTable
+        addVariable(node->string, TypeInt, node);  
+      }
+      else {
+        printf("error in node_func of semanticPass\n");
+        return;
+      } 
+     break;
+    }
+    
+    case NODE_TOKEN: {
+        switch(node->tokenType){
+          case TOKE_ID:
+            if(!findSymbol(node->string, node->table))
+              addVariable(node->string, TypeInt, node);
+            break;
+          case TOKE_INT:
+            node->valueType = TypeInt;
+            break;
+          case TOKE_FLOAT:
+            node->valueType = TypeFloat;
+            break;
+          case TOKE_BOOL:
+            node->valueType = TypeBool;
+            break;
+          case TOKE_CHAR:
+            node->valueType = TypeChar;
+            break;
+          case TOKE_STRING:
+            node->valueType = TypeSEQ_C;
+            break;
+          default:
+            break;
+        }// end of switch tokenType
+      break;
+    }
+    
+  }// end of switch nodeType
+
+}//end of typeAnalysis
+
+//void setTable(struct nodeType *node, struct SymTable *table){
+void setTable(struct nodeType *node){
+  switch(node->nodeType){
+    case NODE_FUNC:
+    case NODE_LET:{
+      printf("nodetype:%d create scope oh yeah~\n",node->nodeType);
+      struct SymTable * newScope = newSymTable(node);
+      node->table = newScope;
+      break;
+    }
+    default:
+      if(node->parent!=0)
+        node->table = node->parent->table;
+  }
+
+  struct nodeType * child = node->child;
+  if(child!=0){
+    do{
+      setTable(child);
+      child = child->rsibling;
+    }while(child!=node->child);
+  }
+  
 }
 
 void typeCheck(struct nodeType *node){

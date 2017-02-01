@@ -638,7 +638,7 @@ int main(int argc, char** argv){
     * Semantic Check: type
     */
     // TODO 
-    //typeCheck(ASTRoot);
+    semanticPass(ASTRoot);
     
     //semanticCheck(ASTRoot);
     //printf("************************\n");

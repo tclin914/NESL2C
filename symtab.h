@@ -32,6 +32,5 @@ struct SymTable {
 
 extern struct SymTable SymbolTable;
 
-
 #endif
 
