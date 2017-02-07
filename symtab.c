@@ -33,7 +33,7 @@ struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* l
     struct SymTable *SymbolTable = link->table;
     
     printf("s:%s, valueType:%d\n",s, type);
-    if(findSymbol(link->table, s) != 0) {
+    if(findSymbol(link->table, s) == 0) {
         printf("Error: duplicate declaration of variable %s\n", s);
         exit(0);
     }
@@ -155,10 +155,14 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
     printf("node1:%s, type:%s\n", node1->string,"tuple");
 
   }
+  printf("typeBinding done\n");
 }
 
 void semanticPass( struct nodeType *node){
-
+  // create and set a table in rootNode. 
+  // then start the Analysis
+  // which consist of table insertion, 
+  // typeBinding and typeChechking.
   rootTable = (struct SymTable*)malloc(sizeof(struct SymTable));
   setTable(node, rootTable);
   typeAnalysis(node);
@@ -166,6 +170,17 @@ void semanticPass( struct nodeType *node){
 
 void typeAnalysis( struct nodeType *node){
   switch(node->nodeType){
+    case NODE_LIST:{
+      struct nodeType *child = node->child;
+      if(child!=0){
+        do{
+          typeAnalysis(child);
+          child = child->rsibling; 
+        }while(child!=node->child);
+      }
+      break;
+    }
+      
     case NODE_FUNC:{
      
       if(node->child->rsibling->op == OP_RARROW){
@@ -198,6 +213,81 @@ void typeAnalysis( struct nodeType *node){
       } 
      break;
     }
+    case NODE_IFELSE:{
+      struct nodeType* ifstmt = node->child;
+      struct nodeType* thstmt = node->child->rsibling;
+      struct nodeType* elstmt = node->child->rsibling->rsibling;
+      typeAnalysis(ifstmt);
+      typeAnalysis(thstmt);
+      typeAnalysis(elstmt);
+      
+      // assert(ifstmt->valueType, TypeBool); 
+      // assert(thstmt->valueType, elstmt->valueType);
+      // assert(thstmt->valueType, function type);
+      node->nodeType = elstmt->nodeType;
+      
+      break;
+    }
+    
+    case NODE_OP:{
+      struct nodeType* LHS = node->child;
+      struct nodeType* RHS = node->child->rsibling;
+      typeAnalysis(LHS);
+      typeAnalysis(RHS);
+      // assert(LHS->nodeType, RHS->nodeType);
+      // 
+      switch(node->op){
+        case OP_BIND:
+          
+          break;
+        case OP_ADD:
+          break;
+        case OP_SUB:
+          break;
+        case OP_MUL:
+          break;
+        case OP_DIV:
+          break;
+        case OP_RARROW:
+          break;
+        case OP_LT:
+          break;
+        case OP_AT:
+          break;
+        case OP_UMINUS:
+          break;
+        case OP_SHARP:
+          break;
+        case OP_GT:
+        case OP_EQ:
+        case OP_GE:
+        case OP_LE:
+        case OP_NE:
+          node->nodeType = TypeBool;
+          break;
+        case OP_NOT:
+          break;
+        case OP_OR:
+          break;
+        case OP_COMMA:
+          break;
+        case OP_AND:
+          break;
+        case OP_NOR:
+          break;
+        case OP_NAND:
+          break;
+        case OP_XOR:
+          break;
+        case OP_LARROW:
+          break;
+        case OP_UPT:
+          break;
+        case OP_PP:
+          break;
+      }// end of node->op
+      break;
+    } // end of NODE_OP
     
     case NODE_TOKEN: {
         switch(node->tokenType){
@@ -241,8 +331,9 @@ void setTable(struct nodeType *node){
       break;
     }
     default:
-      if(node->parent!=0)
+      if(node->parent!=0){
         node->table = node->parent->table;
+      }
   }
 
   struct nodeType * child = node->child;
@@ -254,368 +345,6 @@ void setTable(struct nodeType *node){
   }
   
 }
-
-void typeCheck(struct nodeType *node){
-  switch(node->nodeType){
-  case NODE_LIST:{
-    struct nodeType *child = node->child;
-    if(child!=0){
-      do{
-        typeCheck(child);
-        child = child->rsibling;
-      }while( child!=node->child);
-    }
-    break;
-  }
-  case NODE_FUNC:{
-    struct nodeType *child = node->child;
-
-    //TODO 
-    // FIXME change the yacc.y stuff , parse typedeclare the same way as usual.
-    struct nodeType *inputParam = node->child->child;
-    struct nodeType *typeDef = node->child->rsibling->child;
-    struct nodeType *functionType = typeDef->rsibling;
-    //typeBinding(inputParam, typeDef);
-    if(typeDef->childcount == inputParam->childcount){
-      typeBinding(inputParam, typeDef);
-    }
-
-    // input param
-    typeCheck(child);
-
-    // input type
-    typeCheck(child->rsibling);
-
-    // function body.
-    typeCheck(child->rsibling->rsibling);
-    break;
-  }
-
-  case NODE_TUPLE:{
-    struct nodeType *child = node->child;
-    struct nodeType *child2 = node->child->rsibling;
-    typeCheck(child);
-    child = child->rsibling;
-    while(child!=node->child){
-      typeCheck(child);
-      child = child->rsibling;
-    }
-    struct nodeType *child1 = node->child;
-    int haha = 0;
-    haha = child1->valueType *10;
-    haha += child2->valueType;
-    switch(haha){
-      case 0:
-        
-        break;
-      case 1:
-        break;
-      case 2:
-        break;
-      case 3:
-        break;
-
-      case 10:
-        break;
-      case 11://float,float
-        
-        break;
-      case 12:
-        break;
-      case 13:
-        break;
-
-      case 20:
-        break;
-      case 21:
-        break;
-      case 22:
-        break;
-      case 23:
-        break;
-    
-      case 30:
-        break;
-      case 31:
-        break;
-      case 32:
-        break;
-      case 33:
-        break;
-    
-    }
-    if(child1->nodeType == NODE_TOKEN && child2->nodeType==NODE_TOKEN)
-    break;
-  }
-
-  case NODE_TYPE_PAIR:{
-    struct nodeType *child = node->child;
-
-    typeCheck(child);
-    child = child->rsibling;
-    while(child!=node->child){
-      typeCheck(child);
-      child = child->rsibling;
-    }
-    break;
-  }
-  case NODE_OP:{
-    switch(node->op){
-    case OP_BIND:
-
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);
-      // node->child->valueType = node->child->rsibling->valueType;
-
-      break;
-    case OP_ADD:
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);
-      // node->child->valueType == 
-      break;
-    case OP_SUB:
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);
-      break;
-    case OP_MUL:
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);
-      break;
-    case OP_DIV:
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);
-      break;
-    case OP_RARROW:
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);
-      break;
-    case OP_LT:
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);
-      break;
-    case OP_AT:
-      typeCheck(node->child);
-      break;
-    case OP_UMINUS:
-      typeCheck(node->child);
-      break;
-    case OP_SHARP:
-      node->valueType = TypeInt;
-      typeCheck(node->child);
-      break;
-
-    case OP_GT:     
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  
-      break;
-    case OP_EQ:
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);  
-      break;
-    case OP_GE:    
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  break;
-    case OP_LE:     
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  break;
-    case OP_NE:     
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  break;
-    case OP_NOT:    
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling); break;
-    case OP_OR:     
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  
-      break;
-    case OP_COMMA:  
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling); break;
-    case OP_AND:    
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  break;
-    case OP_NOR:    
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  break;
-    case OP_NAND:   
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling); break;
-    case OP_XOR:    
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  break;
-    case OP_LARROW: 
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling);  break;
-    case OP_UPT:    
-      typeCheck(node->child);
-      typeCheck(node->child->rsibling);  break;
-    case OP_PP:     
-      typeCheck(node->child); 
-      typeCheck(node->child->rsibling); break;
-    }
-    break;
-  }
-  case NODE_TOKEN:{
-    switch(node->tokenType){
-    case TOKE_ID:
-      //addVariable(
-      break;
-    case TOKE_INT:
-      node->valueType = TypeInt;
-      break;
-    case TOKE_FLOAT:
-      node->valueType = TypeFloat;
-      break;
-    }
-    break;
-  }
-  case NODE_LET:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-    break; 
-  } 
-  case NODE_PATTERN:
-  case NODE_EXP:{
-    struct nodeType *child = node->child;
-    if(child!=0){
-      do{
-        typeCheck(child);
-        child = child->rsibling;
-      }while(child!=node->child);
-    }
-    break;
-  }
-  case NODE_BIND:{
-    struct nodeType *child = node->child;
-    if(child!=0){
-      do{
-        typeCheck(child);
-        child = child->rsibling;
-      }while(child!=node->child);
-    }
-    break;
-  }
-  case NODE_FUNC_CALL:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-
-    break;
-  }
-  case NODE_FLOAT:{
-    node->valueType = TypeFloat; 
-    break;
-  }
-  case NODE_INT:{
-    break;
-  }
-
-  case NODE_IN:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-    break;
-  }
-  case NODE_APPLYBODY1:{
-    typeCheck(node->child);
-    break;
-  }
-  case NODE_APPLYBODY2:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-
-    break;
-  }
-  case NODE_APPLYBODY3:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-
-    break;
-  }
-  case NODE_APPLYBODY4:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-    typeCheck(node->child->rsibling->rsibling);
-
-    break;
-  }
-  case NODE_TYPE_SEQ:
-  case NODE_SEQ:{
-    struct nodeType *child = node->child;
-    if(child!=0){
-      typeCheck(child);
-      child = child->rsibling;
-      while(child!=node->child){
-        typeCheck(child);
-        child = child->rsibling;
-      }
-    }
-    child = node->child;
-    if(child->rsibling = child){
-      switch(child->valueType){
-        case TypeInt:
-          node->valueType = TypeSEQ_I;
-          break;
-        case TypeFloat:
-          node->valueType = TypeSEQ_F;
-          break;
-        case TypeBool:
-          node->valueType = TypeSEQ_B;
-          break;
-        case TypeChar:
-          node->valueType = TypeSEQ_C;
-          break;
-        
-      }
-    }
-    break;
-  }
-  case NODE_IFELSE:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-    typeCheck(node->child->rsibling->rsibling);
-    break;
-  }
-  case NODE_IFSTMT:{
-    typeCheck(node->child);
-    break;
-  }
-  case NODE_THENSTMT:{
-    typeCheck(node->child);
-    break;
-  }
-  case NODE_ELSESTMT:{
-    typeCheck(node->child);
-    break;
-  }
-  case NODE_RBINDS:{
-    struct nodeType * child = node->child;
-    if(child!=0){
-      typeCheck(child);
-      child=child->rsibling;
-      while(child!=node->child){
-        typeCheck(child);
-
-        child = child->rsibling;
-      }
-    }
-    break;
-  }
-  case NODE_SEQ_REF:{
-    typeCheck(node->child);
-    typeCheck(node->child->rsibling);
-    break;
-  }
-  case NODE_FILTER:{
-    typeCheck(node->child);
-    break;
-  }
-  case NODE_STRING:{
-    node->valueType = NODE_TYPE_CHAR;
-    break;
-  }
-
-  }// End of Switch
-
-}// End of typeCheck
 
 void printNESL(struct nodeType *node, FILE* yyout){
   switch(node->nodeType){
