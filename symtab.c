@@ -2,26 +2,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #define help(s) {printf("\thelp: %s\n",s);}
 
 
-struct SymTable * rootTable;
+struct SymTable *rootTable;
+
 struct SymTable * newSymTable(struct SymTable * parent){
   struct SymTable *table = (struct SymTable*)malloc(sizeof(struct SymTable));
+  table->size = 0;
+  for(int i=0;i<100;i++){
+    strcpy(table->entries[i].name, "");
+  }
   table->parent = parent;
   return table;
 }
 
 struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s) {
     //struct SymTableEntry * entry;
-    if(s==0)
-      return 0;//FIXME return error.
-
-    for(int i=0; i<SymbolTable->size; i++) {
-        if(strcmp(s, SymbolTable->entries[i].name) == 0) {
-            return &SymbolTable->entries[i];
-        }
+    assert(s);
     
+    if(SymbolTable->size !=0){
+      for(int i=0; i<SymbolTable->size; i++) {
+        if(strcmp(s, SymbolTable->entries[i].name) == 0) {
+          return &SymbolTable->entries[i];
+        }
+
+      }
     }
     if(SymbolTable->parent !=0)
       return findSymbol(SymbolTable->parent, s);  
@@ -32,8 +39,8 @@ struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s) {
 struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link) {
     struct SymTable *SymbolTable = link->table;
     
-    printf("s:%s, valueType:%d\n",s, type);
-    if(findSymbol(link->table, s) == 0) {
+    printf("AddVariable:%s, valueType:%d\n",s, type);
+    if(findSymbol(link->table, s) != 0) {
         printf("Error: duplicate declaration of variable %s\n", s);
         exit(0);
     }
@@ -44,10 +51,36 @@ struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* l
     strcpy(SymbolTable->entries[index].name, s);
     SymbolTable->entries[index].type = type;
     SymbolTable->entries[index].link = link;
-    
+    //printf("dump entry:%d, name:%s, type:%d, link:%x\n", index, 
+    //    SymbolTable->entries[index].type,
+    //    SymbolTable->entries[index].link);
     return &SymbolTable->entries[index];
 }
 
+void setTable(struct nodeType *node){
+  switch(node->nodeType){
+    case NODE_FUNC:
+    case NODE_LET:{
+      //printf("nodetype:%d create scope oh yeah~\n",node->nodeType);
+      struct SymTable * newScope = newSymTable(node->table);
+      node->table = newScope;
+      break;
+    }
+    default:
+      if(node->parent!=0){
+        node->table = node->parent->table;
+      }
+  }
+
+  struct nodeType * child = node->child;
+  if(child!=0){
+    do{
+      setTable(child);
+      child = child->rsibling;
+    }while(child!=node->child);
+  }
+  
+}
 struct nodeType* nthChild(int n, struct nodeType *node) {
     struct nodeType *child = node->child;
     for(int i=1; i<n; i++) {
@@ -111,62 +144,71 @@ void removePair(struct nodeType *node){
 
 
 void typeBinding(struct nodeType *node1, struct nodeType *node2){
-
-  if(node1->nodeType == NODE_TYPE_PAIR){
-    node1= node1->child;
-    typeBinding(node1, node2);
-    return;
+  switch(node2->nodeType){
+    case NODE_TYPE_PAIR:
+      node2= node2->child;
+      typeBinding(node1, node2);
+      return;
   }
-
-  if(node2->nodeType == NODE_TYPE_PAIR){
-    node2= node2->child;
-    typeBinding(node1, node2);
-    return ;
-  }
-
-  else if(node1->nodeType == NODE_TUPLE && node2->nodeType == NODE_TUPLE){
-    struct nodeType * child1,*child2;
-    child1 = node1->child;
-    child2 = node2->child;
-    if(node1->child!=0 && node2->child!=0){
-      do{
-        typeBinding(child1, child2);
-        child1 = child1->rsibling;
-        child2 = child2->rsibling;
-      }while((child1!=node1->child) && (child2!=node2->child));
+  switch(node1->nodeType){
+    case NODE_PAIR:
+      node1= node1->child;
+      typeBinding(node1, node2);
+      return;
+    case NODE_TUPLE:{
+      assert(node2->nodeType == NODE_TUPLE);
+      struct nodeType * child1,*child2;
+      child1 = node1->child;
+      child2 = node2->child;
+      if(node1->child!=0 && node2->child!=0){
+        do{
+          typeBinding(child1, child2);
+          child1 = child1->rsibling;
+          child2 = child2->rsibling;
+        }while((child1!=node1->child) && (child2!=node2->child));
+      }
+      break;
+    }
+    case NODE_TOKEN:{
+      switch(node2->nodeType){
+      case NODE_TUPLE:
+        node1->valueType = TypeTuple;
+        node1->typeNode = node2;
+        addVariable(node1->string, TypeTuple, node1); 
+        break;
+      case NODE_TYPE_SEQ:
+        node1->valueType = TypeSEQ;
+        node1->typeNode = node2;  
+        addVariable(node1->string, TypeSEQ, node1); 
+        break;
+      case NODE_TOKEN:
+        switch(node2->tokenType){
+        case TOKE_INT:
+          node1->valueType = TypeInt;
+          printf("node1:%s, type:%s\n", node1->string,node2->string);
+          break;
+        case TOKE_FLOAT:
+          node1->valueType = TypeFloat;
+          printf("node1:%s, type:%s\n", node1->string,node2->string);
+          break;
+        case TOKE_BOOL:
+          node1->valueType = TypeBool;
+          printf("node1:%s, type:%s\n", node1->string,node2->string);
+          break;
+        case TOKE_CHAR:
+          node1->valueType = TypeChar;
+          printf("node1:%s, type:%s\n", node1->string,node2->string);
+          break;
+        default:
+          printf("node1:%s, type:%s\n", node1->string,node2->string);
+          break;
+        }
+        break;
+      }
     }
   }
-
-  else if (node1->nodeType == NODE_TOKEN && node2->nodeType == NODE_TOKEN){
-    node1->valueType = node2->valueType;
-    printf("node1:%s, type:%s\n", node1->string,node2->string);
-    
-    struct nodeType * RHS1,*RHS2;
-    RHS1 = node1->rsibling;
-    RHS2 = node2->rsibling;
-    if(RHS1!=node1 && RHS2 != node2){
-      //typeBinding(RHS1,RHS2);
-    }
-  }
-  else if(node1->nodeType == NODE_TOKEN && node2->nodeType==NODE_TUPLE){
-    node1->nodeType = TypeTuple1;
-    node1->tuplenode = node2;
-    //addVariable(
-    printf("node1:%s, type:%s\n", node1->string,"tuple");
-
-  }
-  printf("typeBinding done\n");
 }
 
-void semanticPass( struct nodeType *node){
-  // create and set a table in rootNode. 
-  // then start the Analysis
-  // which consist of table insertion, 
-  // typeBinding and typeChechking.
-  rootTable = (struct SymTable*)malloc(sizeof(struct SymTable));
-  setTable(node, rootTable);
-  typeAnalysis(node);
-}
 
 void typeAnalysis( struct nodeType *node){
   switch(node->nodeType){
@@ -180,6 +222,12 @@ void typeAnalysis( struct nodeType *node){
       }
       break;
     }
+
+    case NODE_TUPLE:{
+      typeAnalysis(node->child);
+      typeAnalysis(node->child->rsibling);
+      break;
+    }
       
     case NODE_FUNC:{
      
@@ -189,9 +237,11 @@ void typeAnalysis( struct nodeType *node){
 
         // Analyse the returnType of the function, RHS of op_rarrow.
         typeAnalysis(node->child->rsibling->child->rsibling);
-
+        
         // Assign the returnType to the functionNode
         typeAnalysis(node->child->rsibling->rsibling);
+        node->valueType = node->child->rsibling->rsibling->valueType;
+
         switch(node->child->rsibling->rsibling->valueType){
           case TypeInt:
           case TypeBool:
@@ -205,7 +255,7 @@ void typeAnalysis( struct nodeType *node){
             break;
         }
         // Add the function node into SymbolTable
-        addVariable(node->string, TypeInt, node);  
+        addVariable(node->string, node->child->rsibling->child->rsibling->valueType, node);  
       }
       else {
         printf("error in node_func of semanticPass\n");
@@ -213,6 +263,7 @@ void typeAnalysis( struct nodeType *node){
       } 
      break;
     }
+    
     case NODE_IFELSE:{
       struct nodeType* ifstmt = node->child;
       struct nodeType* thstmt = node->child->rsibling;
@@ -220,52 +271,71 @@ void typeAnalysis( struct nodeType *node){
       typeAnalysis(ifstmt);
       typeAnalysis(thstmt);
       typeAnalysis(elstmt);
-      
-      // assert(ifstmt->valueType, TypeBool); 
-      // assert(thstmt->valueType, elstmt->valueType);
-      // assert(thstmt->valueType, function type);
-      node->nodeType = elstmt->nodeType;
+      assert(ifstmt->valueType == TypeBool); 
+      assert(thstmt->valueType == elstmt->valueType);
+//      assert(thstmt->valueType == function type);
+      node->valueType = elstmt->valueType;
       
       break;
     }
-    
+    case NODE_IFSTMT:
+    case NODE_PAIR:{
+      typeAnalysis(node->child);
+      node->valueType = node->child->valueType;
+      break;
+    } 
     case NODE_OP:{
       struct nodeType* LHS = node->child;
       struct nodeType* RHS = node->child->rsibling;
       typeAnalysis(LHS);
       typeAnalysis(RHS);
-      // assert(LHS->nodeType, RHS->nodeType);
-      // 
+      
       switch(node->op){
         case OP_BIND:
-          
+          typeBinding(LHS, RHS);
+          node->valueType = RHS->valueType;
           break;
         case OP_ADD:
+          assert(LHS->valueType == RHS->valueType);
+          node->valueType = RHS->valueType;
           break;
         case OP_SUB:
+          assert(LHS->valueType == RHS->valueType);
+          node->valueType = RHS->valueType;
           break;
         case OP_MUL:
+          assert(LHS->valueType == RHS->valueType);
+          node->valueType = RHS->valueType;
           break;
         case OP_DIV:
+          assert(LHS->valueType == RHS->valueType);
+          node->valueType = RHS->valueType;
           break;
         case OP_RARROW:
-          break;
-        case OP_LT:
+          assert(LHS->valueType == RHS->valueType);
           break;
         case OP_AT:
           break;
         case OP_UMINUS:
+          //assert(
           break;
         case OP_SHARP:
+          if(LHS->valueType == TypeSEQ)
+            node->valueType = TypeInt;
+          else 
+            assert(0);
           break;
         case OP_GT:
         case OP_EQ:
         case OP_GE:
         case OP_LE:
         case OP_NE:
-          node->nodeType = TypeBool;
+        case OP_LT:
+          assert(LHS->valueType == RHS->valueType);
+          node->valueType = TypeBool;
           break;
         case OP_NOT:
+          node->valueType = LHS->valueType;
           break;
         case OP_OR:
           break;
@@ -284,17 +354,42 @@ void typeAnalysis( struct nodeType *node){
         case OP_UPT:
           break;
         case OP_PP:
+          assert(LHS->valueType == RHS->valueType);
+          assert(LHS->valueType == TypeSEQ);
+          node->valueType = TypeSEQ;
           break;
       }// end of node->op
       break;
     } // end of NODE_OP
     
+    case NODE_APPLYBODY1:{
+      typeAnalysis(node->child);
+      break;
+    }
+    case NODE_APPLYBODY2:{
+    case NODE_APPLYBODY3:
+      typeAnalysis(node->child);
+      typeAnalysis(node->child->rsibling);
+      break;
+    }
+    case NODE_APPLYBODY4:{
+      typeAnalysis(node->child);
+      typeAnalysis(node->child->rsibling);
+      typeAnalysis(node->child->lsibling);
+      break;
+    }
+
     case NODE_TOKEN: {
         switch(node->tokenType){
-          case TOKE_ID:
-            if(!findSymbol(node->string, node->table))
+          case TOKE_ID:{
+            struct SymTableEntry* entry = findSymbol(node->table, node->string);
+            if(entry)
+              node->valueType = entry->type; 
+            else //FIXME
               addVariable(node->string, TypeInt, node);
+
             break;
+            }
           case TOKE_INT:
             node->valueType = TypeInt;
             break;
@@ -314,6 +409,52 @@ void typeAnalysis( struct nodeType *node){
             break;
         }// end of switch tokenType
       break;
+    }// end of NODE_TOKEN
+    
+    case NODE_INT:{
+      node->valueType = TypeInt;
+      break;
+    }
+    case NODE_BOOL:{
+      node->valueType = TypeBool;
+      break;
+    }
+    case NODE_FLOAT:{
+      node->valueType = TypeFloat;
+      break;
+    }
+    case NODE_CHAR:{
+      node->valueType = TypeChar;
+      break;
+    }
+
+    case NODE_SEQ:{
+        struct nodeType * child= node->child;
+        assert(child);
+        typeAnalysis(child);
+        switch(child->valueType){
+          case TypeInt:
+            node->valueType = TypeSEQ_I;
+            break;
+          case TypeFloat:
+            node->valueType = TypeSEQ_F;
+            break;
+          case TypeBool:
+            node->valueType = TypeSEQ_B;
+            break;
+          case TypeChar:
+            node->valueType = TypeSEQ_C;
+            break;
+          case TypeSEQ_I:
+          case TypeSEQ_F:
+          case TypeSEQ_B:
+          case TypeSEQ_C:
+          default:
+            node->valueType = TypeSEQ;
+            break;
+        }
+
+      break;
     }
     
   }// end of switch nodeType
@@ -321,29 +462,17 @@ void typeAnalysis( struct nodeType *node){
 }//end of typeAnalysis
 
 //void setTable(struct nodeType *node, struct SymTable *table){
-void setTable(struct nodeType *node){
-  switch(node->nodeType){
-    case NODE_FUNC:
-    case NODE_LET:{
-      printf("nodetype:%d create scope oh yeah~\n",node->nodeType);
-      struct SymTable * newScope = newSymTable(node);
-      node->table = newScope;
-      break;
-    }
-    default:
-      if(node->parent!=0){
-        node->table = node->parent->table;
-      }
-  }
 
-  struct nodeType * child = node->child;
-  if(child!=0){
-    do{
-      setTable(child);
-      child = child->rsibling;
-    }while(child!=node->child);
-  }
-  
+
+void semanticPass( struct nodeType *node){
+  // create and set a table in rootNode. 
+  // then start the Analysis
+  // which consist of table insertion, 
+  // typeBinding and typeChechking.
+  rootTable = newSymTable(NULL);
+  node->table = rootTable;
+  setTable(node);
+  typeAnalysis(node);
 }
 
 void printNESL(struct nodeType *node, FILE* yyout){
@@ -654,48 +783,48 @@ void printNESL(struct nodeType *node, FILE* yyout){
   }// End of Switch
 
 }
-void semanticCheck(struct nodeType *node) {
- //   printf("nodetype:%d\n", node->nodeType);
-    switch(node->nodeType){
-      case NODE_FUNC:
-      {
-        
-        if(!findSymbol(node->table, node->string)){
-          int vtype = node->child->rsibling->child->child->rsibling->valueType;
-          addVariable(node->string, vtype, node);
-        }
-        break;
-      }
-
-      case NODE_PATTERN:
-      {
-        
-        struct nodeType *child = node->child;
-        struct nodeType *idNode = child;
-        do{
-          idNode=child;
-          do{
-            if(idNode->nodeType==NODE_TOKEN){
-              if(!findSymbol(node->table, idNode->string)){
-                addVariable(idNode->string,node->nodeType,node);
-              }
-            }
-            idNode = idNode->rsibling;
-          }while(idNode!=child);
-          child = child->child;
-
-        }while(child!=NULL);
-        break;
-      }
-    }
-    
-    /* Default action for other nodes not listed in the switch-case */
-    struct nodeType *child = node->child;
-    if(child != 0) {
-        do {
-            semanticCheck(child);
-            child = child->rsibling;
-        } while(child != node->child);
-    }
-}
+//void semanticCheck(struct nodeType *node) {
+// //   printf("nodetype:%d\n", node->nodeType);
+//    switch(node->nodeType){
+//      case NODE_FUNC:
+//      {
+//        
+//        if(!findSymbol(node->table, node->string)){
+//          int vtype = node->child->rsibling->child->child->rsibling->valueType;
+//          addVariable(node->string, vtype, node);
+//        }
+//        break;
+//      }
+//
+//      case NODE_PATTERN:
+//      {
+//        
+//        struct nodeType *child = node->child;
+//        struct nodeType *idNode = child;
+//        do{
+//          idNode=child;
+//          do{
+//            if(idNode->nodeType==NODE_TOKEN){
+//              if(!findSymbol(node->table, idNode->string)){
+//                addVariable(idNode->string,node->nodeType,node);
+//              }
+//            }
+//            idNode = idNode->rsibling;
+//          }while(idNode!=child);
+//          child = child->child;
+//
+//        }while(child!=NULL);
+//        break;
+//      }
+//    }
+//    
+//    /* Default action for other nodes not listed in the switch-case */
+//    struct nodeType *child = node->child;
+//    if(child != 0) {
+//        do {
+//            semanticCheck(child);
+//            child = child->rsibling;
+//        } while(child != node->child);
+//    }
+//}
 

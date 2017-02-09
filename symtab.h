@@ -12,8 +12,8 @@ void codegen(FILE* fptr,struct nodeType* node);
 // 2. use the most outside type to represent the node.
 // 3. add TypeChar for char or string.
 enum StdType {TypeInt, TypeFloat, TypeChar, TypeBool, 
-              TypeSEQ_I,TypeSEQ_F,TypeSEQ_C,TypeSEQ_B,
-              TypeTuple1,TypeTuple2,TypeTuple3,TypeTuple4};
+              TypeSEQ_I,TypeSEQ_F,TypeSEQ_C,TypeSEQ_B,TypeSEQ,
+              TypeTuple1,TypeTuple2,TypeTuple3,TypeTuple4,TypeTuple};
 
 // TODO 
 // 1. bind the parameter name with the typedefine nodes.
@@ -30,7 +30,7 @@ struct SymTable {
     struct SymTableEntry entries[100];
 };
 
-extern struct SymTable SymbolTable;
+//extern struct SymTable SymbolTable;
 
 #endif
 

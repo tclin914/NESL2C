@@ -69,7 +69,7 @@ TopLevel
             //addChild($$,pattern);
             addChild($$,$3);
             
-            struct nodetype *types = newNode(NODE_FUNC_TYPE);
+            struct nodeType *types = newNode(NODE_FUNC_TYPE);
             //addChild(types, $5);
             //addChild($$,types);
             
@@ -147,13 +147,28 @@ FunTypeDef : TypeExp RARROW TypeExp{
 TypeExp : ID {  
             //FIXME float, int ... is also token ID
             // but different tokenTypei
-            
-            if(strcmp($$->string,"float")==0){
-                $1->valueType = TypeFloat;
-            }
-            else if(strcmp($$->string, "int")==0){
-                $1->valueType = TypeInt;
-            }
+            switch($1->tokenType){
+                case TOKE_INT:
+                    $1->valueType = TypeInt;
+                    break;
+                case TOKE_FLOAT:
+                    $1->valueType = TypeFloat;
+                    break;
+                case TOKE_BOOL:
+                    $1->valueType = TypeBool;
+                    break;
+                case TOKE_CHAR:
+                    $1->valueType = TypeChar;
+                    break;
+                default:
+                    break;
+            } 
+            //if(strcmp($$->string,"float")==0){
+            //    $1->valueType = TypeFloat;
+            //}
+            //else if(strcmp($$->string, "int")==0){
+            //    $1->valueType = TypeInt;
+            //}
             $$ = $1;  
         }
         | ID '(' TypeList ')' {
@@ -273,7 +288,7 @@ ExpBind
         $$ = $2;
         $$->nodeType = NODE_OP;
         $$->op = OP_BIND;
-        struct nodetype *pattern = newNode(NODE_PATTERN);
+        struct nodeType *pattern = newNode(NODE_PATTERN);
         addChild($$,pattern);
         addChild(pattern, $1);
         addChild($$,$3);
@@ -573,6 +588,10 @@ Const
     ;
 
 %%
+
+extern void removePair(struct nodeType *node);
+extern void printNESL(struct nodeType *node, FILE* yyout);
+extern void semanticPass( struct nodeType *node);
 
 struct nodeType *ASTRoot;
 struct nodeType * newOpNode(int op) {
