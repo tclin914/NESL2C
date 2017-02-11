@@ -440,6 +440,18 @@ void typeAnalysis( struct nodeType *node){
       break;
     } // end of NODE_OP
     
+    case NODE_FUNC_CALL:{
+      typeAnalysis(node->child);
+      typeAnalysis(node->child->rsibling);
+      // 1. search the node->child->string in built-in list
+      //    if found then use the signature to check and 
+      //    assign the type informations.
+      // 2. if not found, then search the symbol table
+      //    it should be a user define function.
+
+      node->valueType = node->child->valueType;
+      break;
+    }
     case NODE_APPLYBODY1:{
       typeAnalysis(node->child);
       node->valueType = TypeSEQ;
