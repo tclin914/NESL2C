@@ -49,7 +49,7 @@ extern struct nodeType* ASTRoot;
 
 %%
 
-goal: TopLevel {ASTRoot=newNode(NODE_LIST);addChild(ASTRoot,$1);$$=ASTRoot; }
+goal: TopLevel {ASTRoot=newNode(NODE_NESL);addChild(ASTRoot,$1);$$=ASTRoot; }
     | goal TopLevel {$$=$1; addChild($$,$2);}
     ;
 
@@ -474,7 +474,7 @@ AtomicExp
         }
         else{ 
             $$ =$2;
-            $$->nodeType=NODE_SEQ;
+            $$->nodeType=NODE_NEW_SEQ;
         }
         if($3->nodeType!=NODE_EMPTY)
           addChild($$,$3);   

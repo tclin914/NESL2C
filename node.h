@@ -64,7 +64,7 @@ struct nodeType;
 #define NODE_APPLYBODY4     40
 #define NODE_STRING         41
 #define NODE_PAIR           42
-
+#define NODE_NEW_SEQ        43
 
 
 

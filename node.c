@@ -212,6 +212,10 @@ void printTree(struct nodeType *node, int ident) {
         case NODE_FLOAT:
             printf("%s%f\n", blank, node->rValue);
             break;
+        case NODE_NEW_SEQ:
+            printf("%sNODE_NEW_SEQ\n", blank);
+            ident++;
+            break;
         case NODE_SEQ:
             printf("%sNODE_SEQ\n", blank);
             ident++;
