@@ -276,6 +276,7 @@ void typeAnalysis( struct nodeType *node){
       typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
       node->valueType = TypeTuple;
+      node->typeNode = node;
       break;
     }
       
@@ -363,6 +364,9 @@ void typeAnalysis( struct nodeType *node){
     case NODE_PAIR:{
       typeAnalysis(node->child);
       node->valueType = node->child->valueType;
+      if(node->valueType >= TypeSEQ){
+        node->typeNode = node->child->typeNode;
+      }
       break;
     } 
     
@@ -454,7 +458,43 @@ void typeAnalysis( struct nodeType *node){
         case OP_BIND:
           assert(RHS->valueType);
           assert(LHS->nodeType == NODE_PATTERN);
-          addVariable(LHS->child->string, RHS->valueType, LHS);
+          // might have pattern->pair->tuple-id&id,
+          // can't directly addVariable.
+          if(LHS->valueType==TypeTuple){
+            
+            // get RHS's typeDef
+            struct nodeType* RHStypeNode = RHS->typeNode;
+            struct nodeType* RHSchild = RHStypeNode->child;
+            assert(RHStypeNode->valueType == TypeTuple);
+            assert(RHStypeNode->child);
+            assert(RHStypeNode->child->rsibling);
+
+            //assert(LHS->typeNode);
+            struct nodeType* tupleNode = LHS->child;
+            while(tupleNode -> nodeType != NODE_TUPLE){
+              if(tupleNode->child!=0)
+                tupleNode = tupleNode->child;
+            }
+            struct nodeType* tuplechild = tupleNode->child;
+            assert(tuplechild);
+            
+            // similar to TypeBinding
+            if(tuplechild){
+              do{
+                assert(tuplechild->string);
+                assert(RHSchild->valueType);
+                addVariable(tuplechild->string, RHSchild->valueType, tuplechild);
+                tuplechild = tuplechild->rsibling;
+                RHSchild = RHSchild->rsibling;
+              }while(tuplechild!=tupleNode->child);
+            }
+            
+
+            //assert(RHS->valueType == TypeTuple);
+
+          }else{
+            addVariable(LHS->child->string, RHS->valueType, LHS);
+          }
           //typeBinding(LHS, RHS);
           LHS->typeNode = RHS;
           typeAnalysis(LHS);
@@ -530,10 +570,44 @@ void typeAnalysis( struct nodeType *node){
       }// end of node->op
       break;
     } // end of NODE_OP
-    
+     
     case NODE_FUNC_CALL:{
-      typeAnalysis(node->child);
+      // first, check the input parameter.
       typeAnalysis(node->child->rsibling);
+      
+      // second, check the function return type.
+      assert(node->child->nodeType == NODE_TOKEN);
+      assert(node->child->string);
+
+      if(strcmp(node->child->string, "dist")==0){
+          node->valueType = TypeSEQ_I;
+          return;
+          }
+      else if(strcmp(node->child->string, "time")==0){
+        //assert(0);
+        node->valueType = TypeTuple;
+        struct nodeType *refNode = newNode(NODE_TUPLE);
+        struct nodeType *Lchild = newNode(NODE_TOKEN);
+        struct nodeType *Rchild = newNode(NODE_TOKEN);
+        addChild(refNode, Lchild);
+        addChild(refNode, Rchild);
+        Rchild->tokenType = TOKE_FLOAT;
+        Rchild->valueType = TypeFloat;
+        Rchild->table = node->table;
+        refNode->table = node->table;
+        refNode->valueType = TypeTuple;
+        assert(node->child->rsibling->valueType);
+        Lchild->table = node->table;
+        Lchild->valueType = node->child->rsibling->valueType;
+        node->typeNode = refNode;
+        return;
+      }else if(strcmp(node->child->string, "rand")==0){
+        node->valueType = TypeInt;
+        return;
+      }
+          // TODO other built-in functions
+      typeAnalysis(node->child);
+      
       // 1. search the node->child->string in built-in list
       //    if found then use the signature to check and 
       //    assign the type informations.
@@ -615,14 +689,16 @@ void typeAnalysis( struct nodeType *node){
           node->child->valueType = node->child->rsibling->child->valueType;
           node->typeNode = node->child->rsibling;
           break;
+        
         default:
           // not implement
           assert(0);
         break;
       }
-          addVariable(node->child->string, 
-                      node->child->valueType,
-                      node->child);
+         if(!findSymbol(node->table, node->child->string))
+           addVariable(node->child->string, 
+                        node->child->valueType,
+                        node->child);
       break;}
 
     case NODE_TOKEN: {

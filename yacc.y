@@ -146,7 +146,7 @@ FunTypeDef : TypeExp RARROW TypeExp{
 
 TypeExp : ID {  
             //FIXME float, int ... is also token ID
-            // but different tokenTypei
+            // but different tokenType
             switch($1->tokenType){
                 case TOKE_INT:
                     $1->valueType = TypeInt;
