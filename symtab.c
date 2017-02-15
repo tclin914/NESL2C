@@ -623,6 +623,7 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_APPLYBODY2:{
+      // FIXME analyze child->rsibling first?
       typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
       switch(node->child->valueType){
@@ -647,6 +648,7 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_APPLYBODY3:{
+      // FIXME shouldn't have switch case here ?
       typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
       assert(node->child->rsibling->valueType == TypeBool);
