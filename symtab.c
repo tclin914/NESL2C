@@ -844,14 +844,17 @@ void printNESL(struct nodeType *node, FILE* yyout){
   switch(node->nodeType){
     case NODE_NESL:
     case NODE_LIST:{
+      int count = 0;
       struct nodeType *child = node->child;
       if(child!=0){
         do{
+          count++;
           printNESL(child, yyout);
           fprintf(yyout, "\n");
           child = child->rsibling;
         }while( child!=node->child);
       }
+      node->counts = count;
       break;
     }
     case NODE_FUNC:{
@@ -1153,48 +1156,116 @@ void printNESL(struct nodeType *node, FILE* yyout){
   }// End of Switch
 
 }
-//void semanticCheck(struct nodeType *node) {
-// //   printf("nodetype:%d\n", node->nodeType);
-//    switch(node->nodeType){
-//      case NODE_FUNC:
-//      {
-//        
-//        if(!findSymbol(node->table, node->string)){
-//          int vtype = node->child->rsibling->child->child->rsibling->valueType;
-//          addVariable(node->string, vtype, node);
-//        }
-//        break;
-//      }
-//
-//      case NODE_PATTERN:
-//      {
-//        
-//        struct nodeType *child = node->child;
-//        struct nodeType *idNode = child;
-//        do{
-//          idNode=child;
-//          do{
-//            if(idNode->nodeType==NODE_TOKEN){
-//              if(!findSymbol(node->table, idNode->string)){
-//                addVariable(idNode->string,node->nodeType,node);
-//              }
-//            }
-//            idNode = idNode->rsibling;
-//          }while(idNode!=child);
-//          child = child->child;
-//
-//        }while(child!=NULL);
-//        break;
-//      }
-//    }
-//    
-//    /* Default action for other nodes not listed in the switch-case */
-//    struct nodeType *child = node->child;
-//    if(child != 0) {
-//        do {
-//            semanticCheck(child);
-//            child = child->rsibling;
-//        } while(child != node->child);
-//    }
-//}
 
+void codegen(FILE *fptr, struct nodeType* node){
+
+  struct nodeType *child = node->child;
+      switch(node->nodeType){
+        case NODE_NESL:{
+          
+          for(int i =0; i<node->counts ; i++){
+            if(child->nodeType == NODE_DATATYPE){
+              assert(0);// not implement;
+            }
+            child = child->rsibling;
+          }
+          for(int i =0 ; i< node-> counts ; i++ ){
+            if(child->nodeType == NODE_FUNC){
+              codegen(fptr, child);
+            }
+            child = child->rsibling;
+          }
+          break;
+        }
+
+        case NODE_FUNC:{
+          struct SymTableEntry * entry = findSymbol(node->table, node->string);
+          assert(entry);
+          switch(entry->type){
+            case TypeInt:
+              fprintf(fptr, "int %s", node->string);
+              codegen(fptr,node->child); //input parameter
+              fprintf(fptr, "{\n");
+              codegen(fptr,node->child->rsibling->rsibling);
+              fprintf(fptr, "\n}\n");
+              fprintf(fptr, "\n");
+              break;
+            case TypeSEQ_I:
+              fprintf(fptr, "struct TypeSEQ_I * %s", node->string);
+              codegen(fptr,node->child);
+              fprintf(fptr, "{\n");
+              codegen(fptr,node->child->rsibling->rsibling);
+              fprintf(fptr, "\n}\n");
+              break;
+            case TypeTuple:
+              fprintf(fptr, "struct TypeTuple * %s", node->string);
+              codegen(fptr,node->child);
+              fprintf(fptr, "{\n");
+              codegen(fptr,node->child->rsibling->rsibling);
+              fprintf(fptr, "\n}\n");
+              break;
+            default:
+              assert(0);//not implement;
+            break;
+          }
+          break;
+        }
+        
+        case NODE_IFELSE:{
+          struct nodeType* ifstmt = node->child;
+          struct nodeType* thstmt = node->child->rsibling;
+          struct nodeType* elstmt = node->child->rsibling->rsibling;
+          codegen(fptr,ifstmt);
+          codegen(fptr,thstmt);
+          codegen(fptr,elstmt);
+          break;
+        }
+
+        case NODE_IFSTMT:
+          fprintf(fptr, "if");
+          codegen(fptr, node->child);
+          break;
+        
+        case NODE_OP:
+          switch(node->op){
+            case OP_LT:
+              codegen(fptr, node->child);
+              fprintf(fptr, " < ");
+              codegen(fptr, node->child->rsibling);
+            break;
+            case OP_SHARP:
+              fprintf(fptr, "#");
+              codegen(fptr, node->child);
+          }
+          break;
+        case NODE_PAIR:
+          fprintf(fptr, "(");
+          assert(child);
+          codegen(fptr,node->child);
+          //do{
+          //  codegen(fptr,node->child);
+          //  child = child->rsibling;
+          //}while(child!=node->child);
+          fprintf(fptr, ")");
+          break;
+        case NODE_INT:
+          fprintf(fptr," %d ",node->iValue);
+          break;
+
+        case NODE_TOKEN:
+          switch(node->tokenType){
+            case TOKE_ID:{
+              // FIXME 0215 if I dump the table in the first, then I don't need
+              // to worried whether here is the declaration or assignment.
+              struct SymTableEntry* entry = findSymbol(node->table, node->string);
+              assert(entry);
+              fprintf(fptr, "%s", node->string);
+            }
+              
+          }
+          break;
+        default:
+          break;
+      }
+  return;
+}

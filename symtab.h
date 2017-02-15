@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "node.h"
 void semanticCheck(struct nodeType* node);
-void codegen(FILE* fptr,struct nodeType* node);
 
 
 // TODO 

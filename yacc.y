@@ -668,12 +668,13 @@ int main(int argc, char** argv){
     * Generate C file.
     */
     char *translatedC = (char*)malloc(sizeof(char)*100);
-    strcpy(translatedC, classname);
+    strcpy(translatedC, "output/");
+    strcat(translatedC, classname);
     strcat(translatedC,".c");
     
-    //yyout = fopen(translatedC,"w+");
-    //fprintf(yyout, "macros\n");
-    //fclose(yyout);
+    yyout = fopen(translatedC,"w+");
+    codegen(yyout, ASTRoot);
+    fclose(yyout);
     
     
     //FILE* fptr;
