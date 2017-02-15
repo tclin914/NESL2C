@@ -108,8 +108,12 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sNODE_FUNC_CALL\n", blank);
             ident++;
             break;
+        case NODE_PAIR:
+            printf("%sNODE_PAIR\n", blank);
+            ident++;
+            break;
         case NODE_TYPE_PAIR:
-            printf("%sTYPE_PAIR\n", blank);
+            printf("%sNODE_TYPE_PAIR\n", blank);
             ident++;
             break;
         case NODE_TYPE_SEQ:
@@ -207,6 +211,10 @@ void printTree(struct nodeType *node, int ident) {
             break;
         case NODE_FLOAT:
             printf("%s%f\n", blank, node->rValue);
+            break;
+        case NODE_NEW_SEQ:
+            printf("%sNODE_NEW_SEQ\n", blank);
+            ident++;
             break;
         case NODE_SEQ:
             printf("%sNODE_SEQ\n", blank);

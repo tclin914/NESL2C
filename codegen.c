@@ -50,7 +50,7 @@ void codegen(FILE *fptr, struct nodeType* node){
         break;
         }
       default:
-        fprintf("this nodeType: %d", node->nodeType);
+        fprintf(fptr, "this nodeType: %d", node->nodeType);
         break;
       }
   return;

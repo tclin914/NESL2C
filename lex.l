@@ -138,7 +138,7 @@ struct nodeType* newTokenNode(int tokenType) {
 
     return node;
 }
-yywrap(){
+int yywrap(){
     return(1);
     }
 

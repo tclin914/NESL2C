@@ -49,7 +49,7 @@ extern struct nodeType* ASTRoot;
 
 %%
 
-goal: TopLevel {ASTRoot=newNode(NODE_LIST);addChild(ASTRoot,$1);$$=ASTRoot; }
+goal: TopLevel {ASTRoot=newNode(NODE_NESL);addChild(ASTRoot,$1);$$=ASTRoot; }
     | goal TopLevel {$$=$1; addChild($$,$2);}
     ;
 
@@ -69,7 +69,7 @@ TopLevel
             //addChild($$,pattern);
             addChild($$,$3);
             
-            struct nodetype *types = newNode(NODE_FUNC_TYPE);
+            struct nodeType *types = newNode(NODE_FUNC_TYPE);
             //addChild(types, $5);
             //addChild($$,types);
             
@@ -140,15 +140,35 @@ FunTypeDef : TypeExp RARROW TypeExp{
             $$->nodeType = NODE_OP;
             $$->op = OP_RARROW;
             addChild($$,$1); 
-            addChild($$,$3);}
+            addChild($$,$3);
+        }
         ;
 
 TypeExp : ID {  
             //FIXME float, int ... is also token ID
             // but different tokenType
-            if(strcmp($$->string,"float")==0){
-                $1->valueType = TypeReal;
-            }
+            switch($1->tokenType){
+                case TOKE_INT:
+                    $1->valueType = TypeInt;
+                    break;
+                case TOKE_FLOAT:
+                    $1->valueType = TypeFloat;
+                    break;
+                case TOKE_BOOL:
+                    $1->valueType = TypeBool;
+                    break;
+                case TOKE_CHAR:
+                    $1->valueType = TypeChar;
+                    break;
+                default:
+                    break;
+            } 
+            //if(strcmp($$->string,"float")==0){
+            //    $1->valueType = TypeFloat;
+            //}
+            //else if(strcmp($$->string, "int")==0){
+            //    $1->valueType = TypeInt;
+            //}
             $$ = $1;  
         }
         | ID '(' TypeList ')' {
@@ -162,28 +182,28 @@ TypeExp : ID {
             addChild($$,$2);
         }
         | '('PairTypes ')' {
-            //$$ = newNode(NODE_TYPE_PAIR);
-            //addChild($$,$2);
-            $$ = $2;
+            $$ = newNode(NODE_TYPE_PAIR);
+            addChild($$,$2);
+            //$$ = $2;
         }
         ;
 
-PairTypes : PairTypes ',' TypeExp {
-            $$ = $1;
-            $2->nodeType = NODE_TOKEN;
-            $2->string = ",";
-            //addChild($$,$2);
-            addChild($$,$3);
-
-            //$$=newNode(NODE_TUPLE);
-            //addChild($$,$1);
+PairTypes : TypeExp ',' PairTypes{
+            //$$ = $1;
+            //$2->nodeType = NODE_TOKEN;
+            //$2->string = ",";
+            ////addChild($$,$2);
             //addChild($$,$3);
+
+            $$=newNode(NODE_TUPLE);
+            addChild($$,$1);
+            addChild($$,$3);
         }
         | TypeExp {
-            $$ = newNode(NODE_TYPE_PAIR);
-            addChild($$,$1);
+            //$$ = newNode(NODE_TYPE_PAIR);
+            //addChild($$,$1);
 
-            //$$=$1;   
+            $$=$1;   
         }
         ;
 
@@ -268,7 +288,7 @@ ExpBind
         $$ = $2;
         $$->nodeType = NODE_OP;
         $$->op = OP_BIND;
-        struct nodetype *pattern = newNode(NODE_PATTERN);
+        struct nodeType *pattern = newNode(NODE_PATTERN);
         addChild($$,pattern);
         addChild(pattern, $1);
         addChild($$,$3);
@@ -454,15 +474,16 @@ AtomicExp
         }
         else{ 
             $$ =$2;
-            $$->nodeType=NODE_SEQ;
+            $$->nodeType=NODE_NEW_SEQ;
         }
         if($3->nodeType!=NODE_EMPTY)
           addChild($$,$3);   
     }
     | '(' Exp ')' {
-        $$ = newNode(NODE_TYPE_PAIR);
+        $$ = newNode(NODE_PAIR);
         addChild($$,$2);
         //$$ = $2;
+
     }
     | ID {
             //FIXME float, int ... is also token ID
@@ -474,7 +495,7 @@ AtomicExp
             // but different tokenType
         $$ = newNode(NODE_FUNC_CALL);
         addChild($$,$1);
-        struct nodeType *pair = newNode(NODE_TYPE_PAIR);
+        struct nodeType *pair = newNode(NODE_PAIR);
         addChild(pair, $3);
         addChild($$,pair);
     }
@@ -568,6 +589,10 @@ Const
 
 %%
 
+extern void removePair(struct nodeType *node);
+extern void printNESL(struct nodeType *node, FILE* yyout);
+extern void semanticPass( struct nodeType *node);
+
 struct nodeType *ASTRoot;
 struct nodeType * newOpNode(int op) {
     struct nodeType *node = newNode(NODE_OP);
@@ -586,30 +611,71 @@ int main(int argc, char** argv){
     printf("%d: %s\n",argc,argv[1]);
     yyin = fopen(argv[1], "r");
     
+    /**
+    * Extract filename from argument.
+    */
     char *classname;
     classname = (char*)malloc(sizeof(char)*100);
     classname = strtok(argv[1],"/.");
     classname = strtok(NULL,"/.");
-    strcat(classname,".c");
-    printf("%s\n",classname);
     
+    /**
+    * Parse
+    */
     yyparse();
     fclose(yyin);
     printf("************************\n");
     printf("*** NO PARSING ERROR ***\n");
     printf("************************\n");
-//    tuplePass(ASTRoot);   
-//    deltuplePass(ASTRoot);   
+
+    /**
+    * PrintTree
+    */
     printTree(ASTRoot, 0);
-    printNESL(ASTRoot); 
+    removePair(ASTRoot);
+    printTree(ASTRoot,0);
+    
+    /**
+    * Generate NESL to compare difference.
+    */
+    char *reveseNESL ;
+    reveseNESL = (char*)malloc(sizeof(char)*100);
+    strcpy(reveseNESL,"reverseoutput/");
+    strcat(reveseNESL, classname);
+    strcat(reveseNESL, ".nesl");
+    printf("%s\n",reveseNESL);
+    yyout = fopen(reveseNESL,"w+");
+    printNESL(ASTRoot, yyout); 
+    fclose(yyout);
+    printf("************************\n");
+    printf("** REVERSE NESL DONE ***\n");
+    printf("************************\n");
+   
+
+
+    /**
+    * Semantic Check: type
+    */
+    // TODO 
+    semanticPass(ASTRoot);
+    
     //semanticCheck(ASTRoot);
-    printf("************************\n");
-    printf("** NO SEMANTIC ERROR ***\n");
-    printf("************************\n");
-    //yyout = fopen(classname,"w+");
+    //printf("************************\n");
+    //printf("** NO SEMANTIC ERROR ***\n");
+    //printf("************************\n");
+
+    /**
+    * Generate C file.
+    */
+    char *translatedC = (char*)malloc(sizeof(char)*100);
+    strcpy(translatedC, classname);
+    strcat(translatedC,".c");
+    
+    //yyout = fopen(translatedC,"w+");
     //fprintf(yyout, "macros\n");
     //fclose(yyout);
-
+    
+    
     //FILE* fptr;
     //fptr = fopen("output/NESL2C_test.c","w");
     //if(!fptr){
@@ -628,5 +694,9 @@ int main(int argc, char** argv){
     //if(fptr==NULL)
     //    fclose(fptr);
     
+    printf("************************\n");
+    printf("***  END OF NESL2C  ****\n");
+    printf("************************\n");
+
     return 0;
 }

@@ -63,7 +63,8 @@ struct nodeType;
 #define NODE_APPLYBODY3     39
 #define NODE_APPLYBODY4     40
 #define NODE_STRING         41
-
+#define NODE_PAIR           42
+#define NODE_NEW_SEQ        43
 
 
 
@@ -132,17 +133,30 @@ struct nodeType {
     int arraydepth;
     struct nodeType *arraynext;
 
+    /*param & typeDef*/
+    int paramcount;
+    int declarecount;
+
+    /* Tuple */
+    int tuplecount;
+    int childcount;
+    struct nodeType * tuplenode;
+
     /* Values for general use */
     int iValue;
     double rValue;
     char valueValid;
     char *string;
+    struct nodeType * typeNode;
     
     /* Indicates which OP */
     char op;
-
+    
+    
     enum StdType valueType;
+    
     struct SymTableEntry *entry;
+    struct SymTable *table; 
 };
 
 struct nodeType* newNode(int type);
