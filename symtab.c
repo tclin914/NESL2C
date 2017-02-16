@@ -1157,6 +1157,52 @@ void printNESL(struct nodeType *node, FILE* yyout){
 
 }
 
+void dumpTable(FILE *fptr, struct nodeType* node){
+  struct SymTable * table = node->table;
+  for(int i = 0; i<table->size ; i++){
+    if(table->entries[i].link->nodeType!=NODE_FUNC){
+      switch(table->entries[i].type){
+        case TypeInt :
+          fprintf(fptr, "int %s;\n",table->entries[i].name);
+          break;
+        case TypeFloat :
+          fprintf(fptr, "float %s;\n",table->entries[i].name);
+          break;
+        case TypeBool :
+          fprintf(fptr, "bool %s;\n",table->entries[i].name);
+          break;
+        case TypeChar :
+          fprintf(fptr, "char* %s = malloc(sizeof(char*100));\n",table->entries[i].name);
+          break;
+        case TypeSEQ_I:
+          fprintf(fptr, "struct TypeSEQ_I *%s;\n", table->entries[i].name);
+          break;
+        case TypeSEQ_F:
+          fprintf(fptr, "struct TypeSEQ_F *%s;\n", table->entries[i].name);
+          break;
+        case TypeSEQ_B:
+          fprintf(fptr, "struct TypeSEQ_B *%s;\n", table->entries[i].name);
+          break;
+        case TypeSEQ_C:
+          fprintf(fptr, "struct TypeSEQ_C *%s;\n", table->entries[i].name);
+          break;
+        case TypeTuple:
+          fprintf(fptr, "struct TypeTuple *%s;\n", table->entries[i].name);
+          break;
+        case TypeSEQ:
+          fprintf(fptr, "struct TypeSEQ *%s;\n", table->entries[i].name);
+          break;
+        default:
+          fclose(fptr);
+          assert(0);//not implement;
+          break;
+      }//end of switch(entry->type)
+    }//end of if
+    
+  }//end of for.
+
+}
+
 void codegen(FILE *fptr, struct nodeType* node){
 
   struct nodeType *child = node->child;
@@ -1175,17 +1221,26 @@ void codegen(FILE *fptr, struct nodeType* node){
             }
             child = child->rsibling;
           }
+          fprintf(fptr, "int main(){\n");
+          dumpTable(fptr,child);
+          for(int i=0; i< node->counts; i++){
+            if(child->nodeType !=NODE_FUNC && child->nodeType != NODE_DATATYPE)
+              codegen(fptr, child);
+          }
+          fprintf(fptr, "\nreturn 0;\n}"); 
           break;
         }
 
         case NODE_FUNC:{
-          struct SymTableEntry * entry = findSymbol(node->table, node->string);
+          struct SymTableEntry * entry = findSymbol(node->child->table, node->string);
           assert(entry);
           switch(entry->type){
             case TypeInt:
               fprintf(fptr, "int %s", node->string);
               codegen(fptr,node->child); //input parameter
               fprintf(fptr, "{\n");
+              dumpTable(fptr, node->child);
+    
               codegen(fptr,node->child->rsibling->rsibling);
               fprintf(fptr, "\n}\n");
               fprintf(fptr, "\n");
@@ -1193,7 +1248,8 @@ void codegen(FILE *fptr, struct nodeType* node){
             case TypeSEQ_I:
               fprintf(fptr, "struct TypeSEQ_I * %s", node->string);
               codegen(fptr,node->child);
-              fprintf(fptr, "{\n");
+              fprintf(fptr, "{\nstruct TypeSEQ_I *res;\n");
+              dumpTable(fptr, node->child);
               codegen(fptr,node->child->rsibling->rsibling);
               fprintf(fptr, "\n}\n");
               break;
@@ -1201,6 +1257,7 @@ void codegen(FILE *fptr, struct nodeType* node){
               fprintf(fptr, "struct TypeTuple * %s", node->string);
               codegen(fptr,node->child);
               fprintf(fptr, "{\n");
+              fprintf(fptr, "{\nstruct TypeTuple *res;\n");
               codegen(fptr,node->child->rsibling->rsibling);
               fprintf(fptr, "\n}\n");
               break;
@@ -1226,6 +1283,41 @@ void codegen(FILE *fptr, struct nodeType* node){
           codegen(fptr, node->child);
           break;
         
+        case NODE_THENSTMT:
+          fprintf(fptr, "{\n");
+          codegen(fptr, node->child);
+          fprintf(fptr, "\nreturn res;\n}");
+          break;
+
+        case NODE_ELSESTMT:
+          fprintf(fptr, "else{\n");
+          codegen(fptr, node->child);
+          fprintf(fptr, "\nreturn res;\n");
+          break;
+        
+        case NODE_LET:
+          dumpTable(fptr, node);
+          codegen(fptr, node->child);
+          fprintf(fptr, "\nres = ");
+          codegen(fptr, node->child->rsibling);
+          fprintf(fptr, ";\n");
+          break;
+        
+        case NODE_BIND:{
+          struct nodeType* child = node->child;
+          if(child){
+            do{
+              codegen(fptr, child);
+              child = child->rsibling;
+            }while(child!=node->child);
+             
+          }  
+          break;
+        }
+        case NODE_EXP:
+        case NODE_PATTERN:
+          codegen(fptr, node->child);
+          break;
         case NODE_OP:
           switch(node->op){
             case OP_LT:
@@ -1234,23 +1326,75 @@ void codegen(FILE *fptr, struct nodeType* node){
               codegen(fptr, node->child->rsibling);
             break;
             case OP_SHARP:
-              fprintf(fptr, "#");
               codegen(fptr, node->child);
+              fprintf(fptr, ".len");
+            break;
+            case OP_BIND:
+              codegen(fptr, node->child);
+              fprintf(fptr, " = ");
+              codegen(fptr, node->child->rsibling);
+              fprintf(fptr, ";\n");
+              break;
+            case OP_PP:
+              codegen(fptr, node->child);
+              fprintf(fptr, "++");
+              codegen(fptr, node->child->rsibling);
+              break;
+            case OP_DIV:
+              codegen(fptr, node->child);
+              fprintf(fptr, "/");
+              codegen(fptr, node->child->rsibling);
+              break;
           }
           break;
+       
+        case NODE_SEQ_REF:
+          codegen(fptr, node->child);
+          fprintf(fptr, "[");
+          codegen(fptr, node->child->rsibling);
+          fprintf(fptr, "]");
+          break;
+        
+        case NODE_APPLYBODY2:
+          fprintf(fptr, "for loop");
+          break;
+        case NODE_APPLYBODY3:
+          fprintf(fptr, "for loop");
+          break;
+        
+        case NODE_TUPLE:
+          codegen(fptr, node->child);
+          fprintf(fptr, " , ");
+          codegen(fptr, node->child->rsibling);
+          break;
+
         case NODE_PAIR:
           fprintf(fptr, "(");
           assert(child);
-          codegen(fptr,node->child);
-          //do{
-          //  codegen(fptr,node->child);
-          //  child = child->rsibling;
-          //}while(child!=node->child);
+          //codegen(fptr,node->child);
+          do{
+            codegen(fptr,node->child);
+            child = child->rsibling;
+          }while(child!=node->child);
           fprintf(fptr, ")");
           break;
         case NODE_INT:
           fprintf(fptr," %d ",node->iValue);
           break;
+
+        case NODE_FUNC_CALL:{
+          if(!strcmp(node->child->string, "rand")){
+             fprintf(fptr, "rand"); 
+          }else if(!strcmp(node->child->string, "dist")){
+             fprintf(fptr, "dist"); 
+          }else if(!strcmp(node->child->string, "time")){
+             fprintf(fptr, "time"); 
+          }else{
+            codegen(fptr, node->child);
+          }
+          codegen(fptr, node->child->rsibling);
+          break;
+        }
 
         case NODE_TOKEN:
           switch(node->tokenType){

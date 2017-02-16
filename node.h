@@ -31,7 +31,7 @@ struct nodeType;
 #define NODE_TYPE_BOOL      10
 
 // 
-#define NODE_ASSIGN_STMT    11
+#define NODE_TYPE_PARM      11
 #define NODE_SYM_REF        12
 #define NODE_TYPE_SEQ       13
 #define NODE_SEQ_REF        14
