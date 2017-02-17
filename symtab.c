@@ -208,6 +208,9 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
                 node1->valueType = TypeSEQ_B;
                 node1->typeNode = node2;
                 break;
+              default:
+                assert(0); // not implement;
+                break;
             }
         }
         //node1->valueType = TypeSEQ;
@@ -292,6 +295,7 @@ void typeAnalysis( struct nodeType *node){
       if(typeDef->op == OP_RARROW){
         // Bind the inputParameter with TypeDeclaration
         typeBinding(inputParam, typeDef->child);
+        typeAnalysis(typeDef->child);
 
         // Analyse the returnType of the function, RHS of op_rarrow.
         typeAnalysis(typeDef->child->rsibling);
@@ -1201,6 +1205,67 @@ void dumpTable(FILE *fptr, struct nodeType* node){
     
   }//end of for.
 
+}// end of dumpTable.
+
+void printparam(FILE *fptr, struct nodeType* node){
+ switch(node->nodeType){
+  case NODE_PAIR:
+    fprintf(fptr, "(");
+    printparam(fptr, node->child);
+    fprintf(fptr, ")");
+    break;
+  case NODE_TOKEN:{
+    struct nodeType *refNode = node->typeNode;
+    printparam(fptr, refNode);
+    fprintf(fptr, " %s", node->string);
+    break;
+  }
+  case NODE_TYPE_SEQ:{
+    switch(node->valueType){
+      case TypeSEQ_I:
+        fprintf(fptr, "struct TypeSEQ_I*");
+        break;
+      default :
+        //TODO
+        break;
+    }
+    break;
+  }
+ } 
+
+}
+
+
+void APP3printFor(FILE *fptr, struct nodeType* node1, struct nodeType* node2){
+  char seqname[100];
+  strcpy(seqname, node1->child->child->rsibling->string);
+  fprintf(fptr, "for(int i = 0, count =0; i<%s.len; i++){\n", seqname);
+  
+  // ugly declare the "e" by dump it.
+  dumpTable(fptr, node2->child);
+  
+  // and initialize it by assigning an element value.
+  fprintf(fptr, "  %s = %s[i];\n",node1->child->child->string,seqname);
+  
+  // print the FILTER 
+  // may also use boolean guard here.
+  fprintf(fptr, "  if(");
+
+  assert(node2->nodeType == NODE_FILTER);
+  codegen(fptr, node2->child);
+  fprintf(fptr, "){\n");
+  
+  fprintf(fptr, "    %s[count] = %s[i];\n    count++;\n  }\n", 
+          node1->parent->rsibling->child->string,
+          seqname);
+  fprintf(fptr, "}\n");
+  
+}
+void APP2printFor(FILE *fptr, struct nodeType* node1, struct nodeType* node2){
+  //char[100] seqname = node2->child->child->
+  fprintf(fptr, "for(int i = 0, count =0; i<newseq.len; i++){\n");
+  
+  //fprintf(fptr, "for(int i = 0, count =0; i<%s.len; i++){\n");
 }
 
 void codegen(FILE *fptr, struct nodeType* node){
@@ -1247,9 +1312,13 @@ void codegen(FILE *fptr, struct nodeType* node){
               break;
             case TypeSEQ_I:
               fprintf(fptr, "struct TypeSEQ_I * %s", node->string);
-              codegen(fptr,node->child);
+              //codegen(fptr,node->child);
+              printparam(fptr, node->child);
               fprintf(fptr, "{\nstruct TypeSEQ_I *res;\n");
-              dumpTable(fptr, node->child);
+              
+              // FIXME how to dump table without the inputparam
+              //dumpTable(fptr, node->child);
+              
               codegen(fptr,node->child->rsibling->rsibling);
               fprintf(fptr, "\n}\n");
               break;
@@ -1324,16 +1393,30 @@ void codegen(FILE *fptr, struct nodeType* node){
               codegen(fptr, node->child);
               fprintf(fptr, " < ");
               codegen(fptr, node->child->rsibling);
-            break;
+              break;
+            case OP_GT:
+              codegen(fptr, node->child);
+              fprintf(fptr, " > ");
+              codegen(fptr, node->child->rsibling);
+              break;
+            case OP_EQ:
+              codegen(fptr, node->child);
+              fprintf(fptr, " == ");
+              codegen(fptr, node->child->rsibling);
+              break;
             case OP_SHARP:
               codegen(fptr, node->child);
               fprintf(fptr, ".len");
-            break;
+              break;
             case OP_BIND:
               codegen(fptr, node->child);
               fprintf(fptr, " = ");
               codegen(fptr, node->child->rsibling);
-              fprintf(fptr, ";\n");
+              if(node->child->rsibling->nodeType != NODE_APPLYBODY1 &&
+                 node->child->rsibling->nodeType != NODE_APPLYBODY2 &&
+                 node->child->rsibling->nodeType != NODE_APPLYBODY3 &&
+                 node->child->rsibling->nodeType != NODE_APPLYBODY4)
+                 fprintf(fptr, ";\n");
               break;
             case OP_PP:
               codegen(fptr, node->child);
@@ -1355,13 +1438,76 @@ void codegen(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "]");
           break;
         
-        case NODE_APPLYBODY2:
-          fprintf(fptr, "for loop");
-          break;
-        case NODE_APPLYBODY3:
-          fprintf(fptr, "for loop");
+        case NODE_APPLYBODY1:
+          abort();
           break;
         
+        case NODE_APPLYBODY2:
+          codegen(fptr, node->child->rsibling);
+          APP2printFor(fptr, node->child, node->child->rsibling);
+          //fprintf(fptr, "for loop");
+          break;
+        
+        case NODE_APPLYBODY3:
+          codegen(fptr, node->child);
+          APP3printFor(fptr, node->child, node->child->rsibling);
+          //fprintf(fptr, "for loop");
+
+          break;
+        
+        case NODE_APPLYBODY4:
+          break;
+        
+        case NODE_RBINDS:
+          //FIXME might have many children
+          codegen(fptr, node->child);
+          break;
+        
+        case NODE_IN:
+          //FIXME here only consider the simple ApplyBody Exp.
+          assert(node->child->nodeType == NODE_TOKEN);
+          //assert(node->child->rsibling->nodeType == NODE_TOKEN);
+          switch(node->child->rsibling->nodeType){
+          case NODE_TOKEN:{
+            struct SymTableEntry *entry = 
+              findSymbol(node->table, node->child->rsibling->string);
+            assert(entry);
+            switch(entry->type){
+              case TypeSEQ_I:
+                fprintf(fptr, "malloc(sizeof(struct TypeSEQ_I));\n");
+                break;
+              case TypeSEQ_F:
+                fprintf(fptr, "malloc(sizeof(struct TypeSEQ_F));\n");
+                break;
+              case TypeSEQ_B:
+                fprintf(fptr, "malloc(sizeof(struct TypeSEQ_B));\n");
+                break;
+              case TypeSEQ_C:
+                fprintf(fptr, "malloc(sizeof(struct TypeSEQ_C));\n");
+                break;
+              case TypeSEQ:
+                fprintf(fptr, "malloc(sizeof(struct TypeSEQ));\n");
+                break;
+            }
+            break;
+          }
+          
+          case NODE_NEW_SEQ:
+            switch(node->valueType){
+              case TypeSEQ:
+                fprintf(fptr, "SEQ\n");
+                break;
+
+            }
+          break;
+          case NODE_FUNC_CALL:
+           break; 
+          default:
+            abort();
+            break;
+          }
+          break;
+
         case NODE_TUPLE:
           codegen(fptr, node->child);
           fprintf(fptr, " , ");
@@ -1395,7 +1541,7 @@ void codegen(FILE *fptr, struct nodeType* node){
           codegen(fptr, node->child->rsibling);
           break;
         }
-
+        
         case NODE_TOKEN:
           switch(node->tokenType){
             case TOKE_ID:{
