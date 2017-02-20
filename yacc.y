@@ -6,6 +6,7 @@
 #include "lex.yy.c"
 #include "node.h"
 #include "symtab.h"
+#include "assert.h"
 
 int yydebug =1;
 
@@ -594,6 +595,11 @@ extern void removePair(struct nodeType *node);
 extern void printNESL(struct nodeType *node, FILE* yyout);
 extern void semanticPass( struct nodeType *node);
 
+int ispfc=0;
+int issqc=0;
+int isomp=0;
+int isrev=0;
+
 struct nodeType *ASTRoot;
 struct nodeType * newOpNode(int op) {
     struct nodeType *node = newNode(NODE_OP);
@@ -609,20 +615,57 @@ int yyerror(const char *s) {
 }
 
 int main(int argc, char** argv){
-    printf("%d: %s\n",argc,argv[1]);
-    yyin = fopen(argv[1], "r");
     
-    /**
-    * Extract filename from argument.
-    */
     char *classname;
     classname = (char*)malloc(sizeof(char)*100);
-    classname = strtok(argv[1],"/.");
-    classname = strtok(NULL,"/.");
     
+    // extract the filename option from arguments.
+    // file.nesl -PF -
+    // 0th argument is ./NESL2C itself
+    assert(argc);
+    for(int i =0;i<argc;i++){ 
+        printf("%d: %s\n",i,argv[i]);
+        char c = argv[i][0];
+        printf("%c\n", c);
+        if(i >0){
+            //printf("%d:%c\n",i,argv[i][0]);
+            if(c== '-'){
+                // option flags.
+                if(!strcmp(argv[i], "-rev")){
+                    isrev = 1;
+                    printf("%d set rev",i);
+                }
+                else if(!strcmp(argv[i], "-pfc")){
+                    ispfc = 1;
+                    printf("%d set pfc",i);
+                }
+                else if(!strcmp(argv[i], "-sqc")){
+                    issqc = 1;
+                    printf("%d set sqc",i);
+                }
+                else if(!strcmp(argv[i], "-omp")){
+                    isomp = 1;
+                    printf("%d set omp",i);
+                }
+            }
+            else{
+                printf("%d: %s\n",argc,argv[1]);
+                yyin = fopen(argv[i], "r");
+                
+                /**
+                * Extract filename from argument.
+                */
+                classname = strtok(argv[1],"/.");
+                classname = strtok(NULL,"/.");
+            }
+        }
+    }
+
     /**
     * Parse
     */
+    //yyin = fopen(argv[1], "r");
+    assert(yyin);
     yyparse();
     fclose(yyin);
     printf("************************\n");
@@ -632,27 +675,29 @@ int main(int argc, char** argv){
     /**
     * PrintTree
     */
-    printTree(ASTRoot, 0);
+    //printTree(ASTRoot, 0);
     removePair(ASTRoot);
     printTree(ASTRoot,0);
+    printf("************************\n");
     
     /**
     * Generate NESL to compare difference.
     */
     char *reveseNESL ;
     reveseNESL = (char*)malloc(sizeof(char)*100);
-    strcpy(reveseNESL,"reverseoutput/");
-    strcat(reveseNESL, classname);
-    strcat(reveseNESL, ".nesl");
-    printf("%s\n",reveseNESL);
-    yyout = fopen(reveseNESL,"w+");
-    printNESL(ASTRoot, yyout); 
-    fclose(yyout);
-    printf("************************\n");
-    printf("** REVERSE NESL DONE ***\n");
-    printf("************************\n");
-   
-
+    if(isrev){
+        strcpy(reveseNESL,"reverseoutput/");
+        strcat(reveseNESL, classname);
+        strcat(reveseNESL, ".nesl");
+        printf("%s\n",reveseNESL);
+        yyout = fopen(reveseNESL,"w+");
+        printNESL(ASTRoot, yyout); 
+        fclose(yyout);
+        printf("************************\n");
+        printf("** REVERSE NESL DONE ***\n");
+        printf("************************\n");
+    }
+    free(reveseNESL);
 
     /**
     * Semantic Check: type
@@ -660,34 +705,43 @@ int main(int argc, char** argv){
     // TODO 
     semanticPass(ASTRoot);
     
-    //semanticCheck(ASTRoot);
-    //printf("************************\n");
-    //printf("** NO SEMANTIC ERROR ***\n");
-    //printf("************************\n");
+    printf("************************\n");
+    printf("** NO SEMANTIC ERROR ***\n");
+    printf("************************\n");
 
     /**
     * Generate C file.
     */
     char *translatedC = (char*)malloc(sizeof(char)*100);
-    strcpy(translatedC, "output/");
-    strcat(translatedC, classname);
-    strcat(translatedC,".c");
-    
-    yyout = fopen(translatedC,"w+");
-    
-    // print Time information.
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-    fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
-                        tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
-                        tm.tm_hour, tm.tm_min, tm.tm_sec);
-    
-    // print some declaration.
-    fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"nesl.h\"\n\n");
-    fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
-    codegen(yyout, ASTRoot);
-    fclose(yyout);
-    
+    if(ispfc||issqc||isomp){
+        strcpy(translatedC, "output/");
+        strcat(translatedC, classname);
+        strcat(translatedC,".c");
+        
+        yyout = fopen(translatedC,"w+");
+        
+        // print Time information.
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+                            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
+                            tm.tm_hour, tm.tm_min, tm.tm_sec);
+        
+            if(issqc){
+            // print some declaration.
+            fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"nesl.h\"\n\n");
+            fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+            codegen(yyout, ASTRoot);
+            }
+            else if(ispfc){
+            ;
+            }
+            else if(isomp){
+            ;}
+        fclose(yyout);
+    }
+    //free(translatedC);
+    //free(classname);
     
     //FILE* fptr;
     //fptr = fopen("output/NESL2C_test.c","w");

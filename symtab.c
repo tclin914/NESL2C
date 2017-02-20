@@ -387,13 +387,16 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_BIND:{
-      struct nodeType * child = node->child;
-      assert(node->childcount);
-      for(int i =0; i<node->childcount;i++){
-        typeAnalysis(child);
-        child=child->rsibling;
+      struct nodeType *child = node->child;
+      int counts=0;
+      if(child!=0){
+        do{
+          counts++;
+          typeAnalysis(child);
+          child = child->rsibling;
+        }while(child!=node->child);
+      node->childcount = counts;
       }
-      
       break;
     }
     case NODE_SEQ_REF:{
@@ -1164,6 +1167,28 @@ void printNESL(struct nodeType *node, FILE* yyout){
   
   }// End of Switch
 
+}// End of printNESL
+
+void pfcodegen(FILE *fptr, struct nodeType* node){
+  switch(node->nodeType){
+    case NODE_NESL:{
+      struct nodeType *child = node->child;
+      if(child){
+        do{
+          pfcodegen(fptr, child);
+          child = child->rsibling;
+        }while(child!=node->child);
+      }
+      break;
+    }
+    case NODE_FUNC:{
+      fprintf(fptr, "%s(){}\n", node->string);
+
+       break;
+    }
+    default:
+      break;
+  }
 }
 
 void dumpTable(FILE *fptr, struct nodeType* node){
@@ -1447,7 +1472,6 @@ void codegen(FILE *fptr, struct nodeType* node){
               codegen(fptr, child);
               child = child->rsibling;
             }while(child!=node->child);
-             
           }  
           break;
         }
