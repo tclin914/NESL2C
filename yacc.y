@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "lex.yy.c"
 #include "node.h"
 #include "symtab.h"
@@ -668,12 +669,24 @@ int main(int argc, char** argv){
     * Generate C file.
     */
     char *translatedC = (char*)malloc(sizeof(char)*100);
-    strcpy(translatedC, classname);
+    strcpy(translatedC, "output/");
+    strcat(translatedC, classname);
     strcat(translatedC,".c");
     
-    //yyout = fopen(translatedC,"w+");
-    //fprintf(yyout, "macros\n");
-    //fclose(yyout);
+    yyout = fopen(translatedC,"w+");
+    
+    // print Time information.
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+                        tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
+                        tm.tm_hour, tm.tm_min, tm.tm_sec);
+    
+    // print some declaration.
+    fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"nesl.h\"\n\n");
+    fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+    codegen(yyout, ASTRoot);
+    fclose(yyout);
     
     
     //FILE* fptr;
