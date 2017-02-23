@@ -7,15 +7,24 @@ input : *.nesl
 output: *.c
 
 TODO
-1. build lexer
+v 1. build lexer
     a. got to fix the boolean definition
-2. build parser
+v 2. build parser
     a. should try the nested array first.
-3. build Tree
-4. build SymbolTable
-5. Semantic analysis
-6. Codegeneration
-7. Validation and optimization
+v 3. build Tree
+v 4. build SymbolTable
+_ 5. Semantic analysis
+_ 6. Codegeneration
+X 7. Validation and optimization
+
+%%%%%%%
+23th Feb. 
+Make : make all
+Run : 
+    ./NESL2C test/qs_core.nesl [option, ex: -pfc -rev -omp -sqc]
+Output:
+    vim output/<filename>
+    vim reverseroutput/<filename>
 
 %%%%%%%
 For Branch newgrammar:

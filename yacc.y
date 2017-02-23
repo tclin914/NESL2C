@@ -7,9 +7,11 @@
 #include "node.h"
 #include "symtab.h"
 #include "assert.h"
+#include "codegen.h"
+#include "pfcodegen.h"
 
 int yydebug =1;
-
+int yyerror(const char *s);
 struct nodeType * newOpNode(int op); 
 extern struct nodeType* ASTRoot;
 %}
@@ -633,19 +635,19 @@ int main(int argc, char** argv){
                 // option flags.
                 if(!strcmp(argv[i], "-rev")){
                     isrev = 1;
-                    printf("%d set rev",i);
+                    printf("%d set rev\n",i);
                 }
-                else if(!strcmp(argv[i], "-pfc")){
+                if(!strcmp(argv[i], "-pfc")){
                     ispfc = 1;
-                    printf("%d set pfc",i);
+                    printf("%d set pfc\n",i);
                 }
-                else if(!strcmp(argv[i], "-sqc")){
+                if(!strcmp(argv[i], "-sqc")){
                     issqc = 1;
-                    printf("%d set sqc",i);
+                    printf("%d set sqc\n",i);
                 }
-                else if(!strcmp(argv[i], "-omp")){
+                if(!strcmp(argv[i], "-omp")){
                     isomp = 1;
-                    printf("%d set omp",i);
+                    printf("%d set omp\n",i);
                 }
             }
             else{
@@ -698,13 +700,13 @@ int main(int argc, char** argv){
         printf("************************\n");
     }
     free(reveseNESL);
-
+    
     /**
     * Semantic Check: type
     */
     // TODO 
     semanticPass(ASTRoot);
-    
+     
     printf("************************\n");
     printf("** NO SEMANTIC ERROR ***\n");
     printf("************************\n");
@@ -714,8 +716,10 @@ int main(int argc, char** argv){
     */
     char *translatedC = (char*)malloc(sizeof(char)*100);
     if(ispfc||issqc||isomp){
+      if(issqc){
         strcpy(translatedC, "output/");
         strcat(translatedC, classname);
+        strcat(translatedC, "_sqc");
         strcat(translatedC,".c");
         
         yyout = fopen(translatedC,"w+");
@@ -726,21 +730,47 @@ int main(int argc, char** argv){
         fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
+        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"nesl.h\"\n\n");
+        fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+        codegen(yyout, ASTRoot);
+        fclose(yyout);    
+      }
+      if(ispfc){
+        strcpy(translatedC, "output/");
+        strcat(translatedC, classname);
+        strcat(translatedC, "_pfc");
+        strcat(translatedC,".c");
+        yyout = fopen(translatedC,"w+");
         
-            if(issqc){
-            // print some declaration.
-            fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"nesl.h\"\n\n");
-            fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
-            codegen(yyout, ASTRoot);
-            }
-            else if(ispfc){
-            ;
-            }
-            else if(isomp){
-            ;}
+        // print Time information.
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+                            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
+                            tm.tm_hour, tm.tm_min, tm.tm_sec);
+        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pf.h\"\n");
+        fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
+        fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+        pfcodegen(yyout, ASTRoot); 
         fclose(yyout);
+      }
+      if(isomp){
+        strcpy(translatedC, "output/");
+        strcat(translatedC, classname);
+        strcat(translatedC, "_omp");
+        strcat(translatedC,".c");
+        yyout = fopen(translatedC,"w+");
+        
+        // print Time information.
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+                            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
+                            tm.tm_hour, tm.tm_min, tm.tm_sec);
+        fclose(yyout);
+      }
     }
-    //free(translatedC);
+    free(translatedC);
     //free(classname);
     
     //FILE* fptr;
