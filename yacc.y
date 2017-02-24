@@ -67,7 +67,7 @@ TopLevel
             $6->nodeType = NODE_OP;
             $6->op = OP_BIND;
             
-            //struct nodetype *pattern = newNode(NODE_PATTERN);
+            //struct nodeType *pattern = newNode(NODE_PATTERN);
             //addChild(pattern,$3);
             //$3->nodeType = NODE_PATTERN;
             //addChild($$,pattern);
@@ -91,11 +91,11 @@ TopLevel
             $4->nodeType = NODE_OP;
             $4->op = OP_BIND;
             
-            //struct nodetype *input = newNode(NODE_FUNC_INPUT);
+            //struct nodeType *input = newNode(NODE_FUNC_INPUT);
             //addChild($$,input);
             addChild($$, $3);
             
-            //struct nodetype *pattern = newNode(NODE_PATTERN);
+            //struct nodeType *pattern = newNode(NODE_PATTERN);
             //addChild(pattern,$3);
             //$3->nodeType = NODE_PATTERN;
             //addChild($$,$3);
@@ -751,6 +751,7 @@ int main(int argc, char** argv){
         fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pf.h\"\n");
         fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
         fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+        pfcheck(ASTRoot);
         pfcodegen(yyout, ASTRoot); 
         fclose(yyout);
       }

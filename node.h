@@ -39,12 +39,13 @@ struct nodeType {
     
     /* Indicates which OP */
     char op;
-    
-    
+  
+    /* for codegen */
     enum StdType valueType;
-    
     struct SymTableEntry *entry;
     struct SymTable *table; 
+    int isEndofFunction;
+
 };
 
 struct nodeType* newNode(int type);

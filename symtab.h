@@ -5,6 +5,7 @@
 #include "node.h"
 #include "type.h"
 void semanticCheck(struct nodeType* node);
+struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link);
 
 // TODO 
 // 1. bind the parameter name with the typedefine nodes.
