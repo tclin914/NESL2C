@@ -89,15 +89,27 @@ void pfcheck(struct nodeType* node){
       struct nodeType* RHS;
       LHS = node->child;
       RHS = LHS->rsibling;
+      assert(node->parent->isEndofFunction);
+      node->isEndofFunction = node->parent->isEndofFunction;
       LHS->isEndofFunction = node->isEndofFunction;
       RHS->isEndofFunction = node->isEndofFunction;
       
       switch(node->op){
         case OP_PP:{
-          node->child->lsibling->isEndofFunction = node->parent->isEndofFunction;
+          //node->isEndofFunction = node->parent->isEndofFunction;
           node->parent->isEndofFunction = 0;
           pfcheck(LHS);
           pfcheck(RHS);
+          
+          if(LHS->op == OP_PP){
+            LHS->inserttmp = 1;
+            LHS->isEndofFunction = 0;
+          }
+          if(RHS->op == OP_PP){
+            RHS->inserttmp = 1;
+            RHS->isEndofFunction=0;
+          }
+          
           int index = inserttmp(node);
           assert(index!=-1);
           node->string = malloc(sizeof(char)*100);
@@ -226,7 +238,7 @@ void pfcheck(struct nodeType* node){
     }
     case NODE_EXP:{
       // TODO
-      node->child->lsibling->isEndofFunction = node->parent->isEndofFunction;
+      node->isEndofFunction = node->parent->isEndofFunction;
       node->parent->isEndofFunction = 0;
          //FIXME Exp
          //       |
@@ -236,7 +248,9 @@ void pfcheck(struct nodeType* node){
          // as a result:   
       
       pfcheck(node->child);
-      break; 
+      if(node->isEndofFunction)
+        node->child->lsibling->isEndofFunction =1;
+      break;
     }
     case NODE_RBINDS:
     default:{
@@ -307,11 +321,8 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "{\nstruct Sequence res;\n");
       fprintf(fptr, "struct Sequence tmp;\n");
 
-      // FIXME how to dump table without the inputparam
-      // dumpTable(fptr, node->child);
-
       pfcodegen(fptr, node->child->rsibling->rsibling);
-      fprintf(fptr, "res = tmp;\nreturn res;\n");
+      fprintf(fptr, "return res;\n");
       fprintf(fptr, "\n}\n");
       break;
     case TypeTuple:
@@ -425,15 +436,25 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       break;
 
     case OP_PP:
-      if(node->child->nodeType==NODE_OP)
+      // if child is a variable, it will be process here.
+      if(node->child->nodeType!=NODE_TOKEN)
         pfcodegen(fptr, node->child);
-      if(node->child->rsibling->nodeType==NODE_OP)
+      if(node->child->rsibling->nodeType!=NODE_TOKEN)
         pfcodegen(fptr, node->child->rsibling);
-
-      fprintf(fptr, "CONCAT(%s,%s,%s,",
+      
+      // FIXME node->parent is not general
+      if(!node->inserttmp){
+        fprintf(fptr, "CONCAT(%s, %s, res, ",
+              node->child->string,
+              node->child->rsibling->string
+        );
+      }
+      else{
+      fprintf(fptr, "CONCAT(%s, %s, %s, ",
               node->child->string,
               node->child->rsibling->string,
               node->string);
+      }
       switch(node->valueType){
         case TypeSEQ_I:
           fprintf(fptr, "int, I);\n");
@@ -442,8 +463,17 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
           assert(0);//not implemented.
           break;
       }
-      
-      //fprintf(fptr, ")");
+      if(node->inserttmp){
+        fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
+        switch(node->valueType){
+          case TypeSEQ_I:
+            fprintf(fptr, "int), 1);\n\n");
+            break;
+          default:
+            assert(0);//not implemented.
+            break;
+        }
+      }
       break;
     case OP_DIV:
       pfcodegen(fptr, node->child);
@@ -454,7 +484,18 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     break;
   case NODE_SEQ_REF:{
     switch(node->valueType){
-      case Type
+      case TypeInt:
+        fprintf(fptr, "GET_ELEM_I(%s,%s,",node->string, node->child->string);
+        pfcodegen(fptr, node->child->rsibling); // print index.
+        fprintf(fptr, ");\n");
+        break;
+      case TypeSEQ_I:
+        fprintf(fptr, "GET_ELEM_SEQ_I(%s,%s,",node->string, node->child->string);
+        pfcodegen(fptr, node->child->rsibling); // print index.
+        fprintf(fptr, ");\n");
+        break;
+      default:
+        assert(0);
     }
     break;
   }
@@ -483,7 +524,6 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     
     break;
   case GEN_APP2:{
-    
     struct nodeType* phase1 = node->child->rsibling->child->rsibling->child;
     struct nodeType *phase2 = node->child->child;
     struct nodeType* phase3 = node->child->rsibling->child;
@@ -509,7 +549,6 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
                 fprintf(fptr, "struct Sequence), 1);\n");
               break;
           }
-
           
           fprintf(fptr, "MALLOC(%s, 2, ",phase2->string);
           switch(phase2->valueType){
@@ -560,13 +599,10 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
               default:
                 assert(0);//not implement;
                 break;
-              
             }
             fprintf(fptr, "}\n");
           }
-
         }
-
       }
     } 
     if(phase3->nodeType == NODE_FUNC_CALL){
