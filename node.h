@@ -45,7 +45,9 @@ struct nodeType {
     struct SymTableEntry *entry;
     struct SymTable *table; 
     int isEndofFunction;
-
+    int needcounter;
+    int isparallel_rr;
+    int inserttmp;
 };
 
 struct nodeType* newNode(int type);

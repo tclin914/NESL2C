@@ -9,6 +9,7 @@
 #include "assert.h"
 #include "codegen.h"
 #include "pfcodegen.h"
+#include "genMacro.h"
 
 int yydebug =1;
 int yyerror(const char *s);
@@ -752,6 +753,7 @@ int main(int argc, char** argv){
         fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
         fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
         pfcheck(ASTRoot);
+        genMacro(yyout);
         pfcodegen(yyout, ASTRoot); 
         fclose(yyout);
       }

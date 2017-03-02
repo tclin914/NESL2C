@@ -166,7 +166,7 @@ void printTree(struct nodeType *node, int ident) {
             ident++;
             break;
         case NODE_BIND:
-            printf("%sEXP_BIND\n", blank);
+            printf("%sNODE_BIND\n", blank);
             ident++;
             break;
         case NODE_APPEACH :
