@@ -507,6 +507,11 @@ void typeAnalysis( struct nodeType *node){
             addVariable(LHS->child->string, RHS->valueType, LHS);
           }
           //typeBinding(LHS, RHS);
+          
+          //FIXME   pattern
+          //           |
+          //        TOKEN_ID
+          LHS->child->typeNode = RHS;
           LHS->typeNode = RHS;
           typeAnalysis(LHS);
           node->valueType = RHS->valueType;

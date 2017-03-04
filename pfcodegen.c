@@ -5,13 +5,74 @@
 #include "node.h"
 #include "codegen.h"
 #include "symtab.h"
+#include "pfcodegen.h"
 
 #define MAX 10
 
+struct RefTable refTable;
 int elmindex[MAX];
 int tmpindex[MAX];
 char elm[MAX][5] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10"};
 char tmp[MAX][5] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10"};
+
+void insertREF(char *s, enum StdType type, struct nodeType *link){
+  int index = refTable.size;
+   
+  (refTable.size)++;
+  strcpy(refTable.entries[index].name, s);
+  refTable.entries[index].type = type;
+  refTable.entries[index].link = link;
+  //printf("table:0x%p, AddVariable:%s, valueType:%d\n", SymbolTable, s, type);
+  //return &refTable.entries[index];
+
+}
+void deleteREF(char *s){
+  int index = refTable.size;
+  for(int i =0;i<index ; i++){
+    if(!strcmp(refTable.entries[i].name,s)){
+      //if found
+      strcpy(refTable.entries[i].name, "");
+      refTable.entries[i].type = 0;
+      refTable.entries[i].link = 0;
+      for(int j = i+1; j<index; j++){
+        strcpy(refTable.entries[j-1].name, refTable.entries[j].name);
+        refTable.entries[j-1].type = refTable.entries[j].type;
+        refTable.entries[j-1].link = refTable.entries[j].link;
+        if(j= index -1){
+          strcpy(refTable.entries[j].name, "");
+          refTable.entries[j].type = 0;
+          refTable.entries[j].link = 0;
+        } 
+      } 
+    }
+  }
+}
+
+void DECREF(FILE* fptr){
+    for(int i =0;i<refTable.size;i++){
+      if(strcmp("",refTable.entries[i].name)){
+        switch(refTable.entries[i].type){
+          case TypeSEQ_I:
+            fprintf(fptr, "DECREF_SEQ_I(%s);\n",refTable.entries[i].name);
+            break;
+          case TypeSEQ:
+            switch(refTable.entries[i].link->typeNode->child->valueType){
+              case TypeSEQ_I:
+                fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n",refTable.entries[i].name);
+              break;
+              
+              case TypeSEQ:
+                assert(0);//not implement;
+              break;
+            }
+            break;
+          default:
+            assert(0); // not implement;
+            break;
+        }
+      }
+    }
+}
 
 int insertres(struct nodeType* node){
   if(addVariable("res", node->valueType, node))
@@ -61,7 +122,6 @@ void pfcheck(struct nodeType* node){
     }
     case NODE_IFELSE:{
       node->isEndofFunction = node->parent->isEndofFunction;
-      node->parent->isEndofFunction = 0;
 
       pfcheck(node->child);
       pfcheck(node->child->rsibling);
@@ -73,7 +133,6 @@ void pfcheck(struct nodeType* node){
     }
     case NODE_ELSESTMT:{
       node->isEndofFunction = node->parent->isEndofFunction;
-      node->parent->isEndofFunction = 0;
       pfcheck(node->child); 
       node->isparallel_rr = node->child->isparallel_rr;
       break;
@@ -97,7 +156,6 @@ void pfcheck(struct nodeType* node){
       switch(node->op){
         case OP_PP:{
           //node->isEndofFunction = node->parent->isEndofFunction;
-          node->parent->isEndofFunction = 0;
           pfcheck(LHS);
           pfcheck(RHS);
           
@@ -222,7 +280,6 @@ void pfcheck(struct nodeType* node){
     }
     case NODE_LET:{
       node->isEndofFunction = node->parent->isEndofFunction;
-      node->parent->isEndofFunction =0;
       pfcheck(node->child);
       pfcheck(node->child->rsibling);
       if(node->child->isparallel_rr|node->child->rsibling->isparallel_rr)
@@ -239,7 +296,6 @@ void pfcheck(struct nodeType* node){
     case NODE_EXP:{
       // TODO
       node->isEndofFunction = node->parent->isEndofFunction;
-      node->parent->isEndofFunction = 0;
          //FIXME Exp
          //       |
          //     BINDS
@@ -319,7 +375,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       //pfcodegen(fptr,node->child);
       printparam(fptr, node->child);
       fprintf(fptr, "{\nstruct Sequence res;\n");
-      fprintf(fptr, "struct Sequence tmp;\n");
+//      fprintf(fptr, "struct Sequence tmp;\n");
 
       pfcodegen(fptr, node->child->rsibling->rsibling);
       fprintf(fptr, "return res;\n");
@@ -330,7 +386,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       pfcodegen(fptr,node->child);
       fprintf(fptr, "{\n");
       fprintf(fptr, "{\nstruct TypeTuple res;\n");
-      fprintf(fptr, "struct TypeTuple tmp;\n");
+      //fprintf(fptr, "struct TypeTuple tmp;\n");
       pfcodegen(fptr,node->child->rsibling->rsibling);
       fprintf(fptr, "\n}\n");
       break;
@@ -368,6 +424,9 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "else{\n");
     pfcodegen(fptr, node->child);
     fprintf(fptr, "}\n");
+    if(node->isEndofFunction)
+      DECREF(fptr);
+      //fprintf(fptr, "endofFunction\n");
     break;
 
   case NODE_LET:
@@ -473,6 +532,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
             assert(0);//not implemented.
             break;
         }
+        insertREF(node->string, node->valueType, node);
       }
       break;
     case OP_DIV:
@@ -549,6 +609,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
                 fprintf(fptr, "struct Sequence), 1);\n");
               break;
           }
+          insertREF(phase1->string, phase1->valueType, phase1);
           
           fprintf(fptr, "MALLOC(%s, 2, ",phase2->string);
           switch(phase2->valueType){
@@ -591,7 +652,9 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
                     // struct sequence since it's TypeSEQ_I
                     // indicate that parent is TypeSEQ_SEQ_I
                     fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence), 1);\n",phase2->string);
+                    insertREF(phase2->string, phase2->valueType, phase2);
                     fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n", phase1->string);
+                    deleteREF(phase1->string);
                     break;
                 }
                 break;
@@ -633,6 +696,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, "int), 1);\n");
         break;
     }
+    insertREF(node->string, node->valueType, node);
     break;
   }
   case NODE_APPLYBODY3:
