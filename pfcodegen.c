@@ -516,10 +516,10 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
   case NODE_ELSESTMT:
     fprintf(fptr, "else{\n");
     pfcodegen(fptr, node->child);
-    fprintf(fptr, "}\n");
     if(node->isEndofFunction)
       DECREF(fptr);
       //fprintf(fptr, "endofFunction\n");
+    fprintf(fptr, "}\n");
     break;
 
   case NODE_LET:
