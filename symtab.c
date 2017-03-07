@@ -153,6 +153,7 @@ void removePair(struct nodeType *node){
 
 void typeBinding(struct nodeType *node1, struct nodeType *node2){
   switch(node2->nodeType){
+    case NODE_PAIR:
     case NODE_TYPE_PAIR:
       node2= node2->child;
       typeBinding(node1, node2);
@@ -176,6 +177,7 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
           child2 = child2->rsibling;
         }while((child1!=node1->child) && (child2!=node2->child));
       }
+      node1->valueType = node2->valueType;
       break;
     }
     case NODE_TOKEN:{
@@ -284,6 +286,22 @@ void typeAnalysis( struct nodeType *node){
       typeAnalysis(node->child->rsibling);
       node->valueType = TypeTuple;
       node->typeNode = node;
+      if(node->child->valueType == node->child->rsibling->valueType){
+        switch(node->child->valueType){
+          case TypeInt: 
+            node->valueType = TypeTuple_I;
+          break;
+          case TypeFloat: 
+            node->valueType = TypeTuple_F;
+          break;
+          case TypeBool: 
+            node->valueType = TypeTuple_B;
+          break;
+          case TypeChar: 
+            node->valueType = TypeTuple_C;
+          break;
+        }
+      }
       break;
     }
       
@@ -372,6 +390,8 @@ void typeAnalysis( struct nodeType *node){
     case NODE_PAIR:{
       typeAnalysis(node->child);
       node->valueType = node->child->valueType;
+      
+      // this assumes they have been typeBinding.
       if(node->valueType >= TypeSEQ){
         node->typeNode = node->child->typeNode;
       }
@@ -468,7 +488,9 @@ void typeAnalysis( struct nodeType *node){
       switch(node->op){
         case OP_BIND:
           assert(RHS->valueType);
-          assert(LHS->nodeType == NODE_PATTERN);
+          LHS->valueType = RHS->valueType;
+
+          if(LHS->nodeType == NODE_PATTERN){
           // might have pattern->pair->tuple-id&id,
           // can't directly addVariable.
           if(LHS->valueType==TypeTuple){
@@ -515,7 +537,16 @@ void typeAnalysis( struct nodeType *node){
           LHS->typeNode = RHS;
           typeAnalysis(LHS);
           node->valueType = RHS->valueType;
-
+          }
+          else if(LHS->valueType >=TypeTuple_I && LHS->nodeType == NODE_PAIR){
+            if(RHS->nodeType == NODE_PAIR){
+              typeBinding(LHS,RHS);
+            }
+          }
+          else {
+           LHS->valueType = RHS->valueType;
+          
+          }
           break;
         case OP_ADD:
           assert(LHS->valueType == RHS->valueType);

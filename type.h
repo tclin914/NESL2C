@@ -125,7 +125,7 @@
 // 3. add TypeChar for char or string.
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
               TypeSEQ_I,TypeSEQ_F,TypeSEQ_C,TypeSEQ_B,TypeSEQ,
-              TypeTuple1,TypeTuple2,TypeTuple3,TypeTuple4,TypeTuple};
+              TypeTuple_I,TypeTuple_F,TypeTuple_C,TypeTuple_B,TypeTuple};
 
 
 

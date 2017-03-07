@@ -1,6 +1,7 @@
 #ifndef __PFCODEGEN_H___
 #define __PFCODEGEN_H___
 
+#define MAX 10
 void pfcodegen(FILE *fptr, struct nodeType* node);
 int inserttmp(struct nodeType* node);
 int insertelm(struct nodeType* node);
