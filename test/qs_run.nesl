@@ -12,4 +12,70 @@ function qs(i):(int)->(int,float) =
 let nums = {rand(i): i in dist(100, i)};
     (res, tm) = time(quicksort(nums)); in (res[0], tm); 
 
-qs(100);
+
+qs(100); // 這個應該要printf(res[0],tm); 
+
+struct tuple{
+    sequence c1;
+    float c2;
+}
+myprint( tuple){
+    print(tuple.c1);
+    print(c2)
+}
+
+根據node->valtype 呼叫不同的macro function.
+printINT(x)do{
+    printf(" %d",x);
+}
+printFLOAT{
+    printf(" %f",x);
+}
+
+printSequence(type, sequence) do{
+    printf("[");
+    for(int i=0; i<sequence.size;i++){
+        type x = GET_ELEM_##type(...);
+        print##type(x);
+    if(i<sequence.size-1)
+    printf(",");
+    }
+    printf("]");
+} while(0)
+
+print(TYPE)
+print ## TYPE
+
+TOPLEVE: 遇到bind   把右邊的東西assign到左邊的VAR
+                    產生device variable.
+                    __device__ int var; 宣告
+
+         遇到EXP  把EXP的值算出來然後printf出來
+         遇到function 就是device function.
+
+先弄一個global function
+在弄main 
+
+pass 1 : 遇到toplevel var先宣告
+         function -> device function
+先gen global function 開頭
+
+#pragma global parallel
+void myFunc1() {
+
+pass  2 :  
+    看到toplevel exp -> print出來
+    看到toplevel bind -> 找到之前宣告的var
+                         再把右邊的exp算出來assign給var
+}
+
+int main(){
+    myFunc1();
+    return 1;
+}
+
+_ 先用sequence 跑跑看
+_ FILTER1需要改寫
+_ #pragma不影響
+v macro通通放到一個head檔案不用fprintf
+
