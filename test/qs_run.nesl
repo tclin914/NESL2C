@@ -43,8 +43,8 @@ printSequence(type, sequence) do{
     printf("]");
 } while(0)
 
-print(TYPE)
-print ## TYPE
+print(TYPE, item)
+print ## TYPE(item)
 
 TOPLEVE: 遇到bind   把右邊的東西assign到左邊的VAR
                     產生device variable.

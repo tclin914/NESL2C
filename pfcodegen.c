@@ -215,6 +215,9 @@ void pfcheck(struct nodeType* node){
               break;
             case NODE_SEQ_REF:
               //  node->nodeType
+              // TODO what if a single exp with SEQ_REF
+              //      which means to print the element? 
+              //      
               node->string = malloc(sizeof(char)*100);
               strcpy(node->string, node->child->child->string);
               node->nodeType = GEN_SEQ_REF;

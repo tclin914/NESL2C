@@ -13,241 +13,7 @@
 struct RefTable refTable;
 int elmindex[MAX];
 int tmpindex[MAX];
-char elm[MAX][5] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10"};
-char tmp[MAX][5] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10"};
 
-
-/**
-* sqcheck is aimed to 
-* 1. insert needed variables to symbol table,
-* 2. label out the EXP that is return value of function.
-* 3. make the etc...
-*/
-void sqcheck(struct nodeType* node){
-  struct nodeType *child = node->child;
-  switch(node->nodeType){
-    
-    //case NODE_NESL:{
-     
-    //  break;
-    //}
-    case NODE_FUNC:{
-      node->isEndofFunction = 1;
-      sqcheck(node->child->rsibling->rsibling);
-      node->isparallel_rr = node->child->rsibling->rsibling->isparallel_rr;
-      break;
-    }
-    case NODE_IFELSE:{
-      node->isEndofFunction = node->parent->isEndofFunction;
-
-      sqcheck(node->child);
-      sqcheck(node->child->rsibling);
-      sqcheck(node->child->rsibling->rsibling);
-      if(node->child->rsibling->isparallel_rr==1 
-        || node->child->rsibling->rsibling->isparallel_rr ==1)
-        node->isparallel_rr =1;
-      break;
-    }
-    case NODE_ELSESTMT:{
-      node->isEndofFunction = node->parent->isEndofFunction;
-      sqcheck(node->child); 
-      node->isparallel_rr = node->child->isparallel_rr;
-      break;
-    }
-    case NODE_THENSTMT:{
-      node->isEndofFunction = node->parent->isEndofFunction;
-      sqcheck(node->child); 
-      node->isparallel_rr = node->child->isparallel_rr;
-      break;
-    }
-    case NODE_OP:{
-      struct nodeType* LHS;
-      struct nodeType* RHS;
-      LHS = node->child;
-      RHS = LHS->rsibling;
-      assert(node->parent->isEndofFunction);
-      node->isEndofFunction = node->parent->isEndofFunction;
-      LHS->isEndofFunction = node->isEndofFunction;
-      RHS->isEndofFunction = node->isEndofFunction;
-      
-      switch(node->op){
-        case OP_PP:{
-          //node->isEndofFunction = node->parent->isEndofFunction;
-          sqcheck(LHS);
-          sqcheck(RHS);
-          
-          if(LHS->op == OP_PP){
-            LHS->inserttmp = 1;
-            LHS->isEndofFunction = 0;
-          }
-          if(RHS->op == OP_PP){
-            RHS->inserttmp = 1;
-            RHS->isEndofFunction=0;
-          }
-          
-          int index = inserttmp(node);
-          assert(index!=-1);
-          node->string = malloc(sizeof(char)*100);
-          strcpy(node->string, tmp[index]);
-          assert(node->string);
-          break;
-        }  
-        case OP_BIND:{
-          switch(RHS->nodeType){
-            case NODE_APPLYBODY1:
-              // not implement
-              break;
-            case NODE_APPLYBODY2:
-              // {action: RBINDS}
-              sqcheck(RHS);
-              node->needcounter = RHS->needcounter;
-              node->isparallel_rr = RHS->isparallel_rr;
-              assert(node->needcounter);
-              if(node->needcounter)
-                addVariable("i", TypeInt, node->parent->parent);
-              node->nodeType = GEN_APP2;
-              node->string = malloc(sizeof(char)*100);
-              strcpy(node->string, child->child->string);
-              
-              break;
-            case NODE_APPLYBODY3:
-              // {RBINDS|FILTER}
-              sqcheck(RHS);
-              node->needcounter = RHS->needcounter;
-              node->isparallel_rr = RHS->isparallel_rr;
-              
-              if(node->needcounter)
-                addVariable("i", TypeInt, node->parent->parent);
-              node->nodeType = GEN_APP3;
-              node->string = malloc(sizeof(char)*100);
-              strcpy(node->string, child->child->string);
-              break;  
-            case NODE_APPLYBODY4:
-              // not implemented
-              break;
-            case NODE_SEQ_REF:
-              //  node->nodeType
-              node->string = malloc(sizeof(char)*100);
-              strcpy(node->string, node->child->child->string);
-              node->nodeType = GEN_SEQ_REF;
-              break;
-            default:
-              sqcheck(RHS);
-              break;
-           }
-           break;
-        }
-        default:
-          sqcheck(LHS);
-          if(LHS->rsibling != LHS)
-            sqcheck(LHS->rsibling);
-          break;
-      }
-      break;
-    }//end of case node->op
-    
-    case NODE_APPLYBODY2:{
-      node->isEndofFunction = node->parent->isEndofFunction;
-      sqcheck(node->child);
-      sqcheck(node->child->rsibling);
-      node->needcounter = node->child->rsibling->needcounter;
-      node->isparallel_rr = node->child->rsibling->isparallel_rr;
-      break;  
-    }
-    case NODE_APPLYBODY3:{
-      node->isEndofFunction = node->parent->isEndofFunction;
-      sqcheck(node->child);
-      sqcheck(node->child->rsibling);
-      node->needcounter = node->child->needcounter;
-      node->isparallel_rr = node->child->isparallel_rr;
-      break;
-    }
-    case NODE_NEW_SEQ:{
-      
-      // FIXME inserttmp in a nice way.
-      // now it's dirty.
-      node->table = node->parent->parent->parent->parent->table;
-      int index = inserttmp(node);
-      assert(node->parent->parent->parent->parent->nodeType == NODE_OP);
-      
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, tmp[index]);
-      assert(node->string);
-      node->needcounter = 1;
-      node->isparallel_rr =1;
-      //node->inserttmp = 1;
-      break;
-    }
-    case NODE_IN:{
-      node->isEndofFunction = node->parent->isEndofFunction;
-      sqcheck(node->child);
-      sqcheck(node->child->rsibling);
-      if(node->child->rsibling->nodeType == NODE_NEW_SEQ){
-        assert(node->child->rsibling->string);
-        node->string = malloc(sizeof(char)*100);
-        strcpy(node->string, node->child->rsibling->string);
-        free(node->child->rsibling->string);
-        node->needcounter = 1;
-      }
-      node->isparallel_rr = node->child->rsibling->isparallel_rr;
-      if(node->isEndofFunction)
-        assert(insertres(node->child));
-      break;
-    }
-    case NODE_LET:{
-      node->isEndofFunction = node->parent->isEndofFunction;
-      sqcheck(node->child);
-      sqcheck(node->child->rsibling);
-      if(node->child->isparallel_rr|node->child->rsibling->isparallel_rr)
-        node->isparallel_rr =1;
-      break;
-    }
-    case NODE_SEQ_REF:{
-      int index = insertelm(node);
-      node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, elm[index]);
-      assert(node->string);
-      break;
-    }
-    case NODE_EXP:{
-      // TODO
-      node->isEndofFunction = node->parent->isEndofFunction;
-         //FIXME Exp
-         //       |
-         //     BINDS
-         //     /   \
-         //   ...   ... 
-         // as a result:   
-      
-      sqcheck(node->child);
-      if(node->isEndofFunction)
-        node->child->lsibling->isEndofFunction =1;
-      break;
-    }
-    case NODE_RBINDS:
-    default:{
-      struct nodeType* child = node->child;
-      if(node->parent && node->child){
-        node->isEndofFunction = node->parent->isEndofFunction;
-        if(node->isEndofFunction)
-          node->child->lsibling->isEndofFunction = 1;
-      }
-      if(child){
-        do{
-          sqcheck(child);
-          if(child->needcounter)
-            node->needcounter = 1;
-          if(child->isparallel_rr)
-            node->isparallel_rr = 1;
-          child = child->rsibling;
-        }while(child!=node->child);
-      }
-      break;
-    }
-      
-  }// end of switch node->nodeType
-}
 
 void sqcodegen(FILE *fptr, struct nodeType* node){
   struct nodeType *child = node->child;
@@ -440,10 +206,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           break;
       }
       if(node->inserttmp){
-        fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
+        //fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
         switch(node->valueType){
           case TypeSEQ_I:
-            fprintf(fptr, "int), 1);\n\n");
+            //fprintf(fptr, "int), 1);\n\n");
             break;
           default:
             assert(0);//not implemented.
@@ -520,10 +286,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             phase1->child->rsibling->child->string,
             phase1->child->rsibling->child->rsibling->string);  
           
-          fprintf(fptr,"atomicAdd(REFCNT(%s, ",phase1->string);
+          //fprintf(fptr,"atomicAdd(REFCNT(%s, ",phase1->string);
           switch(phase1->valueType){
             case TypeSEQ:
-                fprintf(fptr, "struct Sequence), 1);\n");
+                //fprintf(fptr, "struct Sequence), 1);\n");
               break;
           }
           insertREF(phase1->string, phase1->valueType, phase1);
@@ -560,17 +326,17 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                       sqcodegen(fptr, phase3->child->rsibling);
                       fprintf(fptr, ";\n");
                       // int because paramtype is TypeSEQ_I
-                      fprintf(fptr, "atomicAdd(REFCNT(res, int), 1);\n");
+                      //fprintf(fptr, "atomicAdd(REFCNT(res, int), 1);\n");
                       fprintf(fptr, "SET_ELEM_SEQ_I(res, %s, i);\n", phase2->string);
-                      fprintf(fptr, "DECREF_SEQ_I(res);\n");
+                      //fprintf(fptr, "DECREF_SEQ_I(res);\n");
                       fprintf(fptr, "}\n");
                     }
                     
                     // struct sequence since it's TypeSEQ_I
                     // indicate that parent is TypeSEQ_SEQ_I
-                    fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence), 1);\n",phase2->string);
+                    //fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence), 1);\n",phase2->string);
                     insertREF(phase2->string, phase2->valueType, phase2);
-                    fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n", phase1->string);
+                    //fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n", phase1->string);
                     deleteREF(phase1->string);
                     break;
                 }
@@ -607,10 +373,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "(");
     sqcodegen(fptr, node->child->rsibling->child->rsibling->child);
     fprintf(fptr, "));\n");
-    fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
+    //fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
     switch(node->valueType){
       case TypeSEQ_I:
-        fprintf(fptr, "int), 1);\n");
+        //fprintf(fptr, "int), 1);\n");
         break;
     }
     insertREF(node->string, node->valueType, node);

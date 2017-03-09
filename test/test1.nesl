@@ -11,9 +11,10 @@ else
       result  = {quicksort(v): v in [lesser,greater]};
   in result[0] ++ equal ++ result[1];
 
-function qs(i):(int)->(int,float) =
-let nums = {rand(i): i in dist(100, i)};
-    (res1, tm) = time(quicksort(nums)); in (res1[0], tm); 
+function qs(n):(int)->(int,float) =
+let nums = {rand(e): e in dist(100, n)};
+    (res1, tm) = time(quicksort(nums)); 
+in (res1[0], tm); 
 
 qs(100);
 x;

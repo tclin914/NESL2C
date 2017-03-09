@@ -9,7 +9,7 @@
 #include "assert.h"
 #include "codegen.h"
 #include "pfcodegen.h"
-//#include "sqcodegen.h"
+#include "sqcodegen.h"
 #include "genMacro.h"
 
 int yydebug =1;
@@ -735,10 +735,10 @@ int main(int argc, char** argv){
         fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n");
         //fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
         //sqcheck(ASTRoot);
-        //sqcodegen(yyout, ASTRoot);
         pfcheck(ASTRoot);
-        pfcodegen(yyout, ASTRoot);
-        codegen(yyout, ASTRoot);
+        sqcodegen(yyout, ASTRoot);
+        //pfcodegen(yyout, ASTRoot);
+        //codegen(yyout, ASTRoot);
         fclose(yyout);    
       }
       if(ispfc){
