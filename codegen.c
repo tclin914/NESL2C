@@ -409,11 +409,23 @@ void dumpTable(FILE *fptr, struct nodeType* node){
         case TypeSEQ_C:
           fprintf(fptr, "struct Sequence %s;\n", table->entries[i].name);
           break;
-        case TypeTuple:
-          fprintf(fptr, "struct Sequence %s;\n", table->entries[i].name);
-          break;
         case TypeSEQ:
           fprintf(fptr, "struct Sequence %s;\n", table->entries[i].name);
+          break;
+        case TypeTuple_IF:
+          fprintf(fptr, "struct Tuple_IF %s;\n", table->entries[i].name);
+          break;
+        case TypeTuple_I:
+          fprintf(fptr, "struct Pair_I %s;\n", table->entries[i].name);
+          break;
+        case TypeTuple_F:
+          fprintf(fptr, "struct Pair_F %s;\n", table->entries[i].name);
+          break;
+        case TypeTuple_SF:
+          fprintf(fptr, "struct Tuple_SF %s;\n", table->entries[i].name);
+          break;
+        case TypeTuple:
+          fprintf(fptr, "struct Tuple %s;\n", table->entries[i].name);
           break;
         default:
           fclose(fptr);

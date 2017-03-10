@@ -19,19 +19,39 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   struct nodeType *child = node->child;
   switch(node->nodeType){
   case NODE_NESL:{
-
+    
+    for(int i =0; i<node->counts ; i++){
+      if(child->nodeType != NODE_DATATYPE && child->nodeType!= NODE_FUNC){
+        phase1(fptr, child); 
+      }
+      child = child->rsibling;
+    }
+    
     for(int i =0; i<node->counts ; i++){
       if(child->nodeType == NODE_DATATYPE){
         assert(0);// not implement;
       }
       child = child->rsibling;
     }
+    
     for(int i =0 ; i< node-> counts ; i++ ){
       if(child->nodeType == NODE_FUNC){
         sqcodegen(fptr, child);
       }
       child = child->rsibling;
     }
+    
+    fprintf(fptr, "#pragma global parallel\n");
+    fprintf(fptr, "void myFunc1(){\n");
+    for(int i =0;i<node->counts;i++){
+      if(child->nodeType !=NODE_DATATYPE && child->nodeType != NODE_FUNC){
+        sqcodegen(fptr, child);
+      }
+      child = child->rsibling;
+    }
+    fprintf(fptr, "}\n\n");
+    fprintf(fptr, "int main(){\nmyFunc1();\nreturn1;\n}\n");
+    
     break;
   }
 
@@ -73,6 +93,15 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       sqcodegen(fptr,node->child->rsibling->rsibling);
       fprintf(fptr, "\n}\n");
       break;
+    case TypeTuple_IF:
+      fprintf(fptr, "struct TypeTuple_IF %s", node->string);
+      sqcodegen(fptr,node->child);
+      fprintf(fptr, "{\n");
+      fprintf(fptr, "{\nstruct TypeTuple_IF res;\n");
+      //fprintf(fptr, "struct TypeTuple tmp;\n");
+      sqcodegen(fptr,node->child->rsibling->rsibling);
+      fprintf(fptr, "\n}\n");
+    break;
     default:
       assert(0);//not implement;
       break;
@@ -108,7 +137,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     sqcodegen(fptr, node->child);
     fprintf(fptr, "}\n");
     if(node->isEndofFunction)
-      DECREF(fptr);
       //fprintf(fptr, "endofFunction\n");
     break;
 
@@ -206,10 +234,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           break;
       }
       if(node->inserttmp){
-        //fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
         switch(node->valueType){
           case TypeSEQ_I:
-            //fprintf(fptr, "int), 1);\n\n");
             break;
           default:
             assert(0);//not implemented.
@@ -286,10 +312,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             phase1->child->rsibling->child->string,
             phase1->child->rsibling->child->rsibling->string);  
           
-          //fprintf(fptr,"atomicAdd(REFCNT(%s, ",phase1->string);
           switch(phase1->valueType){
             case TypeSEQ:
-                //fprintf(fptr, "struct Sequence), 1);\n");
               break;
           }
           insertREF(phase1->string, phase1->valueType, phase1);
@@ -326,17 +350,13 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                       sqcodegen(fptr, phase3->child->rsibling);
                       fprintf(fptr, ";\n");
                       // int because paramtype is TypeSEQ_I
-                      //fprintf(fptr, "atomicAdd(REFCNT(res, int), 1);\n");
                       fprintf(fptr, "SET_ELEM_SEQ_I(res, %s, i);\n", phase2->string);
-                      //fprintf(fptr, "DECREF_SEQ_I(res);\n");
                       fprintf(fptr, "}\n");
                     }
                     
                     // struct sequence since it's TypeSEQ_I
                     // indicate that parent is TypeSEQ_SEQ_I
-                    //fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence), 1);\n",phase2->string);
                     insertREF(phase2->string, phase2->valueType, phase2);
-                    //fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n", phase1->string);
                     deleteREF(phase1->string);
                     break;
                 }
@@ -373,7 +393,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "(");
     sqcodegen(fptr, node->child->rsibling->child->rsibling->child);
     fprintf(fptr, "));\n");
-    //fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
     switch(node->valueType){
       case TypeSEQ_I:
         //fprintf(fptr, "int), 1);\n");
@@ -483,6 +502,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       sqcodegen(fptr, node->child);
     }
     sqcodegen(fptr, node->child->rsibling);
+    if(node->parent->nodeType == NODE_NESL)
+      fprintf(fptr, ";\n");
     break;
   }
 
