@@ -31,25 +31,13 @@ struct Sequence  quicksort(struct Sequence a){
     FILTER_1(lesser, e, int, I,
              a, e,  int, I,
              (e < pivot));
-    //++*(REFCNT(lesser, int));
-    //_refcnt++;
-    //atomicAdd(REFCNT(lesser, int), 1);
     FILTER_1(equal, e, int, I,
              a, e,  int, I,
              (e == pivot));
-    //atomicAdd(REFCNT(equal, int), 1);
-    //++*(REFCNT(equal, int));
-    //_refcnt++;
     FILTER_1(greater, e, int, I,
              a, e,  int, I,
              (e > pivot));
-    //atomicAdd(REFCNT(greater, int), 1);
-    //++*(REFCNT(greater, int));
-    //_refcnt++;
     MAKE_SEQ_2(tmp3, struct Sequence, SEQ_I, lesser,greater);
-    //atomicAdd(REFCNT(tmp3, struct Sequence), 1);
-    //++*(REFCNT(tmp3, struct Sequence));
-    //_refcnt++;
     MALLOC(result, 2, struct Sequence);
 #pragma pf parallel_rr
     for(i=0;i<2;i++){
@@ -57,28 +45,18 @@ struct Sequence  quicksort(struct Sequence a){
       struct Sequence res;
       GET_ELEM_SEQ_I(v, tmp3, i);
       res = quicksort(v);
-      //atomicAdd(REFCNT(res, int), 1);
-      //++*REFCNT(res, int);
-      //////_refcnt++;
       SET_ELEM_SEQ_I(res, result, i);
-      //DECREF_SEQ_I(res);
     }
-    //atomicAdd(REFCNT(result, struct Sequence), 1);
-    //++*(REFCNT(result, struct Sequence));
-    ////_refcnt++;
-    //DECREF_SEQ_SEQ_I(tmp3);
+    free(tmp3.ptr);
   GET_ELEM_SEQ_I(elm1,result, 0 );
   CONCAT(elm1, equal, tmp4, int, I);
-  //atomicAdd(REFCNT(tmp4, int), 1);
-  //++*REFCNT(tmp4, int);
-  ////_refcnt++;
   GET_ELEM_SEQ_I(elm2,result, 1 );
   CONCAT(tmp4, elm2, res, int, I);
-//DECREF_SEQ_I(lesser);
-//DECREF_SEQ_I(equal);
-//DECREF_SEQ_I(greater);
-//DECREF_SEQ_SEQ_I(result);
-//DECREF_SEQ_I(tmp4);
+  free(lesser.ptr);
+  free(equal.ptr);
+  free(greater.ptr);
+  free(result.ptr);
+  free(tmp4.ptr);
 }
 return res;
 
@@ -90,8 +68,6 @@ int neslrand(int a){
   int randBase;
   int des;
 
-  seed = time(0);
-  srand(seed);
   randBase = rand()%a;
   
   return randBase;
@@ -119,6 +95,8 @@ struct tupleIF qs(int n){
   // {rand(e): e in dist}
   MALLOC(nums, n, struct Sequence);
   // i < n or i < tmp2.len
+  
+  srand(time(0));
   for(i =0; i<n; i++){
     int elem;
     int e;
@@ -127,11 +105,17 @@ struct tupleIF qs(int n){
     SET_ELEM_I(elem, nums, i);
   }
   
+//for(i=0;i<n;i++){
+//  printf("%d, ", ((int*)nums.ptr)[i]);
+//}
+//printf("\n");
+ 
   // (res1,tm) = time(quicksort(nums));
   t1 = clock();
   res1 = quicksort(nums);
   t2 = clock();
-  diff = ((float)(t2 - t1) / 1000000.0F ) * 1000; 
+  // 1ms = 0.001
+  diff = ((float)(t2 - t1) / 1000000000.0F ) * 1000; 
   tm = diff;
   //TIME(quicksort, struct SEQ_I,
   //tmp3 = time(quicksort(nums));
@@ -139,16 +123,19 @@ struct tupleIF qs(int n){
   // in (res1[0],tm)
   res.a = ((int*)res1.ptr)[0];
   res.b = tm;
-  
+ 
+//for(i=0;i<1000;i++){
+//  printf("%d, ", ((int*)res1.ptr)[i]);
+//}
+//printf("\n");
   return res;
 }
 
 void myFunc(){
   struct tupleIF tmp1;
-  tmp1 =  qs(100);
+  tmp1 =  qs(100000);
   printf("%d\n", tmp1.a);
   printf("%f\n", tmp1.b);
-
 }
 
 int main(){
