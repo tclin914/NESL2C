@@ -459,9 +459,9 @@ void typeAnalysis( struct nodeType *node){
     case NODE_SEQ_REF:{
       struct SymTableEntry * child = findSymbol(node->child->table, node->child->string);
       
+      assert(child);
       assert(child->type <= TypeSEQ);
       assert(child->type >= TypeSEQ_I);
-      assert(child);
       switch(child->type){
         case TypeSEQ:
           //node->child
@@ -527,38 +527,42 @@ void typeAnalysis( struct nodeType *node){
           if(LHS->nodeType == NODE_PATTERN){
           // might have pattern->pair->tuple-id&id,
           // can't directly addVariable.
-          if(LHS->valueType==TypeTuple){
-            
-            // get RHS's typeDef
-            struct nodeType* RHStypeNode = RHS->typeNode;
-            struct nodeType* RHSchild = RHStypeNode->child;
-            assert(RHStypeNode->valueType == TypeTuple);
-            assert(RHStypeNode->child);
-            assert(RHStypeNode->child->rsibling);
+            if(LHS->valueType==TypeTuple){
+              
+              // get RHS's typeDef
+              struct nodeType* RHStypeNode = RHS->typeNode;
+              struct nodeType* RHSchild = RHStypeNode->child;
+              assert(RHStypeNode->valueType == TypeTuple);
+              assert(RHStypeNode->child);
+              assert(RHStypeNode->child->rsibling);
 
-            //assert(LHS->typeNode);
-            struct nodeType* tupleNode = LHS->child;
-            while(tupleNode -> nodeType != NODE_TUPLE){
-              if(tupleNode->child!=0)
-                tupleNode = tupleNode->child;
+              //assert(LHS->typeNode);
+              struct nodeType* tupleNode = LHS->child;
+              while(tupleNode -> nodeType != NODE_TUPLE){
+                if(tupleNode->child!=0)
+                  tupleNode = tupleNode->child;
+              }
+              struct nodeType* tuplechild = tupleNode->child;
+              assert(tuplechild);
+              
+              // similar to TypeBinding
+              if(tuplechild){
+                do{
+                  assert(tuplechild->string);
+                  assert(RHSchild->valueType);
+                  addVariable(tuplechild->string, RHSchild->valueType, tuplechild);
+                  tuplechild = tuplechild->rsibling;
+                  RHSchild = RHSchild->rsibling;
+                }while(tuplechild!=tupleNode->child);
+              }
+              //assert(RHS->valueType == TypeTuple);
+            }else if(LHS->valueType == TypeTuple_SF){
+              assert(RHS->typeNode);
+              typeBinding(LHS,RHS->typeNode);
+              break;
+            }else{
+              addVariable(LHS->child->string, RHS->valueType, LHS);
             }
-            struct nodeType* tuplechild = tupleNode->child;
-            assert(tuplechild);
-            
-            // similar to TypeBinding
-            if(tuplechild){
-              do{
-                assert(tuplechild->string);
-                assert(RHSchild->valueType);
-                addVariable(tuplechild->string, RHSchild->valueType, tuplechild);
-                tuplechild = tuplechild->rsibling;
-                RHSchild = RHSchild->rsibling;
-              }while(tuplechild!=tupleNode->child);
-            }
-            //assert(RHS->valueType == TypeTuple);
-          }else{
-            addVariable(LHS->child->string, RHS->valueType, LHS);
-          }
           //typeBinding(LHS, RHS);
           
           //FIXME   pattern
