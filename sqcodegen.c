@@ -187,9 +187,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, ".len");
       break;
 
-    case OP_BIND:
+    case OP_BIND:{
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = node->child->rsibling;
 
-      sqcodegen(fptr, node->child);
+      //sqcodegen(fptr, node->child);
       switch(node->child->rsibling->nodeType){
       case NODE_APPLYBODY1:
       case NODE_APPLYBODY2:
@@ -198,13 +200,22 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, ".ptr = ");
         sqcodegen(fptr, node->child->rsibling);
         break;
+      case NODE_FUNC_CALL:
+        if(!strcmp(RHS->child->string, "time")){
+          fprintf(fptr, "t1 = clock();\n");
+          fprintf(fptr, "%s", LHS->child->child->child->string);
+          fprintf(fptr, "t2 = clock();\n");
+          fprintf(fptr, "diff = ((float)(t2 - t1) / 1000000000.0F ) * 1000;\n");
+          fprintf(fptr, "tm = diff;\n");
+        }
+      break;
       default :
         fprintf(fptr, " = ");
         sqcodegen(fptr, node->child->rsibling);
         fprintf(fptr, ";\n");
       }
       break;
-
+    }
     case OP_PP:
       // if child is a variable, it will be process here.
       if(node->child->nodeType!=NODE_TOKEN)
@@ -298,7 +309,17 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType* phase3 = node->child->rsibling->child;
 
     if(phase1->nodeType == NODE_IN){
-      if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ){
+      if(phase1->child->rsibling->nodeType == NODE_FUNC_CALL){
+        //sqcodegen(fptr, phase1->child->rsibling);
+        if(!strcmp(phase1->child->rsibling->child->string,"dist")){
+          fprintf(fptr,"MALLOC(%s, %s, struct Sequence);\n",
+              phase1->string, 
+              phase1->child->rsibling->child->rsibling->child->child->rsibling->string
+          );
+
+        }
+      }
+    }else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ){
         int count = phase1->child->rsibling->counts;
         assert(count);
         if(count == 2){
@@ -359,20 +380,19 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                     insertREF(phase2->string, phase2->valueType, phase2);
                     deleteREF(phase1->string);
                     break;
-                }
+                }// end of switch paramEntry
                 break;
               }
               default:
                 assert(0);//not implement;
                 break;
-            }
+            }// end of switch(phase3->nodeType)
             fprintf(fptr, "}\n");
-          }
-        }
-      }
-    } 
-    if(phase3->nodeType == NODE_FUNC_CALL){
-    }
+          }// end of if(node->isparallel_rr)
+        }// end of else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ)
+      }//end of gen_app2
+   
+    
   break;
   }
   case GEN_APP3:{
@@ -472,20 +492,40 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
 
   case NODE_TUPLE:
-    sqcodegen(fptr, node->child);
-    fprintf(fptr, " , ");
-    sqcodegen(fptr, node->child->rsibling);
+    if(node->isEndofFunction){
+      //use res
+      if(node->child->nodeType == NODE_SEQ_REF)
+        sqcodegen(fptr, node->child);
+      fprintf(fptr, "res.a = %s;\n",node->child->string);
+      if(node->child->rsibling->nodeType == NODE_TOKEN)
+        fprintf(fptr, "res.b = %s;\n", node->child->rsibling->string);  
+    }
+    else{
+      //use node->string "tmpn"
+      if(node->child->nodeType == NODE_SEQ_REF)
+        sqcodegen(fptr, node->child);
+      fprintf(fptr, "%s.a = %s;\n",node->string, node->child->string);
+      if(node->child->rsibling->nodeType == NODE_TOKEN)
+        fprintf(fptr, "%s.b = %s;\n", node->string, 
+                                      node->child->rsibling->string);  
+    }
     break;
 
   case NODE_PAIR:
-    fprintf(fptr, "(");
-    assert(child);
-    //sqcodegen(fptr,node->child);
-    do{
-      sqcodegen(fptr,node->child);
-      child = child->rsibling;
-    }while(child!=node->child);
-    fprintf(fptr, ")");
+    if(node->child->nodeType==NODE_TUPLE){
+      if(node->isEndofFunction)
+        node->child->isEndofFunction = node->isEndofFunction;
+      sqcodegen(fptr, node->child);
+    }else{
+      fprintf(fptr, "(");
+      assert(child);
+      //sqcodegen(fptr,node->child);
+      do{
+        sqcodegen(fptr,node->child);
+        child = child->rsibling;
+      }while(child!=node->child);
+      fprintf(fptr, ")");
+    }
     break;
   case NODE_INT:
     fprintf(fptr," %d ",node->iValue);
@@ -495,7 +535,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     if(!strcmp(node->child->string, "rand")){
       fprintf(fptr, "rand"); 
     }else if(!strcmp(node->child->string, "dist")){
-      fprintf(fptr, "dist"); 
+      //fprintf(fptr, "dist"); 
     }else if(!strcmp(node->child->string, "time")){
       fprintf(fptr, "time"); 
     }else{

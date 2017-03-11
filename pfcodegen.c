@@ -191,8 +191,10 @@ void pfcheck(struct nodeType* node){
               node->needcounter = RHS->needcounter;
               node->isparallel_rr = RHS->isparallel_rr;
               //assert(node->needcounter);
-              if(node->needcounter)
-                addVariable("i", TypeInt, node->parent->parent);
+              if(node->needcounter){
+                if(!findSymbol(node->table,"i"))
+                  addVariable("i", TypeInt, node->parent->parent);
+              }
               node->nodeType = GEN_APP2;
               node->string = malloc(sizeof(char)*100);
               strcpy(node->string, child->child->string);
@@ -205,6 +207,7 @@ void pfcheck(struct nodeType* node){
               node->isparallel_rr = RHS->isparallel_rr;
               
               if(node->needcounter)
+                if(!findSymbol(node->table,"i"))
                 addVariable("i", TypeInt, node->parent->parent);
               node->nodeType = GEN_APP3;
               node->string = malloc(sizeof(char)*100);
@@ -218,10 +221,14 @@ void pfcheck(struct nodeType* node){
               // TODO what if a single exp with SEQ_REF
               //      which means to print the element? 
               //      
+              // Ans. won't be here. cause'
               node->string = malloc(sizeof(char)*100);
               strcpy(node->string, node->child->child->string);
               node->nodeType = GEN_SEQ_REF;
               break;
+            case NODE_FUNC_CALL:
+            
+            break;
             default:
               pfcheck(LHS);
               pfcheck(RHS);
@@ -258,6 +265,20 @@ void pfcheck(struct nodeType* node){
       node->isparallel_rr = node->child->isparallel_rr;
       break;
     }
+     
+    case NODE_FUNC_CALL:{
+      if(!strcmp(node->child->string,"dist")){
+        int index = inserttmp(node);
+        node->string = malloc(sizeof(char)*100);
+        strcpy(node->string, tmp[index]);
+        node->inserttmp = 1;
+      }
+        pfcheck(node->child);
+        pfcheck(node->child->rsibling);
+
+    break;
+    }
+
     case NODE_TUPLE:{
       int index = inserttmp(node);
       node->string = malloc(sizeof(char)*100);
@@ -267,7 +288,6 @@ void pfcheck(struct nodeType* node){
       pfcheck(node->child->rsibling);
     break;
     }
-
     case NODE_NEW_SEQ:{
       
       // FIXME inserttmp in a nice way.
@@ -289,7 +309,8 @@ void pfcheck(struct nodeType* node){
       node->isEndofFunction = node->parent->isEndofFunction;
       pfcheck(node->child);
       pfcheck(node->child->rsibling);
-      if(node->child->rsibling->nodeType == NODE_NEW_SEQ){
+      if(node->child->rsibling->nodeType == NODE_NEW_SEQ ||
+        node->child->rsibling->nodeType == NODE_FUNC_CALL){
         assert(node->child->rsibling->string);
         node->string = malloc(sizeof(char)*100);
         strcpy(node->string, node->child->rsibling->string);
