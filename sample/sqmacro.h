@@ -1,3 +1,8 @@
+#include <inttypes.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <time.h>
+
 struct Pair_F {
   float   a;
   float   b;
@@ -183,3 +188,54 @@ struct Sequence {
   } \
   res.len = _j; \
 } while(0)
+
+#define print_I(a) do{ \
+  printf("%d ",a);   \
+}while(0) \
+
+#define print_F(a) do{ \
+  printf("%f ",a);   \
+}while(0) \
+
+#define print_Tuple(res1, type1, type2) do{ \
+  print_##type1(res1.a); \
+  printf("\n"); \
+  print_##type2(res1.b); \
+  printf("\n"); \
+}while(0) \
+
+#define print_SEQ_I(src) do{ \
+  int i,e; \
+  printf("printSEQ %s: \n",#src); \
+  for(i=0;i<src.len;i++){  \
+    GET_ELEM_I(e, src, i); \
+    print_I(e);\
+  }\
+  printf("\n"); \
+}while(0)
+
+#define NESLDIST(res, p1, p2)  do{\
+  MALLOC(res, p2, struct Sequence);\
+  for(i = 0; i<p2;i++){\
+    int elem = p1;\
+    SET_ELEM_I(elem, res, i);\
+  }\
+}while(0)
+
+#define RAND_I(res, src) do{\
+  for(i=0;i<n;i++){\
+    int e;\
+    GET_ELEM_I(e, src, i);\
+    SET_ELEM_I(rand()%e, res, i);\
+  }\
+}while(0)
+
+#define NESLRAND_SEQ(res, len, src, p1, typer) do{\
+  MALLOC(res, len, struct Sequence);\
+  srand(time(0));\
+  RAND_##typer(res, src);\
+}while(0)
+
+
+
+

@@ -1,26 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include "sqmacro.h"
-#include <stdbool.h>
-#include <assert.h>
-#include <time.h>
 #include <string.h>
 int x;
 struct Pair_F tmp1;
-
-#define print_I(a) do{ \
-  printf("%d\n",a);   \
-}while(0) \
-
-#define print_F(a) do{ \
-  printf("%f\n",a);   \
-}while(0) \
-
-#define print_Tuple(res1, type1, type2) do{ \
-  print_##type1(res1.a); \
-  print_##type2(res1.b); \
-}while(0) \
 
 #pragma pf device parallel
 struct Sequence  quicksort(struct Sequence a){
@@ -75,17 +58,6 @@ return res;
 
 }
 
-
-int neslrand(int a){
-  int seed;
-  int randBase;
-  int des;
-
-  randBase = rand()%a;
-  
-  return randBase;
-}
-
 //struct tupleSIF time(struct 
 
 struct tupleIF qs(int n){
@@ -101,28 +73,18 @@ struct tupleIF qs(int n){
   int elem2;
 
   // dist(100,n)
-  MALLOC(tmp1, n, struct Sequence);
-  for(i = 0; i < n; i++){
-    int elem = 100;
-    SET_ELEM_I(elem, tmp1, i);  
-  }  
+  {
+  NESLDIST(tmp1, 100, n);
+
   // {rand(e): e in dist}
-  MALLOC(nums, n, struct Sequence);
-  // i < n or i < tmp2.len
-  
-  srand(time(0));
-  for(i =0; i<n; i++){
-    int elem;
-    int e;
-    GET_ELEM_I(e, tmp1,i);
-    elem = neslrand(e);
-    SET_ELEM_I(elem, nums, i);
-  }
-  
-for(i=0;i<n;i++){
-  printf("%d, ", ((int*)nums.ptr)[i]);
+  NESLRAND_SEQ(nums, n, tmp1, e, I);
 }
-printf("\n");
+
+  print_SEQ_I(nums);
+//for(i=0;i<n;i++){
+//  printf("%d, ", ((int*)nums.ptr)[i]);
+//}
+//printf("\n");
  
   // (res1,tm) = time(quicksort(nums));
   t1 = clock();
@@ -140,10 +102,11 @@ printf("\n");
   res.a = elem2;
   res.b = tm;
  
-for(i=0;i<n;i++){
-  printf("%d, ", ((int*)res1.ptr)[i]);
-}
-printf("\n");
+//for(i=0;i<n;i++){
+//  printf("%d, ", ((int*)res1.ptr)[i]);
+//}
+print_SEQ_I(res1);
+//printf("\n");
   return res;
 }
 
