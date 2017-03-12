@@ -267,7 +267,9 @@ void pfcheck(struct nodeType* node){
     }
      
     case NODE_FUNC_CALL:{
-      if(!strcmp(node->child->string,"dist")){
+      node->isEndofFunction = node->parent->isEndofFunction;
+      if(!strcmp(node->child->string,"dist")||
+        node->parent->nodeType == NODE_NESL){
         int index = inserttmp(node);
         node->string = malloc(sizeof(char)*100);
         strcpy(node->string, tmp[index]);

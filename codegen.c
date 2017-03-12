@@ -413,7 +413,7 @@ void dumpTable(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "struct Sequence %s;\n", table->entries[i].name);
           break;
         case TypeTuple_IF:
-          fprintf(fptr, "struct Tuple_IF %s;\n", table->entries[i].name);
+          fprintf(fptr, "struct tupleIF %s;\n", table->entries[i].name);
           break;
         case TypeTuple_I:
           fprintf(fptr, "struct Pair_I %s;\n", table->entries[i].name);
@@ -440,14 +440,40 @@ void dumpTable(FILE *fptr, struct nodeType* node){
 
 void printparam(FILE *fptr, struct nodeType* node){
  switch(node->nodeType){
+      
   case NODE_PAIR:
     fprintf(fptr, "(");
     printparam(fptr, node->child);
     fprintf(fptr, ")");
     break;
+  case NODE_FUNC_CALL:
   case NODE_TOKEN:{
-    struct nodeType *refNode = node->typeNode;
-    printparam(fptr, refNode);
+    //struct nodeType *refNode = node->typeNode;
+    //printparam(fptr, refNode);
+    
+    switch(node->valueType){
+      case TypeSEQ_I:
+      case TypeSEQ_F:
+      case TypeSEQ:
+        fprintf(fptr, "struct Sequence ");
+      break;
+      case TypeInt:
+        fprintf(fptr, "int ");
+      break;
+      case TypeFloat:
+        fprintf(fptr, "float ");
+      break;
+      case TypeBool:
+        fprintf(fptr, "bool ");
+      break;
+      case TypeTuple_IF:
+        fprintf(fptr, "struct tupleIF ");
+      break;
+      default:
+        assert(0); // tuple not implemented.
+      break;
+    }
+    
     fprintf(fptr, " %s", node->string);
     break;
   }

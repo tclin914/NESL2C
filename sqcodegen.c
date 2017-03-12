@@ -50,7 +50,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       child = child->rsibling;
     }
     fprintf(fptr, "}\n\n");
-    fprintf(fptr, "int main(){\nmyFunc1();\nreturn1;\n}\n");
+    fprintf(fptr, "int main(){\nmyFunc1();\nreturn 1;\n}\n");
     
     break;
   }
@@ -94,12 +94,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "\n}\n");
       break;
     case TypeTuple_IF:
-      fprintf(fptr, "struct TypeTuple_IF %s", node->string);
-      sqcodegen(fptr,node->child);
-      fprintf(fptr, "{\n");
-      fprintf(fptr, "{\nstruct TypeTuple_IF res;\n");
+      fprintf(fptr, "struct tupleIF %s", node->string);
+      printparam(fptr, node->child);
+      fprintf(fptr, "{\nstruct tupleIF res;\n");
       //fprintf(fptr, "struct TypeTuple tmp;\n");
       sqcodegen(fptr,node->child->rsibling->rsibling);
+      fprintf(fptr, "return res;\n");
       fprintf(fptr, "\n}\n");
     break;
     default:
@@ -202,11 +202,15 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       case NODE_FUNC_CALL:
         if(!strcmp(RHS->child->string, "time")){
+          fprintf(fptr, "{\nint t1,t2;\nfloat diff;\n");
           fprintf(fptr, "t1 = clock();\n");
-          fprintf(fptr, "%s", LHS->child->child->child->string);
+          fprintf(fptr, "%s = ", LHS->child->child->child->string);
+          pfcodegen(fptr, node->child->rsibling->child->rsibling->child);
+          fprintf(fptr, ";\n");
           fprintf(fptr, "t2 = clock();\n");
           fprintf(fptr, "diff = ((float)(t2 - t1) / 1000000000.0F ) * 1000;\n");
           fprintf(fptr, "tm = diff;\n");
+          fprintf(fptr, "}\n");
         }
       break;
       default :
@@ -312,13 +316,36 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       if(phase1->child->rsibling->nodeType == NODE_FUNC_CALL){
         //sqcodegen(fptr, phase1->child->rsibling);
         if(!strcmp(phase1->child->rsibling->child->string,"dist")){
-          fprintf(fptr,"MALLOC(%s, %s, struct Sequence);\n",
-              phase1->string, 
-              phase1->child->rsibling->child->rsibling->child->child->rsibling->string
-          );
-
+          struct nodeType* param1 = phase1->child->rsibling->child->rsibling->child->child;
+          struct nodeType* param2 = phase1->child->rsibling->child->rsibling->child->child->rsibling;
+          
+          fprintf(fptr, "{\n");
+          dumpTable(fptr, phase1);
+//          fprintf(fptr,"MALLOC(%s, %s, struct Sequence);\n",
+//                  phase1->string, param2->string);
+          fprintf(fptr, "NESLDIST(%s,%d,%s);\n", 
+                  phase1->string, param1->iValue, param2->string);      
+          
+          //FIXME sencond parameter 不該是 param2.
+          fprintf(fptr, "NESLRAND_SEQ(%s,%s,%s,%s,", 
+                  node->string, 
+                  param2->string,
+                  phase1->string,
+                  phase1->child->string
+                  );
+          assert(phase1->child->valueType);
+          switch(phase1->child->valueType){
+            case TypeInt:
+              fprintf(fptr, "I");
+            break;
+            default:
+              assert(0);
+          }
+          fprintf(fptr, ");\n\n");
+          fprintf(fptr, "}\n");
+          
         }
-      }
+      
     }else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ){
         int count = phase1->child->rsibling->counts;
         assert(count);
@@ -372,7 +399,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                       fprintf(fptr, ";\n");
                       // int because paramtype is TypeSEQ_I
                       fprintf(fptr, "SET_ELEM_SEQ_I(res, %s, i);\n", phase2->string);
-                      fprintf(fptr, "}\n");
+                      //fprintf(fptr, "}\n");
                     }
                     
                     // struct sequence since it's TypeSEQ_I
@@ -391,7 +418,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           }// end of if(node->isparallel_rr)
         }// end of else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ)
       }//end of gen_app2
-   
+  } 
     
   break;
   }
@@ -532,18 +559,54 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
 
   case NODE_FUNC_CALL:{
-    if(!strcmp(node->child->string, "rand")){
-      fprintf(fptr, "rand"); 
-    }else if(!strcmp(node->child->string, "dist")){
-      //fprintf(fptr, "dist"); 
-    }else if(!strcmp(node->child->string, "time")){
-      fprintf(fptr, "time"); 
-    }else{
-      sqcodegen(fptr, node->child);
-    }
-    sqcodegen(fptr, node->child->rsibling);
-    if(node->parent->nodeType == NODE_NESL)
+
+    if(node->parent->nodeType == NODE_NESL){
+      fprintf(fptr, "{\n");
+      printparam(fptr, node);
       fprintf(fptr, ";\n");
+      if(node->string){
+        if(!strcmp(node->child->string, "rand")){
+          fprintf(fptr, "rand"); 
+        }else if(!strcmp(node->child->string, "dist")){
+          //fprintf(fptr, "dist"); 
+        }else if(!strcmp(node->child->string, "time")){
+          fprintf(fptr, "time"); 
+        }else{
+          fprintf(fptr, "%s = ",node->string);
+          sqcodegen(fptr, node->child);
+        }
+      } 
+      sqcodegen(fptr, node->child->rsibling);
+      fprintf(fptr, ";\n");
+      
+      switch(node->valueType){
+      case TypeTuple_IF:
+        fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
+      break;
+      case TypeInt:
+        fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+      case TypeFloat:
+        fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+      case TypeSEQ_I:
+        fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+      }
+
+      fprintf(fptr, "}\n");
+    }else{
+      if(!strcmp(node->child->string, "rand")){
+        fprintf(fptr, "rand"); 
+      }else if(!strcmp(node->child->string, "dist")){
+        //fprintf(fptr, "dist"); 
+      }else if(!strcmp(node->child->string, "time")){
+        fprintf(fptr, "time"); 
+      }else{
+        sqcodegen(fptr, node->child);
+      }
+      sqcodegen(fptr, node->child->rsibling);
+      
+    }
     break;
   }
 
