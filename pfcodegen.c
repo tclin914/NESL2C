@@ -467,7 +467,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       child = child->rsibling;
     }
     fprintf(fptr, "}\n");
-    fprintf(fptr, "int main(){\nmyFunc1();\nreturn1;\n}\n");
+    fprintf(fptr, "int main(){\nmyFunc1();\nreturn 1;\n}\n");
     break;
   }
 
@@ -509,6 +509,15 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       pfcodegen(fptr,node->child->rsibling->rsibling);
       fprintf(fptr, "\n}\n");
       break;
+    case TypeTuple_IF:
+      fprintf(fptr, "struct tupleIF %s", node->string);
+      printparam(fptr, node->child);
+      fprintf(fptr, "{\nstruct tupleIF res;\n");
+      //fprintf(fptr, "struct TypeTuple tmp;\n");
+      pfcodegen(fptr,node->child->rsibling->rsibling);
+      fprintf(fptr, "return res;\n");
+      fprintf(fptr, "\n}\n");
+    break;
     default:
       assert(0);//not implement;
       break;
@@ -595,9 +604,11 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, ".len");
       break;
 
-    case OP_BIND:
+    case OP_BIND:{
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = node->child->rsibling;
 
-      pfcodegen(fptr, node->child);
+      //pfcodegen(fptr, node->child);
       switch(node->child->rsibling->nodeType){
       case NODE_APPLYBODY1:
       case NODE_APPLYBODY2:
@@ -606,13 +617,26 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, ".ptr = ");
         pfcodegen(fptr, node->child->rsibling);
         break;
+      case NODE_FUNC_CALL:
+        if(!strcmp(RHS->child->string, "time")){
+          fprintf(fptr, "{\nint t1,t2;\nfloat diff;\n");
+          fprintf(fptr, "t1 = clock();\n");
+          fprintf(fptr, "%s = ", LHS->child->child->child->string);
+          pfcodegen(fptr, node->child->rsibling->child->rsibling->child);
+          fprintf(fptr, ";\n");
+          fprintf(fptr, "t2 = clock();\n");
+          fprintf(fptr, "diff = ((float)(t2 - t1) / 1000000000.0F ) * 1000;\n");
+          fprintf(fptr, "tm = diff;\n");
+          fprintf(fptr, "}\n");
+        }
+      break; 
       default :
         fprintf(fptr, " = ");
         pfcodegen(fptr, node->child->rsibling);
         fprintf(fptr, ";\n");
       }
       break;
-
+    }
     case OP_PP:
       // if child is a variable, it will be process here.
       if(node->child->nodeType!=NODE_TOKEN)
@@ -708,7 +732,39 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType* phase3 = node->child->rsibling->child;
 
     if(phase1->nodeType == NODE_IN){
-      if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ){
+      if(phase1->child->rsibling->nodeType == NODE_FUNC_CALL){
+        if(!strcmp(phase1->child->rsibling->child->string,"dist")){
+          struct nodeType* param1 = phase1->child->rsibling->child->rsibling->child->child;
+          struct nodeType* param2 = phase1->child->rsibling->child->rsibling->child->child->rsibling;
+          
+          fprintf(fptr, "{\n");
+          dumpTable(fptr, phase1);
+//          fprintf(fptr,"MALLOC(%s, %s, struct Sequence);\n",
+//                  phase1->string, param2->string);
+          fprintf(fptr, "NESLDIST(%s,%d,%s);\n", 
+                  phase1->string, param1->iValue, param2->string);      
+          
+          //FIXME sencond parameter 不該是 param2.
+          fprintf(fptr, "NESLRAND_SEQ(%s,%s,%s,%s,", 
+                  node->string, 
+                  param2->string,
+                  phase1->string,
+                  phase1->child->string
+                  );
+          assert(phase1->child->valueType);
+          switch(phase1->child->valueType){
+            case TypeInt:
+              fprintf(fptr, "I");
+            break;
+            default:
+              assert(0);
+          }
+          fprintf(fptr, ");\n\n");
+          fprintf(fptr, "}\n");
+          
+        }
+      
+    }else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ){
         int count = phase1->child->rsibling->counts;
         assert(count);
         if(count == 2){
@@ -765,7 +821,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
                       fprintf(fptr, "atomicAdd(REFCNT(res, int), 1);\n");
                       fprintf(fptr, "SET_ELEM_SEQ_I(res, %s, i);\n", phase2->string);
                       fprintf(fptr, "DECREF_SEQ_I(res);\n");
-                      fprintf(fptr, "}\n");
+                      //fprintf(fptr, "}\n");
                     }
                     
                     // struct sequence since it's TypeSEQ_I
@@ -783,12 +839,10 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
                 break;
             }
             fprintf(fptr, "}\n");
-          }
-        }
-      }
+          }// enf of if(node->isparallel_rr)
+        } //end of else if ...==newseq;
+      }// end of gen_app2
     } 
-    if(phase3->nodeType == NODE_FUNC_CALL){
-    }
   break;
   }
   case GEN_APP3:{
@@ -889,13 +943,31 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     break;
 
   case NODE_TUPLE:
-    fprintf(fptr, "%s.a = ",node->string);
-    pfcodegen(fptr, node->child);
-    pfcodegen(fptr, node->child->rsibling);
+    if(node->isEndofFunction){
+      //use res
+      if(node->child->nodeType == NODE_SEQ_REF)
+        pfcodegen(fptr, node->child);
+      fprintf(fptr, "res.a = %s;\n",node->child->string);
+      if(node->child->rsibling->nodeType == NODE_TOKEN)
+        fprintf(fptr, "res.b = %s;\n", node->child->rsibling->string);  
+    }
+    else{
+      //use node->string "tmpn"
+      if(node->child->nodeType == NODE_SEQ_REF)
+        pfcodegen(fptr, node->child);
+      fprintf(fptr, "%s.a = %s;\n",node->string, node->child->string);
+      if(node->child->rsibling->nodeType == NODE_TOKEN)
+        fprintf(fptr, "%s.b = %s;\n", node->string, 
+                                      node->child->rsibling->string);  
+    }
     break;
 
   case NODE_PAIR:
-    if(node->child->nodeType != NODE_TUPLE){
+    if(node->child->nodeType==NODE_TUPLE){
+      if(node->isEndofFunction)
+        node->child->isEndofFunction = node->isEndofFunction;
+      pfcodegen(fptr, node->child);
+    }else{
       fprintf(fptr, "(");
       assert(child);
       //pfcodegen(fptr,node->child);
@@ -911,17 +983,55 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     break;
 
   case NODE_FUNC_CALL:{
-    if(!strcmp(node->child->string, "rand")){
-      fprintf(fptr, "rand"); 
-    }else if(!strcmp(node->child->string, "dist")){
-      fprintf(fptr, "dist"); 
-    }else if(!strcmp(node->child->string, "time")){
-      fprintf(fptr, "time"); 
+   if(node->parent->nodeType == NODE_NESL){
+      fprintf(fptr, "{\n");
+      printparam(fptr, node);
+      fprintf(fptr, ";\n");
+      if(node->string){
+        if(!strcmp(node->child->string, "rand")){
+          fprintf(fptr, "rand"); 
+        }else if(!strcmp(node->child->string, "dist")){
+          //fprintf(fptr, "dist"); 
+        }else if(!strcmp(node->child->string, "time")){
+          fprintf(fptr, "time"); 
+        }else{
+          fprintf(fptr, "%s = ",node->string);
+          pfcodegen(fptr, node->child);
+        }
+      } 
+      pfcodegen(fptr, node->child->rsibling);
+      fprintf(fptr, ";\n");
+      
+      switch(node->valueType){
+      case TypeTuple_IF:
+        fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
+      break;
+      case TypeInt:
+        fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+      case TypeFloat:
+        fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+      case TypeSEQ_I:
+        fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+      }
+
+      fprintf(fptr, "}\n");
     }else{
-      pfcodegen(fptr, node->child);
+      if(!strcmp(node->child->string, "rand")){
+        fprintf(fptr, "rand"); 
+      }else if(!strcmp(node->child->string, "dist")){
+        //fprintf(fptr, "dist"); 
+      }else if(!strcmp(node->child->string, "time")){
+        fprintf(fptr, "time"); 
+      }else{
+        pfcodegen(fptr, node->child);
+      }
+      pfcodegen(fptr, node->child->rsibling);
+      
     }
-    pfcodegen(fptr, node->child->rsibling);
-    break;
+
+   break;
   }
 
   case NODE_TOKEN:
