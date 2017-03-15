@@ -80,11 +80,7 @@ struct tupleIF qs(int n){
   NESLRAND_SEQ(nums, n, tmp1, e, I);
 }
 
-  print_SEQ_I(nums);
-//for(i=0;i<n;i++){
-//  printf("%d, ", ((int*)nums.ptr)[i]);
-//}
-//printf("\n");
+//  print_SEQ_I(nums);
  
   // (res1,tm) = time(quicksort(nums));
   t1 = clock();
@@ -102,17 +98,13 @@ struct tupleIF qs(int n){
   res.a = elem2;
   res.b = tm;
  
-//for(i=0;i<n;i++){
-//  printf("%d, ", ((int*)res1.ptr)[i]);
-//}
-print_SEQ_I(res1);
-//printf("\n");
+//print_SEQ_I(res1);
   return res;
 }
 
 void myFunc(){
   struct tupleIF tmp1;
-  tmp1 =  qs(1000);
+  tmp1 =  qs(100000);
   print_Tuple(tmp1, I, F);
 }
 
