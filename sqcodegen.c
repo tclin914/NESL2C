@@ -13,7 +13,7 @@
 struct RefTable refTable;
 int elmindex[MAX];
 int tmpindex[MAX];
-
+int issrand;
 
 void sqcodegen(FILE *fptr, struct nodeType* node){
   struct nodeType *child = node->child;
@@ -41,7 +41,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       child = child->rsibling;
     }
     
-    fprintf(fptr, "#pragma global parallel\n");
     fprintf(fptr, "void myFunc1(){\n");
     for(int i =0;i<node->counts;i++){
       if(child->nodeType !=NODE_DATATYPE && child->nodeType != NODE_FUNC){
@@ -50,7 +49,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       child = child->rsibling;
     }
     fprintf(fptr, "}\n\n");
-    fprintf(fptr, "int main(){\nmyFunc1();\nreturn 1;\n}\n");
+    fprintf(fptr, "int main(){\n");
+    if(issrand)
+      fprintf(fptr, "srand(time(0));\n");
+    fprintf(fptr,"myFunc1();\nreturn 1;\n}\n");
     
     break;
   }
@@ -201,6 +203,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         sqcodegen(fptr, node->child->rsibling);
         break;
       case NODE_FUNC_CALL:
+        
         if(!strcmp(RHS->child->string, "time")){
           fprintf(fptr, "{\nint t1,t2;\nfloat diff;\n");
           fprintf(fptr, "t1 = clock();\n");
@@ -321,10 +324,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           
           fprintf(fptr, "{\n");
           dumpTable(fptr, phase1);
-//          fprintf(fptr,"MALLOC(%s, %s, struct Sequence);\n",
-//                  phase1->string, param2->string);
-          fprintf(fptr, "NESLDIST(%s,%d,%s);\n", 
-                  phase1->string, param1->iValue, param2->string);      
+          sqcodegen(fptr, phase1);
           
           //FIXME sencond parameter 不該是 param2.
           fprintf(fptr, "NESLRAND_SEQ(%s,%s,%s,%s,", 
@@ -467,55 +467,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     //FIXME here only consider the simple ApplyBody Exp.
     assert(node->child->nodeType == NODE_TOKEN);
     //assert(node->child->rsibling->nodeType == NODE_TOKEN);
-    switch(node->child->rsibling->nodeType){
-    case NODE_TOKEN:{
-      struct SymTableEntry *entry = 
-        findSymbol(node->table, node->child->rsibling->string);
-      assert(entry);
-      switch(entry->type){
-      case TypeSEQ_I:
-        fprintf(fptr, "malloc(sizeof(int)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ_F:
-        fprintf(fptr, "malloc(sizeof(float)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ_B:
-        fprintf(fptr, "malloc(sizeof(bool)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ_C:
-        fprintf(fptr, "malloc(sizeof(char)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ:
-        fprintf(fptr, "malloc(sizeof(%s.ptr[0])*%s.len);\n",
-                entry->name,entry->name);
-        break;
-      default:
-        assert(0); //break;
-        break;
-      }
-      break;
-    }
-
-    case NODE_NEW_SEQ:
-      switch(node->valueType){
-      case TypeSEQ:
-        fprintf(fptr, "malloc(sizeof(%s)*%d);\n",
-                node->child->rsibling->child->string,
-                node->child->rsibling->counts);
-        //FIXME problems in the future.
-        fprintf(fptr, "%s.len = %d;\n",
-                node->parent->parent->rsibling->child->string,
-                node->child->rsibling->counts);
-        break;
-
-      }
-      break;
-    case NODE_FUNC_CALL:
-      break; 
-    default:
-      abort();
-      break;
-    }
+   
+    sqcodegen(fptr, node->child->rsibling);
+    
     break;
 
   case NODE_TUPLE:
@@ -598,13 +552,19 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       if(!strcmp(node->child->string, "rand")){
         fprintf(fptr, "rand"); 
       }else if(!strcmp(node->child->string, "dist")){
-        //fprintf(fptr, "dist"); 
+        //dist
+        struct nodeType* param1 = node->child->rsibling->child->child;
+        struct nodeType* param2 = node->child->rsibling->child->child->rsibling;
+
+        fprintf(fptr, "NESLDIST(%s,%d,%s);\n", 
+                node->string, param1->iValue, param2->string);      
+
       }else if(!strcmp(node->child->string, "time")){
         fprintf(fptr, "time"); 
       }else{
         sqcodegen(fptr, node->child);
       }
-      sqcodegen(fptr, node->child->rsibling);
+      //sqcodegen(fptr, node->child->rsibling);
       
     }
     break;

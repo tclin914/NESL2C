@@ -274,6 +274,7 @@ void pfcheck(struct nodeType* node){
         node->string = malloc(sizeof(char)*100);
         strcpy(node->string, tmp[index]);
         node->inserttmp = 1;
+        issrand = 1;
       }
         pfcheck(node->child);
         pfcheck(node->child->rsibling);
@@ -311,8 +312,7 @@ void pfcheck(struct nodeType* node){
       node->isEndofFunction = node->parent->isEndofFunction;
       pfcheck(node->child);
       pfcheck(node->child->rsibling);
-      if(node->child->rsibling->nodeType == NODE_NEW_SEQ ||
-        node->child->rsibling->nodeType == NODE_FUNC_CALL){
+      if(node->child->rsibling->nodeType == NODE_NEW_SEQ ){
         assert(node->child->rsibling->string);
         node->string = malloc(sizeof(char)*100);
         strcpy(node->string, node->child->rsibling->string);
