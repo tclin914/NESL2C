@@ -72,13 +72,31 @@ struct tupleIF qs(int n){
   float diff;
   int elem2;
 
-  // dist(100,n)
+  // nums = {rand(e): e in dist(100,n)}
   {
+  int e;
+  struct Sequence tmp1;
+  struct Sequence tmp2;
+  int RN;
+  // dist(100,n)
   NESLDIST(tmp1, 100, n);
-
-  // {rand(e): e in dist}
-  NESLRAND_SEQ(nums, n, tmp1, e, I);
-}
+  
+  // rand(e)
+  MALLOC(tmp2, tmp1.len, struct Sequence);
+  for(i =0;i<tmp1.len;i++){
+    GET_ELEM_I(e, tmp1, i);
+    RN = RAND_I(e);
+    SET_ELEM_I(RN, tmp2, i);
+  }
+  //nums = tmp2; 
+  MALLOC(nums, tmp2.len, struct Sequence);
+  for(i=0;i<tmp2.len;i++){
+    GET_ELEM_I(e,tmp2,i);
+    SET_ELEM_I(e,nums,i);
+  }
+  FREE(tmp2);
+  //NESLRAND_SEQ(nums, n, tmp1, e, I);
+  }
 
 //  print_SEQ_I(nums);
  
@@ -89,16 +107,16 @@ struct tupleIF qs(int n){
   // 1ms = 0.001
   diff = ((float)(t2 - t1) / 1000000000.0F ) * 1000; 
   tm = diff;
-  //TIME(quicksort, struct SEQ_I,
-  //tmp3 = time(quicksort(nums));
+  FREE(nums);
 
   // in (res1[0],tm)
   GET_ELEM_I(elem2, res1, 0);
   //res.a = ((int*)res1.ptr)[0];
   res.a = elem2;
   res.b = tm;
- 
 print_SEQ_I(res1);
+  FREE(res1);
+ 
   return res;
 }
 
@@ -109,6 +127,7 @@ void myFunc(){
 }
 
 int main(){
+  srand(time(0));
   myFunc();
   return 0;
 }

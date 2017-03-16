@@ -3,6 +3,12 @@
 #include <assert.h>
 #include <time.h>
 
+struct Pair_I {
+  int   a;
+  int   b;
+};
+
+
 struct Pair_F {
   float   a;
   float   b;
@@ -19,6 +25,9 @@ struct Sequence {
   int     cap;    // Capacity
   void   *ptr;
 };
+
+#define _SHARP_ #
+
 
 /* Macros to access sequences of various type
  * These should be generated automatically */
@@ -55,11 +64,15 @@ struct Sequence {
   ((float*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
 #define SET_ELEM_SEQ_I(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, int), 1); \
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
 /* We need the element type of the sub sequence so that we can increase the reference count */
 #define SET_ELEM_SEQ_PAIR_F(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, struct Pair_F), 1); \
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
@@ -82,24 +95,28 @@ struct Sequence {
 } while(0)
 
 #define DECREF_SEQ_I(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, int), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, float), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_PAIR_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Pair_F), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_SEQ_I(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
@@ -112,6 +129,7 @@ struct Sequence {
   }} while(0)
 
 #define DECREF_SEQ_SEQ_PAIR_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
@@ -126,7 +144,8 @@ struct Sequence {
 #define CONCAT(s1, s2, res, type, typeMacro) { \
   int _i, _len; \
   MALLOC(res, s1.len+s2.len, type); \
-  _len = res.len; \
+  _len = res.len;   \
+  _SHARP_ pragma pf parallel_mc   \
   for(_i=0; _i<_len; _i++) { \
     type _elem; \
     if(_i < s1.len) \
@@ -159,7 +178,8 @@ struct Sequence {
   _i = 0; \
   while(_i < seq.len) { \
     struct Sequence _s = _subseq[_i]; \
-    int _len=_s.len, _j; \
+    int _len=_s.len, _j;   \
+    _SHARP_ pragma pf parallel_mc   \
     for(_j=0; _j<_len; _j++) { \
       type _elem; \
       GET_ELEM_ ## typeMacro(_elem, _s, _j); \
@@ -172,21 +192,53 @@ struct Sequence {
 /* The filtering macros
  * Problem: This approach may distrub the original order of elements */
 #define FILTER_1(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, predExpr) do { \
-  int  _len=s1.len, _i, _j; \
-  MALLOC(res, _len, typer); \
-  _j =0; \
+  int _filteredLen=0, _len=s1.len, _i; \
+  MALLOC(res, _len, typer);   \
+  _SHARP_ pragma pf parallel_mc   \
   for(_i=0; _i<_len; _i++) { \
     type1 e1; \
+    uint32_t _mask, _offset; \
     bool _p; \
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     _p = predExpr; \
+    _mask = __ballot(_p); \
+    if(laneID() == 0) { \
+      _offset = atomicAdd(&_filteredLen, __popc(_mask)); \
+    } \
+    _offset = __shfl(_offset, 0); \
     if(_p) { \
       typer _r = resExpr; \
-      SET_ELEM_ ## typeMacror(_r, res, _j); \
-      _j++; \
+      _offset += __popc(_mask & __lanemask_lt()); \
+      SET_ELEM_ ## typeMacror(_r, res, _offset); \
     } \
   } \
-  res.len = _j; \
+  res.len = _filteredLen; \
+} while(0)
+
+#define FILTER_2(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, s2, e2, type2, typeMacro2, predExpr) do { \
+  int _filteredLen=0, _len=s1.len, _i; \
+  MALLOC(res, _len, typer);   \
+  _SHARP_ pragma pf parallel_mc   \
+  for(_i=0; _i<_len; _i++) { \
+    type1 e1; \
+    type2 e2; \
+    uint32_t _mask, _offset; \
+    bool _p; \
+    GET_ELEM_ ## typeMacro1(e1, s1, _i); \
+    GET_ELEM_ ## typeMacro2(e2, s2, _i); \
+    _p = predExpr; \
+    _mask = __ballot(_p); \
+    if(laneID() == 0) { \
+      _offset = atomicAdd(&_filteredLen, __popc(_mask)); \
+    } \
+    _offset = __shfl(_offset, 0); \
+    if(_p) { \
+      typer _r = resExpr; \
+      _offset += __popc(_mask & __lanemask_lt()); \
+      SET_ELEM_ ## typeMacror(_r, res, _offset); \
+    } \
+  } \
+  res.len = _filteredLen; \
 } while(0)
 
 #define print_I(a) do{ \
@@ -222,20 +274,32 @@ struct Sequence {
   }\
 }while(0)
 
-#define RAND_I(range) (rand()%range)
-#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
 
-#define NESLRAND_SEQ(res, len, src, p1, typer) do{\
-  MALLOC(res, len, struct Sequence);\
+
+#define RAND_I(res, src) do{\
   for(i=0;i<n;i++){\
     int e;\
-    int RN;\
     GET_ELEM_I(e, src, i);\
-    RN = RAND_##typer(e);\
     SET_ELEM_I(rand()%e, res, i);\
   }\
 }while(0)
 
+#define NESLRAND_SEQ(res, len, src, p1, typer) do{\
+  MALLOC(res, len, struct Sequence);\
+  srand(time(0));\
+  RAND_##typer(res, src);\
+}while(0)
 
+#if PF_COMPILER == 1
+#pragma pf device 
+int myRand();
+#pragma pf device 
+void initialize();
+
+#else 
+__device__ curandState *State;
+#define myRand() cuRandUniform ();
+__device__ 
+#endif 
 
 
