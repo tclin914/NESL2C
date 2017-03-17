@@ -12,8 +12,10 @@
 struct RefTable refTable;
 int elmindex[MAX];
 int tmpindex[MAX];
+int appindex[MAX];
 char elm[MAX][5] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10"};
 char tmp[MAX][5] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10"};
+char app[MAX][5] = {"app1","app2","app3","app4","app5","app6","app7","app8","app9","app10"};
 
 void insertREF(char *s, enum StdType type, struct nodeType *link){
   int index = refTable.size;
@@ -90,6 +92,16 @@ int inserttmp(struct nodeType* node){
     if(tmpindex[i] ==0){
       addVariable(tmp[i], node->valueType, node);
       tmpindex[i]=1;
+      return i;
+    }else if(i==MAX) return -1;
+  }
+}
+
+int insertapp(struct nodeType* node){
+  for(int i =0; i<=MAX; i++){
+    if(appindex[i] ==0){
+      addVariable(app[i], node->valueType, node);
+      appindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
   }
@@ -188,16 +200,17 @@ void pfcheck(struct nodeType* node){
             case NODE_APPLYBODY2:
               // {action: RBINDS}
               pfcheck(RHS);
-              node->needcounter = RHS->needcounter;
-              node->isparallel_rr = RHS->isparallel_rr;
-              //assert(node->needcounter);
-              if(node->needcounter){
-                if(!findSymbol(node->table,"i"))
-                  addVariable("i", TypeInt, node->parent->parent);
-              }
-              node->nodeType = GEN_APP2;
-              node->string = malloc(sizeof(char)*100);
-              strcpy(node->string, child->child->string);
+              //pfcheck(RHS);
+              //node->needcounter = RHS->needcounter;
+              //node->isparallel_rr = RHS->isparallel_rr;
+              ////assert(node->needcounter);
+              //if(node->needcounter){
+              //  if(!findSymbol(node->table,"i"))
+              //    addVariable("i", TypeInt, node->parent->parent);
+              //}
+              //node->nodeType = GEN_APP2;
+              //node->string = malloc(sizeof(char)*100);
+              //strcpy(node->string, child->child->string);
               
               break;
             case NODE_APPLYBODY3:
@@ -253,8 +266,21 @@ void pfcheck(struct nodeType* node){
       node->isEndofFunction = node->parent->isEndofFunction;
       pfcheck(node->child);
       pfcheck(node->child->rsibling);
-      node->needcounter = node->child->rsibling->needcounter;
-      node->isparallel_rr = node->child->rsibling->isparallel_rr;
+      //node->needcounter = node->child->rsibling->needcounter;
+      //node->isparallel_rr = node->child->rsibling->isparallel_rr;
+      
+      node->needcounter = 1;
+      node->isparallel_rr = 1;
+      if(!findSymbol(node->table,"i"))
+        addVariable("i", TypeInt, node);
+      int idx = insertapp(node); 
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, app[idx]);
+      //node->string = malloc(sizeof(char)*100);
+      //strcpy(node->string, child->child->string);
+              
+
+
       break;  
     }
     case NODE_APPLYBODY3:{
@@ -291,20 +317,48 @@ void pfcheck(struct nodeType* node){
       pfcheck(node->child->rsibling);
     break;
     }
-    case NODE_NEW_SEQ:{
+    case NODE_SEQ_TUPLE:{
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = node->child->rsibling;
       
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, node->parent->string);
+
+      if(RHS->nodeType == NODE_SEQ_TUPLE){
+        pfcheck(RHS);
+      }
+    
+    break;
+    } 
+    case NODE_NEW_SEQ:{
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = node->child->rsibling;
+
+      int idx = inserttmp(node);
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, tmp[idx]);
+      
+      LHS->paramcount = 0;
+      RHS->paramcount = 1;
+      if(RHS->nodeType == NODE_SEQ_TUPLE){
+        pfcheck(RHS);
+        node->counts = RHS->counts+1;
+      }
+      else{
+        node->counts = 2;
+      }
       // FIXME inserttmp in a nice way.
       // now it's dirty.
-      node->table = node->parent->parent->parent->parent->table;
-      int index = inserttmp(node);
-      assert(node->parent->parent->parent->parent->nodeType == NODE_OP);
-      
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, tmp[index]);
-      assert(node->string);
-      node->needcounter = 1;
-      node->isparallel_rr =1;
+      //node->table = node->parent->parent->parent->parent->table;
+      //int index = inserttmp(node);
+      //assert(node->parent->parent->parent->parent->nodeType == NODE_OP);
+      //
+      //assert(index!=-1);
+      //node->string = malloc(sizeof(char)*100);
+      //strcpy(node->string, tmp[index]);
+      //assert(node->string);
+      //node->needcounter = 1;
+      //node->isparallel_rr =1;
       //node->inserttmp = 1;
       break;
     }
@@ -312,11 +366,12 @@ void pfcheck(struct nodeType* node){
       node->isEndofFunction = node->parent->isEndofFunction;
       pfcheck(node->child);
       pfcheck(node->child->rsibling);
+      
       if(node->child->rsibling->nodeType == NODE_NEW_SEQ ){
         assert(node->child->rsibling->string);
         node->string = malloc(sizeof(char)*100);
         strcpy(node->string, node->child->rsibling->string);
-        free(node->child->rsibling->string);
+        //free(node->child->rsibling->string);
         node->needcounter = 1;
       }
       node->isparallel_rr = node->child->rsibling->isparallel_rr;
@@ -354,7 +409,34 @@ void pfcheck(struct nodeType* node){
         node->child->lsibling->isEndofFunction =1;
       break;
     }
-    case NODE_RBINDS:
+    case NODE_RBINDS:{
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = node->child->rsibling;
+      struct nodeType* child = node->child;
+      
+      
+      if(node->parent && node->child){
+        node->isEndofFunction = node->parent->isEndofFunction;
+        if(node->isEndofFunction)
+          node->child->lsibling->isEndofFunction = 1;
+      }
+      if(child){
+        do{
+          pfcheck(child);
+          if(child->needcounter)
+            node->needcounter = 1;
+          if(child->isparallel_rr)
+            node->isparallel_rr = 1;
+          child = child->rsibling;
+        }while(child!=node->child);
+      }
+      if(LHS->string){
+        node->string = malloc(sizeof(char)*100);
+        strcpy(node->string, RHS->string);
+      }
+      break;
+    }
+
     default:{
       struct nodeType* child = node->child;
       if(node->parent && node->child){
@@ -614,7 +696,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       case NODE_APPLYBODY2:
       case NODE_APPLYBODY3:
       case NODE_APPLYBODY4:
-        fprintf(fptr, ".ptr = ");
+        //fprintf(fptr, ".ptr = ");
         pfcodegen(fptr, node->child->rsibling);
         break;
       case NODE_FUNC_CALL:

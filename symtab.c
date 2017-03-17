@@ -712,8 +712,8 @@ void typeAnalysis( struct nodeType *node){
     }
     case NODE_APPLYBODY2:{
       // FIXME analyze child->rsibling first?
-      typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
+      typeAnalysis(node->child);
       switch(node->child->valueType){
         case TypeInt:
           node->valueType = TypeSEQ_I;
@@ -854,25 +854,32 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_NEW_SEQ:{
-      struct nodeType *child = node->child;
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = node->child->rsibling;
       int count=0;
-      assert(child);
-      if(child){
-        do{
-          count++;
-          typeAnalysis(child);
-          child = child->rsibling;
-        }while(child!=node->child);
+      assert(LHS);
+      //paramcount = idx:  0, 1, 2
+      //                  [1, 2, 3]
+      //                   new_seq 
+      //                    /  \
+      //                   1  tuple
+      //                       / \
+      //                      2   3
+      typeAnalysis(LHS);
+      LHS->paramcount = 0;
+      if(RHS->nodeType == NODE_TUPLE){
+        RHS->nodeType = NODE_SEQ_TUPLE;
+        RHS->paramcount = 1;
+        typeAnalysis(RHS);
+        assert(LHS->valueType == RHS->valueType);
+        node->counts = 1+RHS->counts;
       }
-      node->counts = count;
-
-      for(int i=0;i<count-1;i++){
-        assert(child->valueType);
-        assert(child->valueType == child->rsibling->valueType);
-        child = child->rsibling;
+      else{
+        typeAnalysis(RHS);
+        node->paramcount =1;
       }
       
-      switch(child->valueType){
+      switch(LHS->valueType){
         case TypeInt: 
           node->valueType = TypeSEQ_I;
           break;
@@ -893,6 +900,26 @@ void typeAnalysis( struct nodeType *node){
       
       break;
     }
+    case NODE_SEQ_TUPLE:{
+      struct nodeType* LHS = node->child;
+      struct nodeType* RHS = node->child->rsibling;
+      typeAnalysis(LHS);
+      node->valueType = LHS->valueType;
+      LHS->paramcount = node->paramcount;
+      if(RHS->nodeType == NODE_TUPLE){
+        RHS->nodeType = NODE_SEQ_TUPLE;
+        RHS->paramcount = node->paramcount + 1;
+        typeAnalysis(RHS);
+        assert(LHS->valueType == RHS->child->valueType);
+        node->counts = RHS->counts+1;
+      }else{
+      typeAnalysis(RHS);
+      assert(LHS->valueType == RHS->valueType);
+      node->counts = 2;
+      RHS->paramcount = node->paramcount +1;
+      }
+      break;
+    } 
     case NODE_SEQ:{
         struct nodeType * child= node->child;
         assert(child);

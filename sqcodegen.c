@@ -199,8 +199,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case NODE_APPLYBODY2:
       case NODE_APPLYBODY3:
       case NODE_APPLYBODY4:
-        fprintf(fptr, ".ptr = ");
+        fprintf(fptr, "//BIND->APPBODY2\n");
         sqcodegen(fptr, node->child->rsibling);
+        fprintf(fptr, "//end of BIND->APPBODY2\n");
         break;
       case NODE_FUNC_CALL:
         
@@ -299,17 +300,77 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
     }
     break;
-
+  case NODE_SEQ_TUPLE:{
+    struct nodeType *LHS=node->child;
+    struct nodeType *RHS = node->child->rsibling;
+    switch(LHS->nodeType){
+      case NODE_INT:
+        fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n",
+                LHS->iValue, node->string, LHS->paramcount);
+      break;
+    }
+    switch(RHS->nodeType){
+    case NODE_SEQ_TUPLE:
+      sqcodegen(fptr, RHS);
+    break;
+    case NODE_INT:
+      fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n",
+             RHS->iValue, node->string, RHS->paramcount);
+    }
+  break;
+  }
+  
+  case NODE_NEW_SEQ:{
+    struct nodeType *LHS = node->child;
+    struct nodeType *RHS = node->child->rsibling;
+    
+    fprintf(fptr, "MALLOC(%s, %d, struct Sequence);\n",node->string, node->counts);
+    //fprintf(fptr, "for(i =0 ;i<%s.len;i++){\n", node->string);
+  
+    switch(LHS->nodeType){
+    case NODE_INT:
+      fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", LHS->iValue, node->string, LHS->paramcount);
+    break;
+    }
+    switch(RHS->nodeType){
+    case NODE_INT:
+      fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", RHS->iValue, node->string, RHS->paramcount); 
+    break;
+    case NODE_SEQ_TUPLE:
+      sqcodegen(fptr, RHS);
+    break;
+    }
+  break;
+  }
   case NODE_APPLYBODY1:
     abort();
     break;
 
-  case NODE_APPLYBODY2:
-    sqcodegen(fptr, node->child->rsibling);
+  case NODE_APPLYBODY2:{
+    struct nodeType *LHS = node->child;
+    struct nodeType *RHS = node->child->rsibling;
+    
+    //sqcodegen(fptr, node->child->rsibling);
     //APP2printFor(fptr, node->child, node->child->rsibling);
     //fprintf(fptr, "for loop");
     
+    //open scope
+    fprintf(fptr, "{\n");
+    dumpTable(fptr, node);
+    
+    //generate src array.
+    sqcodegen(fptr, node->child->rsibling);
+    
+    // allocate the dest array.
+    fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, RHS->string);
+    // loop the src array and apply the action.
+    fprintf(fptr, "for (i =0; i <%s.len;i++){\n", node->string);
+    sqcodegen(fptr, node->child);
+    fprintf(fptr, "}\n");
+    //close scope
+    fprintf(fptr, "}\n");
     break;
+  }
   case GEN_APP2:{
     struct nodeType* phase1 = node->child->rsibling->child->rsibling->child;
     struct nodeType *phase2 = node->child->child;
@@ -321,12 +382,15 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         if(!strcmp(phase1->child->rsibling->child->string,"dist")){
           struct nodeType* param1 = phase1->child->rsibling->child->rsibling->child->child;
           struct nodeType* param2 = phase1->child->rsibling->child->rsibling->child->child->rsibling;
-          
+          struct nodeType* APP2 = node->child->rsibling;
+
           fprintf(fptr, "{\n");
           dumpTable(fptr, phase1);
           sqcodegen(fptr, phase1);
           
           //FIXME sencond parameter 不該是 param2.
+          // sqcodegen(fptr,phase3);
+          fprintf(fptr, "for(i =0 ; i<%s.len, i++){\n", APP2->string);
           fprintf(fptr, "NESLRAND_SEQ(%s,%s,%s,%s,", 
                   node->string, 
                   param2->string,
