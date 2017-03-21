@@ -177,6 +177,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, " > ");
       sqcodegen(fptr, node->child->rsibling);
       break;
+    
+    case OP_ADD:
+      sqcodegen(fptr, node->child);
+      fprintf(fptr, " + ");
+      sqcodegen(fptr, node->child->rsibling);
+      break;
 
     case OP_EQ:
       sqcodegen(fptr, node->child);
@@ -358,6 +364,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "{\n");
     dumpTable(fptr, node);
     
+    // TODO
+    // 1. create a function that MALLOC the Sequence variables.
+    // 2. NODE_IN don't generate RHS.
+    // 3. or loop and generate the NODE_IN's LHS when generate for loop.
+
     //generate src array.
     sqcodegen(fptr, node->child->rsibling);
     
@@ -365,7 +376,13 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, RHS->string);
     // loop the src array and apply the action.
     fprintf(fptr, "for (i =0; i <%s.len;i++){\n", node->string);
+
+    // get elem from src array.
+    fprintf(fptr, "GET_ELEM_I(%s,%s,i);\n","x",node->string);
+    fprintf(fptr, "SET_ELEM_I(");
     sqcodegen(fptr, node->child);
+    fprintf(fptr, ",%s,i);\n",node->string);
+
     fprintf(fptr, "}\n");
     //close scope
     fprintf(fptr, "}\n");
@@ -533,7 +550,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     //assert(node->child->rsibling->nodeType == NODE_TOKEN);
    
     sqcodegen(fptr, node->child->rsibling);
-    
+//    node->string
     break;
 
   case NODE_TUPLE:
