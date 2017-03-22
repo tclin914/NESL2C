@@ -1,0 +1,15 @@
+function quicksort(a):([int])->[int] =
+if (#a < 2) then a
+else
+  let pivot   = a[#a/2];
+      lesser  = {e in a| e < pivot};
+      equal   = {e in a| e == pivot};
+      greater = {e in a| e > pivot};
+      result  = {quicksort(v): v in [lesser,greater]};
+  in result[0] ++ equal ++ result[1];
+
+function qs(n):(int)->[int] =
+let nums = {rand(e): e in dist(100, n)};
+in quicksort(nums);
+
+qs(100);
