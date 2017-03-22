@@ -299,7 +299,9 @@ void initialize();
 #else 
 __device__ curandState *State;
 #define myRand() cuRandUniform ();
-__device__ 
+curandState *mystate = (curandState*)malloc(sizeof(curandState));
+curand_init(1337, idx, 0, &mystate[0]);
+float RN = curand_uniform(&mystate[0]);
 #endif 
 
 
