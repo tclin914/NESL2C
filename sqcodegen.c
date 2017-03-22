@@ -325,7 +325,18 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }
   break;
   }
-  
+  case NODE_SRCARR:{
+    struct nodeType* child = node->child;
+    int count=0;
+    do{
+      count++;
+      sqcodegen(fptr, child);
+      child=child->rsibling;
+    }while(child!=node->child);
+    node->counts = count;
+    node->string = malloc(sizeof(char)*100);
+    strcpy(node->string, child->string);
+  break;}
   case NODE_NEW_SEQ:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = node->child->rsibling;
@@ -354,8 +365,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
   case NODE_APPLYBODY2:{
     struct nodeType *LHS = node->child;
-    struct nodeType *RHS = node->child->rsibling;
-    
+    struct nodeType *SRCARR = node->child->rsibling;
+    struct nodeType *VARNODE = node->child->rsibling->rsibling;
+    struct nodeType *varchild = VARNODE->child;
+    struct nodeType *arrchild = SRCARR->child;
     //sqcodegen(fptr, node->child->rsibling);
     //APP2printFor(fptr, node->child, node->child->rsibling);
     //fprintf(fptr, "for loop");
@@ -370,22 +383,37 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     // 3. or loop and generate the NODE_IN's LHS when generate for loop.
 
     //generate src array.
-    sqcodegen(fptr, node->child->rsibling);
+    sqcodegen(fptr, SRCARR);
     
     // allocate the dest array.
-    fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, RHS->string);
+    fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, SRCARR->string);
     // loop the src array and apply the action.
     fprintf(fptr, "for (i =0; i <%s.len;i++){\n", node->string);
+    for(int i =0;i<VARNODE->counts;i++){
+      // get elem from src array.
+      fprintf(fptr, "GET_ELEM_I(%s,%s,i);\n",varchild->string,arrchild->string);
+      fprintf(fptr, "SET_ELEM_I(");
+      sqcodegen(fptr, node->child);
+      fprintf(fptr, ",%s,i);\n", node->string);
+      varchild = varchild->rsibling;
+      arrchild = arrchild->rsibling;
+    }
+    fprintf(fptr, "}\n");// close for
+    switch(node->valueType){
+    case TypeTuple_IF:
+      fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
+      break;
+    case TypeInt:
+      fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+    case TypeFloat:
+      fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+    case TypeSEQ_I:
+      fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+    }
+    fprintf(fptr, "}\n");//close scope
 
-    // get elem from src array.
-    fprintf(fptr, "GET_ELEM_I(%s,%s,i);\n","x",node->string);
-    fprintf(fptr, "SET_ELEM_I(");
-    sqcodegen(fptr, node->child);
-    fprintf(fptr, ",%s,i);\n",node->string);
-
-    fprintf(fptr, "}\n");
-    //close scope
-    fprintf(fptr, "}\n");
     break;
   }
   case GEN_APP2:{

@@ -82,24 +82,28 @@ struct Sequence {
 } while(0)
 
 #define DECREF_SEQ_I(seq) do { \
+  int _refcnt = *REFCNT(seq, int)- 1;\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_F(seq) do { \
+  int _refcnt = *REFCNT(seq, float)-1;\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_PAIR_F(seq) do { \
+  int _refcnt = *REFCNT(seq, struct Pair_F)- 1;\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_SEQ_I(seq) do { \
+  int _refcnt = *REFCNT(seq, struct Sequence)-1; \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
@@ -112,6 +116,7 @@ struct Sequence {
   }} while(0)
 
 #define DECREF_SEQ_SEQ_PAIR_F(seq) do { \
+  int _refcnt = *REFCNT(seq, struct Sequence)-1; \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \

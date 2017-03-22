@@ -227,13 +227,16 @@ struct Sequence {
   }\
 }while(0)
 
-#define RAND_I(res, src) do{\
-  for(i=0;i<n;i++){\
-    int e;\
-    GET_ELEM_I(e, src, i);\
-    SET_ELEM_I(rand()%e, res, i);\
-  }\
-}while(0)
+#define RAND_I(range) (rand()%range)
+#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
+
+//#define RAND_I(res, src) do{\
+//  for(i=0;i<n;i++){\
+//    int e;\
+//    GET_ELEM_I(e, src, i);\
+//    SET_ELEM_I(rand()%e, res, i);\
+//  }\
+//}while(0)
 
 #define NESLRAND_SEQ(res, len, src, p1, typer) do{\
   MALLOC(res, len, struct Sequence);\

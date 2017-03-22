@@ -290,18 +290,18 @@ struct Sequence {
   RAND_##typer(res, src);\
 }while(0)
 
-#if PF_COMPILER == 1
-#pragma pf device 
-int myRand();
-#pragma pf device 
-void initialize();
-
-#else 
-__device__ curandState *State;
-#define myRand() cuRandUniform ();
-curandState *mystate = (curandState*)malloc(sizeof(curandState));
-curand_init(1337, idx, 0, &mystate[0]);
-float RN = curand_uniform(&mystate[0]);
-#endif 
+//#if PF_COMPILER == 1
+//#pragma pf device 
+//int myRand();
+//#pragma pf device 
+//void initialize();
+//
+//#else 
+//__device__ curandState *State;
+//#define myRand() cuRandUniform ();
+//curandState *mystate = (curandState*)malloc(sizeof(curandState));
+//curand_init(1337, idx, 0, &mystate[0]);
+//float RN = curand_uniform(&mystate[0]);
+//#endif 
 
 

@@ -96,6 +96,14 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sNODE_RBINDS\n", blank);
             ident++;
             break;
+        case NODE_FreeVars:
+            printf("%sNODE_FreeVars\n", blank);
+            ident++;
+            break;
+        case NODE_SRCARR:
+            printf("%sNODE_SRCARR\n", blank);
+            ident++;
+            break;
             
         case NODE_DEL:
             printf("%sNODE_DEL\n", blank);
@@ -173,6 +181,10 @@ void printTree(struct nodeType *node, int ident) {
             break;
         case NODE_SEQ_TUPLE:
             printf("%sNODE_SEQ_TUPLE\n", blank);
+            ident++;
+            break;
+        case ELEM_TUPLE:
+            printf("%sELEM_TUPLE\n", blank);
             ident++;
             break;
         case RB_TUPLE:

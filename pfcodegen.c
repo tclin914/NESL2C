@@ -413,7 +413,7 @@ void pfcheck(struct nodeType* node){
       struct nodeType *LHS = node->child;
       struct nodeType *RHS = node->child->rsibling;
       struct nodeType* child = node->child;
-      
+      int count=0;
       
       if(node->parent && node->child){
         node->isEndofFunction = node->parent->isEndofFunction;
@@ -422,6 +422,7 @@ void pfcheck(struct nodeType* node){
       }
       if(child){
         do{
+          count++;
           pfcheck(child);
           if(child->needcounter)
             node->needcounter = 1;
@@ -434,6 +435,42 @@ void pfcheck(struct nodeType* node){
         node->string = malloc(sizeof(char)*100);
         strcpy(node->string, RHS->string);
       }
+      
+      if(node->parent->nodeType == NODE_APPLYBODY2){
+      struct nodeType* sourceArrays = newNode(NODE_SRCARR);
+      struct nodeType* freeVars = newNode(NODE_FreeVars);
+      struct nodeType *arrchild, *varchild;
+      addChild(node->parent, sourceArrays);
+      addChild(node->parent, freeVars);
+      child = node->child;
+      for(int i =0; i<count;i++){
+        arrchild = child->child->rsibling;
+        varchild = child->child;
+        if(arrchild->lsibling == varchild)
+          arrchild->lsibling = arrchild;
+        if(arrchild->rsibling == varchild)
+          arrchild->rsibling = arrchild;
+        if(varchild->rsibling == arrchild)
+          varchild->rsibling = varchild;
+        if(varchild->lsibling == arrchild)
+          varchild->lsibling = varchild;
+        addChild(sourceArrays, arrchild);
+        addChild(freeVars, varchild);
+        freeVars->counts++;
+        //child->child->rsibling = child->child;
+        //child->child->lsibling = child->child;
+        //child->child->rsibling->rsibling = child->child->rsibling;
+        //child->child->rsibling->lsibling = child->child->rsibling;
+        
+        child = child->rsibling;
+      }
+      node->lsibling->rsibling = node->rsibling;
+      node->rsibling->lsibling = node->lsibling;
+      printTree(node->parent,0);
+      }
+      //assert(0);
+      //for(
+
       break;
     }
 

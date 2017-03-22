@@ -84,7 +84,8 @@
 #define NODE_SEQ_TUPLE      59
 #define RB_TUPLE            60
 #define ELEM_TUPLE          61
-
+#define NODE_SRCARR         62
+#define NODE_FreeVars       63
 
 #define NODE_FUNC           94
 #define NODE_FUNC_CALL      95
