@@ -165,6 +165,12 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
       node1= node1->child;
       typeBinding(node1, node2);
       return;
+    case RB_TUPLE:{
+      struct nodeType *child1 = node1->child;
+      struct nodeType *child2 = node2->child;
+      typeBinding(child1,child2);
+    break;
+    }
     case NODE_TUPLE:{
       assert(node2->nodeType == NODE_TUPLE);
       struct nodeType * child1,*child2;
@@ -280,7 +286,7 @@ void typeAnalysis( struct nodeType *node){
       }
       break;
     }
-
+    case ELEM_TUPLE:
     case NODE_TUPLE:{
       typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
@@ -754,6 +760,8 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_IN:{
+      struct nodeType* LHS = node->child;
+      struct nodeType* RHS = node->child->rsibling;
       // TODO e in a, e should be renamed or replaced from a var list.
       //typeAnalysis(node->child);
       
@@ -779,17 +787,105 @@ void typeAnalysis( struct nodeType *node){
           node->child->valueType = node->child->rsibling->child->valueType;
           node->typeNode = node->child->rsibling;
           break;
-        
         default:
           // not implement
           assert(0);
         break;
       }
-         if(!findSymbol(node->table, node->child->string))
-           addVariable(node->child->string, 
-                        node->child->valueType,
-                        node->child);
-      break;}
+
+      // ValueType of LHS need to be derived downward.
+      switch(node->child->nodeType){
+      case NODE_TOKEN:
+        if(!findSymbol(node->table, node->child->string))
+          addVariable(node->child->string, 
+                      node->child->valueType,
+                      node->child);
+      break;
+      case NODE_TUPLE:
+        node->child->nodeType = RB_TUPLE;
+        typeAnalysis(node->child);
+      break;
+      case NODE_PAIR:{
+        // remove pair;
+        struct nodeType * child = node->child;
+        struct nodeType * rhs = node->child->rsibling;
+        struct nodeType * lhs = node->child->lsibling;
+        struct nodeType * pchild = node->child->child;
+        
+        while(child->nodeType == NODE_PAIR){
+          pchild->parent = node;
+          rhs->lsibling = pchild;
+          lhs->rsibling = pchild;
+          child = pchild;
+          child->rsibling = rhs;
+          child->lsibling = lhs;
+          rhs = child->rsibling;
+          lhs = child->lsibling;
+          pchild = child->child;
+        }
+        node->child = child;
+        
+        if(node->child->nodeType == NODE_TUPLE){
+          node->child->nodeType = RB_TUPLE;
+          node->child->valueType = node->typeNode->valueType;
+          node->child->typeNode = node->typeNode;
+          assert(node->child->rsibling->valueType ==9);
+          assert(node->child->rsibling->child->valueType>=10);
+          node->child->typeNode = node->child->rsibling->typeNode;
+          typeAnalysis(node->child);
+          
+        }else{
+          if(!findSymbol(node->table, node->child->string))
+            addVariable(node->child->string, 
+                         node->child->valueType,
+                         node->child);
+          
+        }
+        
+      break;
+      }
+      default:
+        assert(0);//impossible
+      break;
+      }
+      //FIXME consider the 
+      
+      //typeBinding(node->child,node->child->rsibling->typeNode);
+      break;
+    }// end of NODE_IN
+
+    case RB_TUPLE:{
+      struct nodeType* LHS = node->child;
+      struct nodeType* RHS = node->child->rsibling;
+      struct nodeType* lref = node->typeNode->child;
+      struct nodeType* rref = lref->rsibling;
+
+      if(LHS->nodeType == NODE_TUPLE){
+        LHS->nodeType = RB_TUPLE;
+        typeAnalysis(LHS);
+      }else if(LHS->nodeType == NODE_TOKEN){
+           if(!findSymbol(LHS->table, LHS->string)){
+            addVariable(LHS->string, lref->valueType, LHS);
+            LHS->valueType = lref->valueType;
+           }
+      }else{
+        assert(0);
+      }
+      
+      if(RHS->nodeType == NODE_TUPLE){
+        RHS->nodeType = RB_TUPLE;
+        typeAnalysis(RHS);
+      }else if(RHS->nodeType == NODE_TOKEN){
+           if(!findSymbol(RHS->table, RHS->string)){
+            addVariable(RHS->string, rref->valueType, RHS);
+            RHS->valueType = rref->valueType;
+           }
+      }else{
+        assert(0);
+      }
+
+    break;
+    }
 
     case NODE_TOKEN: {
         switch(node->tokenType){
@@ -865,6 +961,33 @@ void typeAnalysis( struct nodeType *node){
       //                   1  tuple
       //                       / \
       //                      2   3
+      
+      // transform pair-tuple into elem_tuple(remove pair)
+      // this will help type inference.
+      if(LHS->nodeType == NODE_PAIR && LHS->child->nodeType == NODE_TUPLE){
+        // remove pair;
+        struct nodeType * child = LHS; //child = node->child;
+        struct nodeType * rhs = LHS->rsibling;
+        struct nodeType * lhs = LHS->lsibling;
+        struct nodeType * pchild = LHS->child;
+        LHS->child->nodeType = ELEM_TUPLE; 
+        while(child->nodeType == NODE_PAIR){
+          pchild->parent = node;
+          rhs->lsibling = pchild;
+          lhs->rsibling = pchild;
+          child = pchild;
+          child->rsibling = rhs;
+          child->lsibling = lhs;
+          rhs = child->rsibling;
+          lhs = child->lsibling;
+          pchild = child->child;
+        }
+        node->child = child;
+        LHS=node->child;
+      }
+
+
+      // below consider no pair_node in tree and 
       typeAnalysis(LHS);
       LHS->paramcount = 0;
       if(RHS->nodeType == NODE_TUPLE){
@@ -875,9 +998,29 @@ void typeAnalysis( struct nodeType *node){
         node->counts = 1+RHS->counts;
       }
       else{
+        if(RHS->nodeType == NODE_PAIR && RHS->child->nodeType == NODE_TUPLE){
+          // remove pair;
+          struct nodeType * child = RHS; //child = node->child;
+          struct nodeType * rhs = RHS->rsibling;
+          struct nodeType * lhs = RHS->lsibling;
+          struct nodeType * pchild = RHS->child;
+          RHS->child->nodeType = ELEM_TUPLE;
+          while(child->nodeType == NODE_PAIR){
+            pchild->parent = node;
+            rhs->lsibling = pchild;
+            lhs->rsibling = pchild;
+            child = pchild;
+            child->rsibling = rhs;
+            child->lsibling = lhs;
+            rhs = child->rsibling;
+            lhs = child->lsibling;
+            pchild = child->child;
+          }
+          RHS=LHS->rsibling;
+        }
         typeAnalysis(RHS);
-        node->paramcount =1;
-      }
+        RHS->paramcount =1;
+      }// end of else.
       
       switch(LHS->valueType){
         case TypeInt: 
@@ -900,9 +1043,66 @@ void typeAnalysis( struct nodeType *node){
       
       break;
     }
+
+    //case ELEM_TUPLE:{
+    //  struct nodeType* LHS = node->child;
+    //  struct nodeType* RHS = node->child->rsibling;
+
+    //  //LHS and RHS should be simple types
+    //  // at most TypeSEQ_I (like sth in quicksort: [lesser, greater]);
+    //  typeAnalysis(LHS);
+    //  typeAnalysis(RHS);
+    //  switch(
+
+    //break;
+    //}
     case NODE_SEQ_TUPLE:{
       struct nodeType* LHS = node->child;
       struct nodeType* RHS = node->child->rsibling;
+      
+      if(LHS->nodeType == NODE_PAIR && LHS->child->nodeType == NODE_TUPLE){
+        // remove pair;
+        struct nodeType * child = LHS; //child = node->child;
+        struct nodeType * rhs = LHS->rsibling;
+        struct nodeType * lhs = LHS->lsibling;
+        struct nodeType * pchild = LHS->child;
+        
+        LHS->child->nodeType = ELEM_TUPLE;
+        while(child->nodeType == NODE_PAIR){
+          pchild->parent = node;
+          rhs->lsibling = pchild;
+          lhs->rsibling = pchild;
+          child = pchild;
+          child->rsibling = rhs;
+          child->lsibling = lhs;
+          rhs = child->rsibling;
+          lhs = child->lsibling;
+          pchild = child->child;
+        }
+        node->child = child; 
+        LHS = node->child;
+      }
+      if(RHS->nodeType == NODE_PAIR && RHS->child->nodeType == NODE_TUPLE){
+        // remove pair;
+        struct nodeType * child = RHS; //child = node->child;
+        struct nodeType * rhs = RHS->rsibling;
+        struct nodeType * lhs = RHS->lsibling;
+        struct nodeType * pchild = RHS->child;
+        RHS->child->nodeType = ELEM_TUPLE;
+        while(child->nodeType == NODE_PAIR){
+          pchild->parent = node;
+          rhs->lsibling = pchild;
+          lhs->rsibling = pchild;
+          child = pchild;
+          child->rsibling = rhs;
+          child->lsibling = lhs;
+          rhs = child->rsibling;
+          lhs = child->lsibling;
+          pchild = child->child;
+        }
+        RHS = LHS->rsibling;
+      }
+      
       typeAnalysis(LHS);
       node->valueType = LHS->valueType;
       LHS->paramcount = node->paramcount;
@@ -913,10 +1113,10 @@ void typeAnalysis( struct nodeType *node){
         assert(LHS->valueType == RHS->child->valueType);
         node->counts = RHS->counts+1;
       }else{
-      typeAnalysis(RHS);
-      assert(LHS->valueType == RHS->valueType);
-      node->counts = 2;
-      RHS->paramcount = node->paramcount +1;
+        typeAnalysis(RHS);
+        assert(LHS->valueType == RHS->valueType);
+        node->counts = 2;
+        RHS->paramcount = node->paramcount +1;
       }
       break;
     } 

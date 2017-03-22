@@ -82,6 +82,8 @@
 #define GEN_APP3            57
 #define GEN_SEQ_REF         58
 #define NODE_SEQ_TUPLE      59
+#define RB_TUPLE            60
+#define ELEM_TUPLE          61
 
 
 #define NODE_FUNC           94

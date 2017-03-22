@@ -546,7 +546,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
   case NODE_IN:
     //FIXME here only consider the simple ApplyBody Exp.
-    assert(node->child->nodeType == NODE_TOKEN);
+    //assert(node->child->nodeType == NODE_TOKEN);
     //assert(node->child->rsibling->nodeType == NODE_TOKEN);
    
     sqcodegen(fptr, node->child->rsibling);

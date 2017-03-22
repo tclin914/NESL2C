@@ -29,7 +29,17 @@ void addChild(struct nodeType *node, struct nodeType *child) {
         node->child->lsibling = child;
     }
 }
+void removeNode(struct nodeType *node){
+  struct nodeType *lhs = node->lsibling;
+  struct nodeType *rhs = node->rsibling;
+  struct nodeType *child = node->child;
+  if(node->string != NULL)
+    free(node);
+  rhs->lsibling = NULL;
+  lhs->rsibling = NULL;
 
+
+}
 void deleteNode(struct nodeType *node) {
     if(node->string != NULL)
         free(node->string);
@@ -159,6 +169,14 @@ void printTree(struct nodeType *node, int ident) {
             break;
         case NODE_PATTERN:
             printf("%sNODE_PATTERN\n", blank);
+            ident++;
+            break;
+        case NODE_SEQ_TUPLE:
+            printf("%sNODE_SEQ_TUPLE\n", blank);
+            ident++;
+            break;
+        case RB_TUPLE:
+            printf("%sRB_TUPLE\n", blank);
             ident++;
             break;
         case NODE_TUPLE:
