@@ -9,6 +9,9 @@
 #include "assert.h"
 #include "codegen.h"
 #include "pfcodegen.h"
+#include "sqcodegen.h"
+#include "genMacro.h"
+#include "codegencheck.h"
 
 int yydebug =1;
 int yyerror(const char *s);
@@ -67,7 +70,7 @@ TopLevel
             $6->nodeType = NODE_OP;
             $6->op = OP_BIND;
             
-            //struct nodetype *pattern = newNode(NODE_PATTERN);
+            //struct nodeType *pattern = newNode(NODE_PATTERN);
             //addChild(pattern,$3);
             //$3->nodeType = NODE_PATTERN;
             //addChild($$,pattern);
@@ -91,11 +94,11 @@ TopLevel
             $4->nodeType = NODE_OP;
             $4->op = OP_BIND;
             
-            //struct nodetype *input = newNode(NODE_FUNC_INPUT);
+            //struct nodeType *input = newNode(NODE_FUNC_INPUT);
             //addChild($$,input);
             addChild($$, $3);
             
-            //struct nodetype *pattern = newNode(NODE_PATTERN);
+            //struct nodeType *pattern = newNode(NODE_PATTERN);
             //addChild(pattern,$3);
             //$3->nodeType = NODE_PATTERN;
             //addChild($$,$3);
@@ -730,9 +733,13 @@ int main(int argc, char** argv){
         fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
-        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"nesl.h\"\n\n");
-        fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
-        codegen(yyout, ASTRoot);
+        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n");
+        //fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+        //sqcheck(ASTRoot);
+        pfcheck(ASTRoot);
+        sqcodegen(yyout, ASTRoot);
+        //pfcodegen(yyout, ASTRoot);
+        //codegen(yyout, ASTRoot);
         fclose(yyout);    
       }
       if(ispfc){
@@ -748,9 +755,15 @@ int main(int argc, char** argv){
         fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
-        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pf.h\"\n");
-        fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
-        fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pfmacro.h\"\n");
+        //fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
+        //fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+        pfcheck(ASTRoot);
+        //refTable.size = 100;
+        for(int i=0;i<100;i++){
+          strcpy(refTable.entries[i].name, "");
+        }
+
         pfcodegen(yyout, ASTRoot); 
         fclose(yyout);
       }

@@ -18,6 +18,19 @@ _ 6. Codegeneration
 X 7. Validation and optimization
 
 %%%%%%%
+9th Mar.
+Add sample folder
+
+gcc -g modifromcuda.c 
+./a.out 100
+
+//mytarget.c is referenced from test/qs.nesl
+gcc -g mytarget.c
+./a.out 
+
+
+
+%%%%%%%
 23th Feb. 
 Make : make all
 Run : 

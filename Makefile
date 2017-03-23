@@ -1,5 +1,5 @@
 CFLAGS = -g
-objects = y.tab.o node.o symtab.o codegen.o pfcodegen.o
+objects = y.tab.o node.o symtab.o codegen.o pfcodegen.o sqcodegen.o codegencheck.o
 
 all: NESL2C
 

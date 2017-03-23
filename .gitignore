@@ -7,3 +7,4 @@ y.tab.c
 y.tab.h
 doc/
 lex.yy.c
+output/

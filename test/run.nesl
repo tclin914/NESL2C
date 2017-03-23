@@ -1,0 +1,4 @@
+function qs(n):(int)->(int,float) =
+let nums = {rand(e): e in dist(100, n)};
+    (res1, tm) = time(quicksort(nums)); 
+in (res1[0], tm); 
