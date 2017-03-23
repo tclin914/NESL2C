@@ -273,8 +273,28 @@ struct Sequence {
     SET_ELEM_I(elem, res, i);\
   }\
 }while(0)
+ 
+#if PF_COMPILER ==1 
+#pragma pf device 
+int myrand_I(int range);
+#else
+__device__ int myrand_I(int range){
+curandState state;
+  int tmp;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
+  curand_init(1337, idx, 0, &state);
+  tmp =  (curand_uniform(&state)*10000);
+  tmp %= range;
+  return tmp;
+}
+#endif
 
+#define RAND_I(range) do{\
+int i;\
+\
+}while(0);
+#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
 
 #define RAND_I(res, src) do{\
   for(i=0;i<n;i++){\

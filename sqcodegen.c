@@ -5,7 +5,7 @@
 #include "node.h"
 #include "codegen.h"
 #include "symtab.h"
-#include "pfcodegen.h"
+#include "codegencheck.h"
 #include "sqcodegen.h"
 
 #define MAX 10
@@ -149,6 +149,18 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     sqcodegen(fptr, node->child->rsibling);
     //fprintf(fptr, ";\n");
     break;
+  case NODE_LETRET:
+    //FIXME  dirtly bypass op_pp 
+    if(node->child->op != OP_PP){
+      if(node->isEndofFunction){
+        fprintf(fptr,"res = ");
+        sqcodegen(fptr, node->child);
+        fprintf(fptr,";\n");
+      }
+    }
+    else
+      sqcodegen(fptr,node->child);
+  break;
 
   case NODE_BIND:{
     struct nodeType* child = node->child;
@@ -202,13 +214,16 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       //sqcodegen(fptr, node->child);
       switch(node->child->rsibling->nodeType){
       case NODE_APPLYBODY1:
-      case NODE_APPLYBODY2:
       case NODE_APPLYBODY3:
       case NODE_APPLYBODY4:
+        sqcodegen(fptr, node->child->rsibling);
+      break;
+      case NODE_APPLYBODY2:
         fprintf(fptr, "//BIND->APPBODY2\n");
         sqcodegen(fptr, node->child->rsibling);
         fprintf(fptr, "//end of BIND->APPBODY2\n");
-        break;
+        
+      break;
       case NODE_FUNC_CALL:
         
         if(!strcmp(RHS->child->string, "time")){
@@ -229,7 +244,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, ";\n");
       }
       break;
-    }
+    }// end of OP_BIND;
     case OP_PP:
       // if child is a variable, it will be process here.
       if(node->child->nodeType!=NODE_TOKEN)
@@ -336,6 +351,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     node->counts = count;
     node->string = malloc(sizeof(char)*100);
     strcpy(node->string, child->string);
+
   break;}
   case NODE_NEW_SEQ:{
     struct nodeType *LHS = node->child;
@@ -348,10 +364,27 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_INT:
       fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", LHS->iValue, node->string, LHS->paramcount);
     break;
+    case NODE_TOKEN:
+      switch(LHS->valueType){
+      case TypeSEQ_I:
+       fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
+                LHS->string, node->string, LHS->paramcount);
+      break;
+      default:
+        assert(0);
+      break;
+      }
+    break;
     }
     switch(RHS->nodeType){
     case NODE_INT:
       fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", RHS->iValue, node->string, RHS->paramcount); 
+    break;
+    case NODE_TOKEN:
+      case TypeSEQ_I:
+        fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
+                RHS->string, node->string, RHS->paramcount);
+      break;
     break;
     case NODE_SEQ_TUPLE:
       sqcodegen(fptr, RHS);
@@ -362,20 +395,36 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   case NODE_APPLYBODY1:
     abort();
     break;
-
+  case NODE_APPRET:{
+    //don't consider tuple here.
+    switch(node->valueType){
+      case TypeSEQ_I:
+        assert(0);
+      break;
+      default :
+        assert(0);
+      break;
+    }
+  break;
+  }
+  case NODE_ACTION_TUPLE:{
+    assert(0); 
+  break;
+  }
   case NODE_APPLYBODY2:{
     struct nodeType *LHS = node->child;
     struct nodeType *SRCARR = node->child->rsibling;
     struct nodeType *VARNODE = node->child->rsibling->rsibling;
     struct nodeType *varchild = VARNODE->child;
     struct nodeType *arrchild = SRCARR->child;
+    struct nodeType *retchild = VARNODE->rsibling;
     //sqcodegen(fptr, node->child->rsibling);
     //APP2printFor(fptr, node->child, node->child->rsibling);
     //fprintf(fptr, "for loop");
     
     //open scope
     fprintf(fptr, "{\n");
-    dumpTable(fptr, node);
+    dumpTable(fptr, node->child);
     
     // TODO
     // 1. create a function that MALLOC the Sequence variables.
@@ -388,17 +437,44 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     // allocate the dest array.
     fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, SRCARR->string);
     // loop the src array and apply the action.
+    fprintf(fptr, "#pragma pf parallel_rr\n");
     fprintf(fptr, "for (i =0; i <%s.len;i++){\n", node->string);
     for(int i =0;i<VARNODE->counts;i++){
       // get elem from src array.
-      fprintf(fptr, "GET_ELEM_I(%s,%s,i);\n",varchild->string,arrchild->string);
-      fprintf(fptr, "SET_ELEM_I(");
-      sqcodegen(fptr, node->child);
-      fprintf(fptr, ",%s,i);\n", node->string);
+      switch(varchild->valueType){
+      case TypeInt:
+        fprintf(fptr, "GET_ELEM_I");
+      break;
+      case TypeSEQ_I:
+        fprintf(fptr, "GET_ELEM_SEQ_I");
+      break;
+      default:
+      assert(0);
+      break;
+      }
+      fprintf(fptr, "(%s,%s,i);\n",varchild->string,arrchild->string);
+      fprintf(fptr, "%s = ", retchild->string);
+      sqcodegen(fptr, LHS);
+      fprintf(fptr, ";\n");
+      
+      switch(retchild->valueType){
+      case TypeInt:
+        fprintf(fptr, "SET_ELEM_I");
+      break;
+      case TypeSEQ_I:
+        fprintf(fptr, "SET_ELEM_SEQ_I");
+      break;
+      default:
+      assert(0);
+      break;
+      }
+      fprintf(fptr, "(%s,%s,i);\n", retchild->string,node->string);
       varchild = varchild->rsibling;
       arrchild = arrchild->rsibling;
     }
     fprintf(fptr, "}\n");// close for
+    
+    if(node->parent->nodeType !=NODE_OP){
     switch(node->valueType){
     case TypeTuple_IF:
       fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
@@ -411,6 +487,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeSEQ_I:
       fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+    }
     }
     fprintf(fptr, "}\n");//close scope
 
@@ -630,6 +707,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       if(node->string){
         if(!strcmp(node->child->string, "rand")){
           fprintf(fptr, "rand"); 
+
         }else if(!strcmp(node->child->string, "dist")){
           //fprintf(fptr, "dist"); 
         }else if(!strcmp(node->child->string, "time")){
@@ -659,7 +737,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "}\n");
     }else{
       if(!strcmp(node->child->string, "rand")){
-        fprintf(fptr, "rand"); 
+        if(node->valueType ==TypeInt)
+        fprintf(fptr, "RAND_I"); 
+        else 
+        fprintf(fptr, "RAND_F");
+        sqcodegen(fptr, node->child->rsibling);
       }else if(!strcmp(node->child->string, "dist")){
         //dist
         struct nodeType* param1 = node->child->rsibling->child->child;
@@ -672,6 +754,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, "time"); 
       }else{
         sqcodegen(fptr, node->child);
+        sqcodegen(fptr, node->child->rsibling);
       }
       //sqcodegen(fptr, node->child->rsibling);
       

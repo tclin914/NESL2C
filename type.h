@@ -86,6 +86,9 @@
 #define ELEM_TUPLE          61
 #define NODE_SRCARR         62
 #define NODE_FreeVars       63
+#define NODE_APPRET         64
+#define NODE_ACTION_TUPLE   65
+#define NODE_LETRET         66
 
 #define NODE_FUNC           94
 #define NODE_FUNC_CALL      95

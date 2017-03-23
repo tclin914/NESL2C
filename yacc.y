@@ -11,6 +11,7 @@
 #include "pfcodegen.h"
 #include "sqcodegen.h"
 #include "genMacro.h"
+#include "codegencheck.h"
 
 int yydebug =1;
 int yyerror(const char *s);
