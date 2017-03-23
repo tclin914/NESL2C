@@ -11,8 +11,6 @@
 #define MAX 10
 
 struct RefTable refTable;
-int elmindex[MAX];
-int tmpindex[MAX];
 int issrand;
 
 void sqcodegen(FILE *fptr, struct nodeType* node){
@@ -230,7 +228,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "{\nint t1,t2;\nfloat diff;\n");
           fprintf(fptr, "t1 = clock();\n");
           fprintf(fptr, "%s = ", LHS->child->child->child->string);
-          pfcodegen(fptr, node->child->rsibling->child->rsibling->child);
+          sqcodegen(fptr, node->child->rsibling->child->rsibling->child);
           fprintf(fptr, ";\n");
           fprintf(fptr, "t2 = clock();\n");
           fprintf(fptr, "diff = ((float)(t2 - t1) / 1000000000.0F ) * 1000;\n");
