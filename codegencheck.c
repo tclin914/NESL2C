@@ -201,8 +201,19 @@ void pfcheck(struct nodeType* node){
             case NODE_APPLYBODY2:
               // {action: RBINDS}
               pfcheck(RHS);
-              if(LHS->child->string)
-                strcpy(RHS->string,LHS->child->string);
+              switch(LHS->nodeType){
+              case NODE_PATTERN:
+                if(LHS->child->string)
+                  strcpy(RHS->string,LHS->child->string);
+              break;
+              case NODE_TOKEN:
+                if(LHS->string)
+                  strcpy(RHS->string,LHS->string);
+              break;
+              default:
+                assert(0);//not implement.
+              break;
+              }
               //pfcheck(RHS);
               //node->needcounter = RHS->needcounter;
               node->isparallel_rr = RHS->isparallel_rr;
@@ -227,7 +238,14 @@ void pfcheck(struct nodeType* node){
                 addVariable("i", TypeInt, node->parent->parent);
               node->nodeType = GEN_APP3;
               node->string = malloc(sizeof(char)*100);
-              strcpy(node->string, child->child->string);
+              switch(child->nodeType){
+              case NODE_PATTERN:
+                strcpy(node->string, child->child->string);
+              break;
+              case NODE_TOKEN:
+                strcpy(node->string, child->string);
+              break;
+              }
               break;  
             case NODE_APPLYBODY4:
               // not implemented
@@ -324,6 +342,17 @@ void pfcheck(struct nodeType* node){
         strcpy(node->string, tmp[index]);
         node->inserttmp = 1;
         issrand = 1;
+        //switch(node->child->rsibling->child->child->rsibling->nodeType){
+        //  case NODE_INT:{
+        //    char* buffer = malloc(sizeof(char)*100);
+        //    sprintf(buffer,"%d",node->iValue);
+        //    strcpy(node->string, buffer);
+        //  break;
+        //  }
+        //  case NODE_TOKEN:
+        //    strcpy(node->string, node->child->rsibling->string);
+        //  break;
+        //}
       }
         pfcheck(node->child);
         pfcheck(node->child->rsibling);

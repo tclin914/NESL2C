@@ -578,15 +578,17 @@ void typeAnalysis( struct nodeType *node){
           LHS->typeNode = RHS;
           typeAnalysis(LHS);
           node->valueType = RHS->valueType;
-          }
+          }// end of if LHS == PATTERN
           else if(LHS->valueType >=TypeTuple_I && LHS->nodeType == NODE_PAIR){
             if(RHS->nodeType == NODE_PAIR){
               typeBinding(LHS,RHS);
             }
           }
-          else {
+          else if(LHS->nodeType==NODE_TOKEN){
            LHS->valueType = RHS->valueType;
-          
+           addVariable(LHS->string, RHS->valueType, LHS);
+          }else{
+          assert(0); // not implement
           }
           break;
         case OP_ADD:
@@ -695,19 +697,21 @@ void typeAnalysis( struct nodeType *node){
       }else if(strcmp(node->child->string, "rand")==0){
         node->valueType = TypeInt;
         return;
-      }
+      }else{
           // TODO other built-in functions
       typeAnalysis(node->child);
       struct SymTableEntry *entry = findSymbol(node->table, node->child->string); 
       assert(entry);
       assert(entry->type);
       node->valueType = entry->type;
+      
+      }
       // 1. search the node->child->string in built-in list
       //    if found then use the signature to check and 
       //    assign the type informations.
       // 2. if not found, then search the symbol table
       //    it should be a user define function.
-
+      
       //node->valueType = node->child->valueType;
       break;
     }

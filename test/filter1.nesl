@@ -1,0 +1,2 @@
+a = {rand(i):i in dist(100,100)};
+b = {e in a|e<10};
