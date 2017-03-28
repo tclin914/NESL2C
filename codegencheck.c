@@ -16,9 +16,14 @@ char elm[MAX][5] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm
 char tmp[MAX][5] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10"};
 char app[MAX][5] = {"app1","app2","app3","app4","app5","app6","app7","app8","app9","app10"};
 
+void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
+  insertREF(string, type, node);
+  fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
+}
+
 void insertREF(char *s, enum StdType type, struct nodeType *link){
   int index = refTable.size;
-   
+  //globalrefcnt++; 
   (refTable.size)++;
   strcpy(refTable.entries[index].name, s);
   refTable.entries[index].type = type;
@@ -27,38 +32,51 @@ void insertREF(char *s, enum StdType type, struct nodeType *link){
   //return &refTable.entries[index];
 
 }
-void deleteREF(char *s){
-  int index = refTable.size;
-  for(int i =0;i<index ; i++){
-    if(!strcmp(refTable.entries[i].name,s)){
-      //if found
-      strcpy(refTable.entries[i].name, "");
-      refTable.entries[i].type = 0;
-      refTable.entries[i].link = 0;
-      for(int j = i+1; j<index; j++){
-        strcpy(refTable.entries[j-1].name, refTable.entries[j].name);
-        refTable.entries[j-1].type = refTable.entries[j].type;
-        refTable.entries[j-1].link = refTable.entries[j].link;
-        if(j= index -1){
-          strcpy(refTable.entries[j].name, "");
-          refTable.entries[j].type = 0;
-          refTable.entries[j].link = 0;
-        } 
+void deleteREF(int start, int end){
+  
+  for(int i =start;i<end ; i++){
+    strcpy(refTable.entries[i].name, "");
+    refTable.entries[i].type = 0;
+    refTable.entries[i].link = 0;
+    for(int j = i+1; j<end; j++){
+      strcpy(refTable.entries[j-1].name, refTable.entries[j].name);
+      refTable.entries[j-1].type = refTable.entries[j].type;
+      refTable.entries[j-1].link = refTable.entries[j].link;
+      if(j= end -1){
+        strcpy(refTable.entries[j].name, "");
+        refTable.entries[j].type = 0;
+        refTable.entries[j].link = 0;
       } 
+    } 
+    refTable.size--;   
+    //globalrefcnt--;
+  }
+}
+
+void dumprefTable(){
+  for(int i =0;i<refTable.size;i++){
+    if(strcmp("",refTable.entries[i].name)){
+      printf("%d, %s\n",i,refTable.entries[i].name); 
     }
   }
 }
 
-void DECREF(FILE* fptr){
-    for(int i =0;i<refTable.size;i++){
+void DECREF(FILE* fptr,int n){
+    int end = refTable.size;
+    for(int i =refTable.size-n;i<end;i++){
       if(strcmp("",refTable.entries[i].name)){
         switch(refTable.entries[i].type){
           case TypeSEQ_I:
             fprintf(fptr, "DECREF_SEQ_I(%s);\n",refTable.entries[i].name);
-            
             break;
-          case TypeSEQ:
-            switch(refTable.entries[i].link->typeNode->child->valueType){
+          case TypeSEQ:{
+            // has different situation.
+            int types;
+            if(refTable.entries[i].link->typeNode->child)
+              types = refTable.entries[i].link->typeNode->child->valueType;
+            else 
+              types = refTable.entries[i].link->typeNode->valueType;
+            switch(types){
               case TypeSEQ_I:
                 fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n",refTable.entries[i].name);
               break;
@@ -67,13 +85,14 @@ void DECREF(FILE* fptr){
                 assert(0);//not implement;
               break;
             }
-            break;
+            break;}
           default:
             assert(0); // not implement;
             break;
         }
       }
     }
+    deleteREF(end-n,refTable.size);
 }
 
 int insertelm(struct nodeType* node){

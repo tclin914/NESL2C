@@ -24,6 +24,20 @@ struct Sequence {
   int     cap;    // Capacity
   void   *ptr;
 };
+int globalrefcount=0;
+int atomicAdd(int * a, int b){
+  printf("refAdd:%d\t*a:%d,b:%d\n",
+      globalrefcount, *a, b);
+  globalrefcount++;
+  return *a +b;
+}
+int atomicSub(int * a, int b){
+  globalrefcount--;
+  printf("refSub:%d\n",globalrefcount);
+  return *a -b;
+}
+//#define atomicAdd(a,n) (*a +n )
+//#define atomicSub(a,n) (*a -n )
 
 /* Macros to access sequences of various type
  * These should be generated automatically */
@@ -60,11 +74,15 @@ struct Sequence {
   ((float*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
 #define SET_ELEM_SEQ_I(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, int), 1); \
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
 /* We need the element type of the sub sequence so that we can increase the reference count */
 #define SET_ELEM_SEQ_PAIR_F(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, struct Pair_F), 1); \
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
@@ -87,24 +105,28 @@ struct Sequence {
 } while(0)
 
 #define DECREF_SEQ_I(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, int), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, float), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_PAIR_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Pair_F), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_SEQ_I(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
@@ -117,6 +139,7 @@ struct Sequence {
   }} while(0)
 
 #define DECREF_SEQ_SEQ_PAIR_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \

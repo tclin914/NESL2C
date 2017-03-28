@@ -39,6 +39,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       child = child->rsibling;
     }
     
+    fprintf(fptr, "#pragma pf global parallel\n");
     fprintf(fptr, "void myFunc1(){\n");
     for(int i =0;i<node->counts;i++){
       if(child->nodeType !=NODE_DATATYPE && child->nodeType != NODE_FUNC){
@@ -135,6 +136,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   case NODE_ELSESTMT:
     fprintf(fptr, "else{\n");
     sqcodegen(fptr, node->child);
+    DECREF(fptr,refTable.size);
     fprintf(fptr, "}\n");
     if(node->isEndofFunction)
       //fprintf(fptr, "endofFunction\n");
@@ -279,7 +281,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             assert(0);//not implemented.
             break;
         }
-        insertREF(node->string, node->valueType, node);
+      printAddREF(fptr, node->string, node->valueType, node);
+       // insertREF(node->string, node->valueType, node);
       }
       break;
     case OP_DIV:
@@ -354,7 +357,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   case NODE_NEW_SEQ:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = node->child->rsibling;
-    
+    int deccount =0; 
     fprintf(fptr, "MALLOC(%s, %d, struct Sequence);\n",node->string, node->counts);
     //fprintf(fptr, "for(i =0 ;i<%s.len;i++){\n", node->string);
   
@@ -367,6 +370,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case TypeSEQ_I:
        fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
                 LHS->string, node->string, LHS->paramcount);
+        insertREF(LHS->string,TypeSEQ_I, LHS);
       break;
       default:
         assert(0);
@@ -382,14 +386,21 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case TypeSEQ_I:
         fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
                 RHS->string, node->string, RHS->paramcount);
+        insertREF(RHS->string, TypeSEQ_I, RHS);
       break;
     break;
     case NODE_SEQ_TUPLE:
       sqcodegen(fptr, RHS);
     break;
     }
+    
+    if(LHS->valueType>=TypeSEQ_I)
+      DECREF(fptr,node->counts);
+    printAddREF(fptr, node->string, node->valueType, node);
   break;
-  }
+  }// end of NEW_SEQ
+
+
   case NODE_APPLYBODY1:
     abort();
     break;
@@ -455,20 +466,25 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       sqcodegen(fptr, LHS);
       fprintf(fptr, ";\n");
       
+      printAddREF(fptr, retchild->string, retchild->valueType, retchild);
+
       switch(retchild->valueType){
       case TypeInt:
         fprintf(fptr, "SET_ELEM_I");
       break;
       case TypeSEQ_I:
         fprintf(fptr, "SET_ELEM_SEQ_I");
+        
       break;
       default:
       assert(0);
       break;
       }
       fprintf(fptr, "(%s,%s,i);\n", retchild->string,node->string);
+      insertREF(retchild->string, retchild->valueType, retchild);
       varchild = varchild->rsibling;
       arrchild = arrchild->rsibling;
+      DECREF(fptr,2);
     }
     fprintf(fptr, "}\n");// close for
     
@@ -487,11 +503,15 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
     }
     }
+    DECREF(fptr,1);
+    node->typeNode = node->child;
+    printAddREF(fptr, node->string, node->valueType, node);
     fprintf(fptr, "}\n");//close scope
 
     break;
   }
-  case GEN_APP2:{
+/*
+case GEN_APP2:{
     struct nodeType* phase1 = node->child->rsibling->child->rsibling->child;
     struct nodeType *phase2 = node->child->child;
     struct nodeType* phase3 = node->child->rsibling->child;
@@ -606,6 +626,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     
   break;
   }
+  */
   case GEN_APP3:{
     fprintf(fptr, "FILTER_1(%s, %s,",node->string, node->child->rsibling->child->child->child->string);
     switch(node->valueType){
@@ -629,9 +650,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         //fprintf(fptr, "int), 1);\n");
         break;
     }
-    insertREF(node->string, node->valueType, node);
+    printAddREF(fptr, node->string, node->valueType, node);
     break;
-  }
+  } // end of GEN_APP3
+
   case NODE_APPLYBODY3:
     sqcodegen(fptr, node->child);
     //APP3printFor(fptr, node->child, node->child->rsibling);
@@ -700,8 +722,29 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
     if(node->parent->nodeType == NODE_NESL){
       fprintf(fptr, "{\n");
-      printparam(fptr, node);
-      fprintf(fptr, ";\n");
+      dumpTable(fptr,node);
+      //printparam(fptr, node);
+      //fprintf(fptr, ";\n");
+      switch(node->child->rsibling->child->nodeType){
+      case NODE_NEW_SEQ:
+        sqcodegen(fptr,node->child->rsibling->child);
+      if(node->string){
+        if(!strcmp(node->child->string, "rand")){
+          fprintf(fptr, "rand"); 
+
+        }else if(!strcmp(node->child->string, "dist")){
+          //fprintf(fptr, "dist"); 
+        }else if(!strcmp(node->child->string, "time")){
+          fprintf(fptr, "time"); 
+        }else{
+          //so far specialized for qs_test.nesl
+          fprintf(fptr, "%s = %s(%s);\n",node->string, node->child->string,
+                  node->child->rsibling->child->string);
+          //sqcodegen(fptr, node->child);
+        }
+      }
+      break;
+      default:
       if(node->string){
         if(!strcmp(node->child->string, "rand")){
           fprintf(fptr, "rand"); 
@@ -717,21 +760,22 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       } 
       sqcodegen(fptr, node->child->rsibling);
       fprintf(fptr, ";\n");
-      
+      break;
+      }
       switch(node->valueType){
       case TypeTuple_IF:
         fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
-      break;
+        break;
       case TypeInt:
         fprintf(fptr, "print_I(%s);\n", node->string);
-      break;
+        break;
       case TypeFloat:
         fprintf(fptr, "print_I(%s);\n", node->string);
       break;
       case TypeSEQ_I:
         fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
       }
-
+      DECREF(fptr,refTable.size);
       fprintf(fptr, "}\n");
     }else{
       if(!strcmp(node->child->string, "rand")){
