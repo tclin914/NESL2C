@@ -4,7 +4,6 @@
 int inserttmp(struct nodeType* node);
 int insertelm(struct nodeType* node);
 void pfcheck(struct nodeType* node);
-<<<<<<< HEAD
 //void deleteREF(char *s, int num);
 void deleteREF(int start, int end);
 void DECREF(FILE* fptr, int n);
@@ -25,6 +24,5 @@ struct RefTable{
 
 extern struct RefTable refTable;
 extern int issrand;
-int globalrefcnt;
 #define MAX 10
 #endif

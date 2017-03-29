@@ -18,12 +18,14 @@ char app[MAX][5] = {"app1","app2","app3","app4","app5","app6","app7","app8","app
 
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
   insertREF(string, type, node);
+  if(type == TypeSEQ_I)
+  fprintf(fptr, "atomicAdd(REFCNT(%s, int),1);\n",string);
+  else
   fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
 }
 
 void insertREF(char *s, enum StdType type, struct nodeType *link){
   int index = refTable.size;
-  //globalrefcnt++; 
   (refTable.size)++;
   strcpy(refTable.entries[index].name, s);
   refTable.entries[index].type = type;
@@ -49,7 +51,6 @@ void deleteREF(int start, int end){
       } 
     } 
     refTable.size--;   
-    //globalrefcnt--;
   }
 }
 
@@ -318,6 +319,8 @@ void pfcheck(struct nodeType* node){
       
       node->needcounter = 1;
       node->isparallel_rr = 1;
+      if(!findSymbol(node->table,"_len"))
+        addVariable("_len", TypeInt, node);
       if(!findSymbol(node->table,"i"))
         addVariable("i", TypeInt, node);
       int idx = insertapp(node); 
@@ -334,6 +337,7 @@ void pfcheck(struct nodeType* node){
       strcpy(returnchild->string, "tmp");
       addChild(node, returnchild);
       addVariable(returnchild->string, returnchild->valueType, returnchild);
+      printTree(node,0);
       break;  
     }
     case NODE_APPLYBODY3:{
@@ -540,6 +544,40 @@ void pfcheck(struct nodeType* node){
       node->rsibling->lsibling = node->lsibling;
       printTree(node->parent,0);
       }
+      else if (node->parent->nodeType == NODE_APPLYBODY3){
+        struct nodeType* sourceArrays = newNode(NODE_SRCARR);
+        struct nodeType* freeVars = newNode(NODE_FreeVars);
+        struct nodeType *arrchild, *varchild;
+        addChild(node->parent, sourceArrays);
+        addChild(node->parent, freeVars);
+        child = node->child;
+        for(int i =0; i<count;i++){
+          arrchild = child->child->rsibling;
+          varchild = child->child;
+          if(arrchild->lsibling == varchild)
+            arrchild->lsibling = arrchild;
+          if(arrchild->rsibling == varchild)
+            arrchild->rsibling = arrchild;
+          if(varchild->rsibling == arrchild)
+            varchild->rsibling = varchild;
+          if(varchild->lsibling == arrchild)
+            varchild->lsibling = varchild;
+          addChild(sourceArrays, arrchild);
+          addChild(freeVars, varchild);
+          freeVars->counts++;
+          //child->child->rsibling = child->child;
+          //child->child->lsibling = child->child;
+          //child->child->rsibling->rsibling = child->child->rsibling;
+          //child->child->rsibling->lsibling = child->child->rsibling;
+          
+          child = child->rsibling;
+        }
+        node->lsibling->rsibling = node->rsibling;
+        node->rsibling->lsibling = node->lsibling;
+        node->parent->child= sourceArrays;
+        printTree(node->parent,0);
+      }
+
       //assert(0);
       //for(
 

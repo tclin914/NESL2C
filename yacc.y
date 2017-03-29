@@ -741,7 +741,6 @@ int main(int argc, char** argv){
         for(int i=0;i<100;i++){
           strcpy(refTable.entries[i].name, "");
         }
-        //globalrefcnt =0;
         sqcodegen(yyout, ASTRoot);
         //pfcodegen(yyout, ASTRoot);
         //codegen(yyout, ASTRoot);
@@ -770,7 +769,6 @@ int main(int argc, char** argv){
         }
 
         //pfcodegen(yyout, ASTRoot); 
-        globalrefcnt =0;
         sqcodegen(yyout, ASTRoot); 
         fclose(yyout);
       }
