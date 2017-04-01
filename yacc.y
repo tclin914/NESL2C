@@ -737,6 +737,10 @@ int main(int argc, char** argv){
         //fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
         //sqcheck(ASTRoot);
         pfcheck(ASTRoot);
+        
+        for(int i=0;i<100;i++){
+          strcpy(refTable.entries[i].name, "");
+        }
         sqcodegen(yyout, ASTRoot);
         //pfcodegen(yyout, ASTRoot);
         //codegen(yyout, ASTRoot);
@@ -755,7 +759,7 @@ int main(int argc, char** argv){
         fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
-        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pfmacro.h\"\n");
+        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pf/pf.h\"\n#include \"pfmacro.h\"\n");
         //fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
         //fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
         pfcheck(ASTRoot);
@@ -764,7 +768,8 @@ int main(int argc, char** argv){
           strcpy(refTable.entries[i].name, "");
         }
 
-        pfcodegen(yyout, ASTRoot); 
+        //pfcodegen(yyout, ASTRoot); 
+        sqcodegen(yyout, ASTRoot); 
         fclose(yyout);
       }
       if(isomp){

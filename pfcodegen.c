@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "node.h"
 #include "codegen.h"
+#include "pfcodegen.h"
 #include "symtab.h"
 #include "codegencheck.h"
 
@@ -12,19 +13,20 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
   switch(node->nodeType){
   case NODE_NESL:{
     
-    //phase 1 : declare global variables;
     for(int i =0; i<node->counts ; i++){
       if(child->nodeType != NODE_DATATYPE && child->nodeType!= NODE_FUNC){
         phase1(fptr, child); 
       }
       child = child->rsibling;
     }
+    
     for(int i =0; i<node->counts ; i++){
       if(child->nodeType == NODE_DATATYPE){
         assert(0);// not implement;
       }
       child = child->rsibling;
     }
+    
     for(int i =0 ; i< node-> counts ; i++ ){
       if(child->nodeType == NODE_FUNC){
         pfcodegen(fptr, child);
@@ -32,7 +34,6 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       child = child->rsibling;
     }
     
-    fprintf(fptr, "#pragma global parallel\n");
     fprintf(fptr, "void myFunc1(){\n");
     for(int i =0;i<node->counts;i++){
       if(child->nodeType !=NODE_DATATYPE && child->nodeType != NODE_FUNC){
@@ -40,8 +41,10 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       }
       child = child->rsibling;
     }
-    fprintf(fptr, "}\n");
-    fprintf(fptr, "int main(){\nmyFunc1();\nreturn 1;\n}\n");
+    fprintf(fptr, "}\n\n");
+    fprintf(fptr, "int main(){\n");
+    fprintf(fptr,"myFunc1();\nreturn 1;\n}\n");
+    
     break;
   }
 
@@ -125,10 +128,9 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
   case NODE_ELSESTMT:
     fprintf(fptr, "else{\n");
     pfcodegen(fptr, node->child);
-    if(node->isEndofFunction)
-      DECREF(fptr);
-      //fprintf(fptr, "endofFunction\n");
     fprintf(fptr, "}\n");
+    if(node->isEndofFunction)
+      //fprintf(fptr, "endofFunction\n");
     break;
 
   case NODE_LET:
@@ -138,6 +140,18 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     pfcodegen(fptr, node->child->rsibling);
     //fprintf(fptr, ";\n");
     break;
+  case NODE_LETRET:
+    //FIXME  dirtly bypass op_pp 
+    if(node->child->op != OP_PP){
+      if(node->isEndofFunction){
+        fprintf(fptr,"res = ");
+        pfcodegen(fptr, node->child);
+        fprintf(fptr,";\n");
+      }
+    }
+    else
+      pfcodegen(fptr,node->child);
+  break;
 
   case NODE_BIND:{
     struct nodeType* child = node->child;
@@ -166,6 +180,12 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, " > ");
       pfcodegen(fptr, node->child->rsibling);
       break;
+    
+    case OP_ADD:
+      pfcodegen(fptr, node->child);
+      fprintf(fptr, " + ");
+      pfcodegen(fptr, node->child->rsibling);
+      break;
 
     case OP_EQ:
       pfcodegen(fptr, node->child);
@@ -185,13 +205,18 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       //pfcodegen(fptr, node->child);
       switch(node->child->rsibling->nodeType){
       case NODE_APPLYBODY1:
-      case NODE_APPLYBODY2:
       case NODE_APPLYBODY3:
       case NODE_APPLYBODY4:
-        //fprintf(fptr, ".ptr = ");
         pfcodegen(fptr, node->child->rsibling);
-        break;
+      break;
+      case NODE_APPLYBODY2:
+        fprintf(fptr, "//BIND->APPBODY2\n");
+        pfcodegen(fptr, node->child->rsibling);
+        fprintf(fptr, "//end of BIND->APPBODY2\n");
+        
+      break;
       case NODE_FUNC_CALL:
+        
         if(!strcmp(RHS->child->string, "time")){
           fprintf(fptr, "{\nint t1,t2;\nfloat diff;\n");
           fprintf(fptr, "t1 = clock();\n");
@@ -203,14 +228,14 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "tm = diff;\n");
           fprintf(fptr, "}\n");
         }
-      break; 
+      break;
       default :
         fprintf(fptr, " = ");
         pfcodegen(fptr, node->child->rsibling);
         fprintf(fptr, ";\n");
       }
       break;
-    }
+    }// end of OP_BIND;
     case OP_PP:
       // if child is a variable, it will be process here.
       if(node->child->nodeType!=NODE_TOKEN)
@@ -240,10 +265,8 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
           break;
       }
       if(node->inserttmp){
-        fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
         switch(node->valueType){
           case TypeSEQ_I:
-            fprintf(fptr, "int), 1);\n\n");
             break;
           default:
             assert(0);//not implemented.
@@ -289,17 +312,178 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
         break;
     }
     break;
+  case NODE_SEQ_TUPLE:{
+    struct nodeType *LHS=node->child;
+    struct nodeType *RHS = node->child->rsibling;
+    switch(LHS->nodeType){
+      case NODE_INT:
+        fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n",
+                LHS->iValue, node->string, LHS->paramcount);
+      break;
+    }
+    switch(RHS->nodeType){
+    case NODE_SEQ_TUPLE:
+      pfcodegen(fptr, RHS);
+    break;
+    case NODE_INT:
+      fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n",
+             RHS->iValue, node->string, RHS->paramcount);
+    }
+  break;
+  }
+  case NODE_SRCARR:{
+    struct nodeType* child = node->child;
+    int count=0;
+    do{
+      count++;
+      pfcodegen(fptr, child);
+      child=child->rsibling;
+    }while(child!=node->child);
+    node->counts = count;
+    node->string = malloc(sizeof(char)*100);
+    strcpy(node->string, child->string);
 
+  break;}
+  case NODE_NEW_SEQ:{
+    struct nodeType *LHS = node->child;
+    struct nodeType *RHS = node->child->rsibling;
+    
+    fprintf(fptr, "MALLOC(%s, %d, struct Sequence);\n",node->string, node->counts);
+    //fprintf(fptr, "for(i =0 ;i<%s.len;i++){\n", node->string);
+  
+    switch(LHS->nodeType){
+    case NODE_INT:
+      fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", LHS->iValue, node->string, LHS->paramcount);
+    break;
+    case NODE_TOKEN:
+      switch(LHS->valueType){
+      case TypeSEQ_I:
+       fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
+                LHS->string, node->string, LHS->paramcount);
+      break;
+      default:
+        assert(0);
+      break;
+      }
+    break;
+    }
+    switch(RHS->nodeType){
+    case NODE_INT:
+      fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", RHS->iValue, node->string, RHS->paramcount); 
+    break;
+    case NODE_TOKEN:
+      case TypeSEQ_I:
+        fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
+                RHS->string, node->string, RHS->paramcount);
+      break;
+    break;
+    case NODE_SEQ_TUPLE:
+      pfcodegen(fptr, RHS);
+    break;
+    }
+  break;
+  }
   case NODE_APPLYBODY1:
     abort();
     break;
-
-  case NODE_APPLYBODY2:
-    pfcodegen(fptr, node->child->rsibling);
+  case NODE_APPRET:{
+    //don't consider tuple here.
+    switch(node->valueType){
+      case TypeSEQ_I:
+        assert(0);
+      break;
+      default :
+        assert(0);
+      break;
+    }
+  break;
+  }
+  case NODE_ACTION_TUPLE:{
+    assert(0); 
+  break;
+  }
+  case NODE_APPLYBODY2:{
+    struct nodeType *LHS = node->child;
+    struct nodeType *SRCARR = node->child->rsibling;
+    struct nodeType *VARNODE = node->child->rsibling->rsibling;
+    struct nodeType *varchild = VARNODE->child;
+    struct nodeType *arrchild = SRCARR->child;
+    struct nodeType *retchild = VARNODE->rsibling;
+    //pfcodegen(fptr, node->child->rsibling);
     //APP2printFor(fptr, node->child, node->child->rsibling);
     //fprintf(fptr, "for loop");
     
+    //open scope
+    fprintf(fptr, "{\n");
+    dumpTable(fptr, node->child);
+    
+    // TODO
+    // 1. create a function that MALLOC the Sequence variables.
+    // 2. NODE_IN don't generate RHS.
+    // 3. or loop and generate the NODE_IN's LHS when generate for loop.
+
+    //generate src array.
+    pfcodegen(fptr, SRCARR);
+    
+    // allocate the dest array.
+    fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, SRCARR->string);
+    // loop the src array and apply the action.
+    fprintf(fptr, "#pragma pf parallel_rr\n");
+    fprintf(fptr, "for (i =0; i <%s.len;i++){\n", node->string);
+    for(int i =0;i<VARNODE->counts;i++){
+      // get elem from src array.
+      switch(varchild->valueType){
+      case TypeInt:
+        fprintf(fptr, "GET_ELEM_I");
+      break;
+      case TypeSEQ_I:
+        fprintf(fptr, "GET_ELEM_SEQ_I");
+      break;
+      default:
+      assert(0);
+      break;
+      }
+      fprintf(fptr, "(%s,%s,i);\n",varchild->string,arrchild->string);
+      fprintf(fptr, "%s = ", retchild->string);
+      pfcodegen(fptr, LHS);
+      fprintf(fptr, ";\n");
+      
+      switch(retchild->valueType){
+      case TypeInt:
+        fprintf(fptr, "SET_ELEM_I");
+      break;
+      case TypeSEQ_I:
+        fprintf(fptr, "SET_ELEM_SEQ_I");
+      break;
+      default:
+      assert(0);
+      break;
+      }
+      fprintf(fptr, "(%s,%s,i);\n", retchild->string,node->string);
+      varchild = varchild->rsibling;
+      arrchild = arrchild->rsibling;
+    }
+    fprintf(fptr, "}\n");// close for
+    
+    if(node->parent->nodeType !=NODE_OP){
+    switch(node->valueType){
+    case TypeTuple_IF:
+      fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
+      break;
+    case TypeInt:
+      fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+    case TypeFloat:
+      fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+    case TypeSEQ_I:
+      fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+    }
+    }
+    fprintf(fptr, "}\n");//close scope
+
     break;
+  }
   case GEN_APP2:{
     struct nodeType* phase1 = node->child->rsibling->child->rsibling->child;
     struct nodeType *phase2 = node->child->child;
@@ -307,18 +491,19 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
 
     if(phase1->nodeType == NODE_IN){
       if(phase1->child->rsibling->nodeType == NODE_FUNC_CALL){
+        //pfcodegen(fptr, phase1->child->rsibling);
         if(!strcmp(phase1->child->rsibling->child->string,"dist")){
           struct nodeType* param1 = phase1->child->rsibling->child->rsibling->child->child;
           struct nodeType* param2 = phase1->child->rsibling->child->rsibling->child->child->rsibling;
-          
+          struct nodeType* APP2 = node->child->rsibling;
+
           fprintf(fptr, "{\n");
           dumpTable(fptr, phase1);
-//          fprintf(fptr,"MALLOC(%s, %s, struct Sequence);\n",
-//                  phase1->string, param2->string);
-          fprintf(fptr, "NESLDIST(%s,%d,%s);\n", 
-                  phase1->string, param1->iValue, param2->string);      
+          pfcodegen(fptr, phase1);
           
           //FIXME sencond parameter 不該是 param2.
+          // pfcodegen(fptr,phase3);
+          fprintf(fptr, "for(i =0 ; i<%s.len, i++){\n", APP2->string);
           fprintf(fptr, "NESLRAND_SEQ(%s,%s,%s,%s,", 
                   node->string, 
                   param2->string,
@@ -352,10 +537,8 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
             phase1->child->rsibling->child->string,
             phase1->child->rsibling->child->rsibling->string);  
           
-          fprintf(fptr,"atomicAdd(REFCNT(%s, ",phase1->string);
           switch(phase1->valueType){
             case TypeSEQ:
-                fprintf(fptr, "struct Sequence), 1);\n");
               break;
           }
           insertREF(phase1->string, phase1->valueType, phase1);
@@ -392,31 +575,28 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
                       pfcodegen(fptr, phase3->child->rsibling);
                       fprintf(fptr, ";\n");
                       // int because paramtype is TypeSEQ_I
-                      fprintf(fptr, "atomicAdd(REFCNT(res, int), 1);\n");
                       fprintf(fptr, "SET_ELEM_SEQ_I(res, %s, i);\n", phase2->string);
-                      fprintf(fptr, "DECREF_SEQ_I(res);\n");
                       //fprintf(fptr, "}\n");
                     }
                     
                     // struct sequence since it's TypeSEQ_I
                     // indicate that parent is TypeSEQ_SEQ_I
-                    fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence), 1);\n",phase2->string);
                     insertREF(phase2->string, phase2->valueType, phase2);
-                    fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n", phase1->string);
                     deleteREF(phase1->string);
                     break;
-                }
+                }// end of switch paramEntry
                 break;
               }
               default:
                 assert(0);//not implement;
                 break;
-            }
+            }// end of switch(phase3->nodeType)
             fprintf(fptr, "}\n");
-          }// enf of if(node->isparallel_rr)
-        } //end of else if ...==newseq;
-      }// end of gen_app2
-    } 
+          }// end of if(node->isparallel_rr)
+        }// end of else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ)
+      }//end of gen_app2
+  } 
+    
   break;
   }
   case GEN_APP3:{
@@ -437,10 +617,12 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "(");
     pfcodegen(fptr, node->child->rsibling->child->rsibling->child);
     fprintf(fptr, "));\n");
-    fprintf(fptr, "atomicAdd(REFCNT(%s, ",node->string);
+    
+    fprintf(fptr, "AtomicAdd(REFCNT(%s, struct Sequence),1);\n",node->string);
+
     switch(node->valueType){
       case TypeSEQ_I:
-        fprintf(fptr, "int), 1);\n");
+        //fprintf(fptr, "int), 1);\n");
         break;
     }
     insertREF(node->string, node->valueType, node);
@@ -463,57 +645,11 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
 
   case NODE_IN:
     //FIXME here only consider the simple ApplyBody Exp.
-    assert(node->child->nodeType == NODE_TOKEN);
+    //assert(node->child->nodeType == NODE_TOKEN);
     //assert(node->child->rsibling->nodeType == NODE_TOKEN);
-    switch(node->child->rsibling->nodeType){
-    case NODE_TOKEN:{
-      struct SymTableEntry *entry = 
-        findSymbol(node->table, node->child->rsibling->string);
-      assert(entry);
-      switch(entry->type){
-      case TypeSEQ_I:
-        fprintf(fptr, "malloc(sizeof(int)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ_F:
-        fprintf(fptr, "malloc(sizeof(float)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ_B:
-        fprintf(fptr, "malloc(sizeof(bool)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ_C:
-        fprintf(fptr, "malloc(sizeof(char)*%s.len);\n",entry->name);
-        break;
-      case TypeSEQ:
-        fprintf(fptr, "malloc(sizeof(%s.ptr[0])*%s.len);\n",
-                entry->name,entry->name);
-        break;
-      default:
-        assert(0); //break;
-        break;
-      }
-      break;
-    }
-
-    case NODE_NEW_SEQ:
-      switch(node->valueType){
-      case TypeSEQ:
-        fprintf(fptr, "malloc(sizeof(%s)*%d);\n",
-                node->child->rsibling->child->string,
-                node->child->rsibling->counts);
-        //FIXME problems in the future.
-        fprintf(fptr, "%s.len = %d;\n",
-                node->parent->parent->rsibling->child->string,
-                node->child->rsibling->counts);
-        break;
-
-      }
-      break;
-    case NODE_FUNC_CALL:
-      break; 
-    default:
-      abort();
-      break;
-    }
+   
+    pfcodegen(fptr, node->child->rsibling);
+//    node->string
     break;
 
   case NODE_TUPLE:
@@ -557,13 +693,15 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     break;
 
   case NODE_FUNC_CALL:{
-   if(node->parent->nodeType == NODE_NESL){
+
+    if(node->parent->nodeType == NODE_NESL){
       fprintf(fptr, "{\n");
       printparam(fptr, node);
       fprintf(fptr, ";\n");
       if(node->string){
         if(!strcmp(node->child->string, "rand")){
           fprintf(fptr, "rand"); 
+
         }else if(!strcmp(node->child->string, "dist")){
           //fprintf(fptr, "dist"); 
         }else if(!strcmp(node->child->string, "time")){
@@ -593,19 +731,34 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "}\n");
     }else{
       if(!strcmp(node->child->string, "rand")){
-        fprintf(fptr, "rand"); 
+        if(node->valueType ==TypeInt)
+        fprintf(fptr, "RAND_I"); 
+        else 
+        fprintf(fptr, "RAND_F");
+        pfcodegen(fptr, node->child->rsibling);
       }else if(!strcmp(node->child->string, "dist")){
-        //fprintf(fptr, "dist"); 
+        //dist
+        struct nodeType* param1 = node->child->rsibling->child->child;
+        struct nodeType* param2 = node->child->rsibling->child->child->rsibling;
+         
+        fprintf(fptr, "NESLDIST(%s,", node->string);
+        pfcodegen(fptr, param1);
+        fprintf(fptr, ",");
+        pfcodegen(fptr, param2);
+        fprintf(fptr, ");\n");
+        //fprintf(fptr, "NESLDIST(%s,%d,%s);\n", 
+        //        node->string, param1->iValue, param2->string);      
+
       }else if(!strcmp(node->child->string, "time")){
         fprintf(fptr, "time"); 
       }else{
         pfcodegen(fptr, node->child);
+        pfcodegen(fptr, node->child->rsibling);
       }
-      pfcodegen(fptr, node->child->rsibling);
+      //pfcodegen(fptr, node->child->rsibling);
       
     }
-
-   break;
+    break;
   }
 
   case NODE_TOKEN:
@@ -614,10 +767,8 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
       // FIXME 0215 if I dump the table in the first, then I don't need
       // to worried whether here is the declaration or assignment.
       struct SymTableEntry* entry = findSymbol(node->table, node->string);
-      //assert(entry);
-      if(entry)
-        fprintf(fptr, "%s", node->string);
-
+      assert(entry);
+      fprintf(fptr, "%s", node->string);
     }
 
     }

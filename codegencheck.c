@@ -16,9 +16,16 @@ char elm[MAX][5] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm
 char tmp[MAX][5] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10"};
 char app[MAX][5] = {"app1","app2","app3","app4","app5","app6","app7","app8","app9","app10"};
 
+void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
+  insertREF(string, type, node);
+  if(type == TypeSEQ_I)
+  fprintf(fptr, "atomicAdd(REFCNT(%s, int),1);\n",string);
+  else
+  fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
+}
+
 void insertREF(char *s, enum StdType type, struct nodeType *link){
   int index = refTable.size;
-   
   (refTable.size)++;
   strcpy(refTable.entries[index].name, s);
   refTable.entries[index].type = type;
@@ -27,38 +34,50 @@ void insertREF(char *s, enum StdType type, struct nodeType *link){
   //return &refTable.entries[index];
 
 }
-void deleteREF(char *s){
-  int index = refTable.size;
-  for(int i =0;i<index ; i++){
-    if(!strcmp(refTable.entries[i].name,s)){
-      //if found
-      strcpy(refTable.entries[i].name, "");
-      refTable.entries[i].type = 0;
-      refTable.entries[i].link = 0;
-      for(int j = i+1; j<index; j++){
-        strcpy(refTable.entries[j-1].name, refTable.entries[j].name);
-        refTable.entries[j-1].type = refTable.entries[j].type;
-        refTable.entries[j-1].link = refTable.entries[j].link;
-        if(j= index -1){
-          strcpy(refTable.entries[j].name, "");
-          refTable.entries[j].type = 0;
-          refTable.entries[j].link = 0;
-        } 
+void deleteREF(int start, int end){
+  
+  for(int i =start;i<end ; i++){
+    strcpy(refTable.entries[i].name, "");
+    refTable.entries[i].type = 0;
+    refTable.entries[i].link = 0;
+    for(int j = i+1; j<end; j++){
+      strcpy(refTable.entries[j-1].name, refTable.entries[j].name);
+      refTable.entries[j-1].type = refTable.entries[j].type;
+      refTable.entries[j-1].link = refTable.entries[j].link;
+      if(j= end -1){
+        strcpy(refTable.entries[j].name, "");
+        refTable.entries[j].type = 0;
+        refTable.entries[j].link = 0;
       } 
+    } 
+    refTable.size--;   
+  }
+}
+
+void dumprefTable(){
+  for(int i =0;i<refTable.size;i++){
+    if(strcmp("",refTable.entries[i].name)){
+      printf("%d, %s\n",i,refTable.entries[i].name); 
     }
   }
 }
 
-void DECREF(FILE* fptr){
-    for(int i =0;i<refTable.size;i++){
+void DECREF(FILE* fptr,int n){
+    int end = refTable.size;
+    for(int i =refTable.size-n;i<end;i++){
       if(strcmp("",refTable.entries[i].name)){
         switch(refTable.entries[i].type){
           case TypeSEQ_I:
             fprintf(fptr, "DECREF_SEQ_I(%s);\n",refTable.entries[i].name);
-            
             break;
-          case TypeSEQ:
-            switch(refTable.entries[i].link->typeNode->child->valueType){
+          case TypeSEQ:{
+            // has different situation.
+            int types;
+            if(refTable.entries[i].link->typeNode->child)
+              types = refTable.entries[i].link->typeNode->child->valueType;
+            else 
+              types = refTable.entries[i].link->typeNode->valueType;
+            switch(types){
               case TypeSEQ_I:
                 fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n",refTable.entries[i].name);
               break;
@@ -67,13 +86,14 @@ void DECREF(FILE* fptr){
                 assert(0);//not implement;
               break;
             }
-            break;
+            break;}
           default:
             assert(0); // not implement;
             break;
         }
       }
     }
+    deleteREF(end-n,refTable.size);
 }
 
 int insertelm(struct nodeType* node){
@@ -201,8 +221,19 @@ void pfcheck(struct nodeType* node){
             case NODE_APPLYBODY2:
               // {action: RBINDS}
               pfcheck(RHS);
-              if(LHS->child->string)
-                strcpy(RHS->string,LHS->child->string);
+              switch(LHS->nodeType){
+              case NODE_PATTERN:
+                if(LHS->child->string)
+                  strcpy(RHS->string,LHS->child->string);
+              break;
+              case NODE_TOKEN:
+                if(LHS->string)
+                  strcpy(RHS->string,LHS->string);
+              break;
+              default:
+                assert(0);//not implement.
+              break;
+              }
               //pfcheck(RHS);
               //node->needcounter = RHS->needcounter;
               node->isparallel_rr = RHS->isparallel_rr;
@@ -227,7 +258,14 @@ void pfcheck(struct nodeType* node){
                 addVariable("i", TypeInt, node->parent->parent);
               node->nodeType = GEN_APP3;
               node->string = malloc(sizeof(char)*100);
-              strcpy(node->string, child->child->string);
+              switch(child->nodeType){
+              case NODE_PATTERN:
+                strcpy(node->string, child->child->string);
+              break;
+              case NODE_TOKEN:
+                strcpy(node->string, child->string);
+              break;
+              }
               break;  
             case NODE_APPLYBODY4:
               // not implemented
@@ -281,6 +319,8 @@ void pfcheck(struct nodeType* node){
       
       node->needcounter = 1;
       node->isparallel_rr = 1;
+      if(!findSymbol(node->table,"_len"))
+        addVariable("_len", TypeInt, node);
       if(!findSymbol(node->table,"i"))
         addVariable("i", TypeInt, node);
       int idx = insertapp(node); 
@@ -297,6 +337,7 @@ void pfcheck(struct nodeType* node){
       strcpy(returnchild->string, "tmp");
       addChild(node, returnchild);
       addVariable(returnchild->string, returnchild->valueType, returnchild);
+      printTree(node,0);
       break;  
     }
     case NODE_APPLYBODY3:{
@@ -461,37 +502,71 @@ void pfcheck(struct nodeType* node){
       }
       
       if(node->parent->nodeType == NODE_APPLYBODY2){
-      struct nodeType* sourceArrays = newNode(NODE_SRCARR);
-      struct nodeType* freeVars = newNode(NODE_FreeVars);
-      struct nodeType *arrchild, *varchild;
-      addChild(node->parent, sourceArrays);
-      addChild(node->parent, freeVars);
-      child = node->child;
-      for(int i =0; i<count;i++){
-        arrchild = child->child->rsibling;
-        varchild = child->child;
-        if(arrchild->lsibling == varchild)
-          arrchild->lsibling = arrchild;
-        if(arrchild->rsibling == varchild)
-          arrchild->rsibling = arrchild;
-        if(varchild->rsibling == arrchild)
-          varchild->rsibling = varchild;
-        if(varchild->lsibling == arrchild)
-          varchild->lsibling = varchild;
-        addChild(sourceArrays, arrchild);
-        addChild(freeVars, varchild);
-        freeVars->counts++;
-        //child->child->rsibling = child->child;
-        //child->child->lsibling = child->child;
-        //child->child->rsibling->rsibling = child->child->rsibling;
-        //child->child->rsibling->lsibling = child->child->rsibling;
-        
-        child = child->rsibling;
+        struct nodeType* sourceArrays = newNode(NODE_SRCARR);
+        struct nodeType* freeVars = newNode(NODE_FreeVars);
+        struct nodeType *arrchild, *varchild;
+        addChild(node->parent, sourceArrays);
+        addChild(node->parent, freeVars);
+        child = node->child;
+        for(int i =0; i<count;i++){
+          arrchild = child->child->rsibling;
+          varchild = child->child;
+          if(arrchild->lsibling == varchild)
+            arrchild->lsibling = arrchild;
+          if(arrchild->rsibling == varchild)
+            arrchild->rsibling = arrchild;
+          if(varchild->rsibling == arrchild)
+            varchild->rsibling = varchild;
+          if(varchild->lsibling == arrchild)
+            varchild->lsibling = varchild;
+          addChild(sourceArrays, arrchild);
+          addChild(freeVars, varchild);
+          freeVars->counts++;
+          //child->child->rsibling = child->child;
+          //child->child->lsibling = child->child;
+          //child->child->rsibling->rsibling = child->child->rsibling;
+          //child->child->rsibling->lsibling = child->child->rsibling;
+
+          child = child->rsibling;
+        }
+        node->lsibling->rsibling = node->rsibling;
+        node->rsibling->lsibling = node->lsibling;
+        printTree(node->parent,0);
       }
-      node->lsibling->rsibling = node->rsibling;
-      node->rsibling->lsibling = node->lsibling;
-      printTree(node->parent,0);
+      else if (node->parent->nodeType == NODE_APPLYBODY3){
+        struct nodeType* sourceArrays = newNode(NODE_SRCARR);
+        struct nodeType* freeVars = newNode(NODE_FreeVars);
+        struct nodeType *arrchild, *varchild;
+        addChild(node->parent, sourceArrays);
+        addChild(node->parent, freeVars);
+        child = node->child;
+        for(int i =0; i<count;i++){
+          arrchild = child->child->rsibling;
+          varchild = child->child;
+          if(arrchild->lsibling == varchild)
+            arrchild->lsibling = arrchild;
+          if(arrchild->rsibling == varchild)
+            arrchild->rsibling = arrchild;
+          if(varchild->rsibling == arrchild)
+            varchild->rsibling = varchild;
+          if(varchild->lsibling == arrchild)
+            varchild->lsibling = varchild;
+          addChild(sourceArrays, arrchild);
+          addChild(freeVars, varchild);
+          freeVars->counts++;
+          //child->child->rsibling = child->child;
+          //child->child->lsibling = child->child;
+          //child->child->rsibling->rsibling = child->child->rsibling;
+          //child->child->rsibling->lsibling = child->child->rsibling;
+          
+          child = child->rsibling;
+        }
+        node->lsibling->rsibling = node->rsibling;
+        node->rsibling->lsibling = node->lsibling;
+        node->parent->child= sourceArrays;
+        printTree(node->parent,0);
       }
+
       //assert(0);
       //for(
 

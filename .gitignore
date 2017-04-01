@@ -8,3 +8,6 @@ y.tab.h
 doc/
 lex.yy.c
 output/
+*.cu
+nvme*
+qs*

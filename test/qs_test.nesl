@@ -1,4 +1,4 @@
-function quicksort(a):([int])->[int] =
+function quicksort(a):[int]->[int]=
 if (#a < 2) then a
 else
   let pivot   = a[#a/2];
@@ -8,8 +8,4 @@ else
       result  = {quicksort(v): v in [lesser,greater]};
   in result[0] ++ equal ++ result[1];
 
-function qs(n):(int)->(int,float) =
-let nums = {rand(x): x in dist(100, n)};
-    (res, tm) = time(quicksort(nums)); in (res[0], tm); 
-
-qs(100);
+quicksort([8,1,3,2,4,6,5,7,9,0]);

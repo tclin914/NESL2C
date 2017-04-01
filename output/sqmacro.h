@@ -25,6 +25,31 @@ struct Sequence {
   void   *ptr;
 };
 
+// cpu speed. compute result in ms
+#define CLOCKSPEED CLOCKS_PER_SEC*1000 
+
+int globalrefcount=0;
+int globalmalloc=0;
+int globalfree=0;
+int atomicAdd(int * a, int b){
+  int cnt = *a;
+  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
+  globalrefcount++;
+  *a +=b;
+  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  return cnt;
+}
+int atomicSub(int * a, int b){
+  int cnt = *a;
+  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
+  globalrefcount--;
+  *a -=b;
+  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  return cnt ;
+}
+//#define atomicAdd(a,n) (*a +n )
+//#define atomicSub(a,n) (*a -n )
+
 /* Macros to access sequences of various type
  * These should be generated automatically */
 #define REFCNT(seq, type) ((int*)(((uint8_t*)seq.ptr)+seq.cap*sizeof(type)))
@@ -34,6 +59,10 @@ struct Sequence {
 
 #define GET_ELEM_F(res, arr, idx) do { \
   res = ((float*)arr.ptr)[idx]; } while(0)
+
+#define GET_ELEM_PAIR_IF(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
 
 #define GET_ELEM_PAIR_F(res, arr, idx) do { \
   res.a = ((float*)arr.ptr)[idx]; \
@@ -60,11 +89,15 @@ struct Sequence {
   ((float*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
 #define SET_ELEM_SEQ_I(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, int), 1); \
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
 /* We need the element type of the sub sequence so that we can increase the reference count */
 #define SET_ELEM_SEQ_PAIR_F(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, struct Pair_F), 1); \
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
@@ -75,10 +108,13 @@ struct Sequence {
   res.ptr = malloc(res.cap*sizeof(type)+sizeof(int)); \
   assert(res.ptr != 0); \
   *REFCNT(res, type) = 0; \
+  globalmalloc++;\
 } while(0)
 
 #define FREE(res) do { \
-  free(res.ptr); } while(0)
+  free(res.ptr); \
+  globalfree++;\
+} while(0)
 
 #define MAKE_SEQ_2(res, type, typeMacro, e1, e2) do { \
   MALLOC(res, 2, type); \
@@ -87,24 +123,28 @@ struct Sequence {
 } while(0)
 
 #define DECREF_SEQ_I(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, int), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, float), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_PAIR_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Pair_F), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_SEQ_I(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
@@ -117,6 +157,7 @@ struct Sequence {
   }} while(0)
 
 #define DECREF_SEQ_SEQ_PAIR_F(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
@@ -174,8 +215,7 @@ struct Sequence {
     _i++; \
   }} while(0)
 
-/* The filtering macros
- * Problem: This approach may distrub the original order of elements */
+/* sequential version FILTER_1*/
 #define FILTER_1(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, predExpr) do { \
   int  _len=s1.len, _i, _j; \
   MALLOC(res, _len, typer); \
@@ -210,9 +250,10 @@ struct Sequence {
 }while(0) \
 
 #define print_SEQ_I(src) do{ \
-  int i,e; \
+  int i,e,_len; \
   printf("printSEQ %s, len=%d: \n",#src,src.len); \
-  for(i=0;i<src.len;i++){  \
+  _len = src.len;\
+  for(i=0;i<_len;i++){  \
     GET_ELEM_I(e, src, i); \
     print_I(e);\
   }\
@@ -230,17 +271,86 @@ struct Sequence {
 #define RAND_I(range) (rand()%range)
 #define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
 
-//#define RAND_I(res, src) do{\
-//  for(i=0;i<n;i++){\
-//    int e;\
-//    GET_ELEM_I(e, src, i);\
-//    SET_ELEM_I(rand()%e, res, i);\
-//  }\
-//}while(0)
-
 #define NESLRAND_SEQ(res, len, src, p1, typer) do{\
   MALLOC(res, len, struct Sequence);\
   srand(time(0));\
   RAND_##typer(res, src);\
 }while(0)
+int isContiguousList(int start, int len, struct Sequence list){
+  int elm;
+  int noerror=1;
+  for(int i=0;i<len;i++){
+    GET_ELEM_I(elm , list, i);
+    if(elm!=start+i){
+      printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
+      noerror= 0;
+      }
+  }
+  if(noerror){
+    printf("this is a Contiguous list.!\n");
+  }
+  return noerror;
+}
+struct Sequence genShuffledList(int start, int len){
+  struct Sequence res;
+  int i,idx=0;
+  int tmp1,tmp2;
+  int rn1,rn2;
+  MALLOC(res, len, struct Sequence);
+  for (i =0 ;i<len;i++){
+    SET_ELEM_I(len+start-i-1,res,idx++);
+  }
+  for (i =0 ;i<len;i++){
+    rn1 = rand()%len;
+    GET_ELEM_I(tmp1,res,rn1); 
+    rn2 = rand()%len;
+    GET_ELEM_I(tmp2,res,rn2);
+    SET_ELEM_I(tmp2,res,rn1);
+    SET_ELEM_I(tmp1,res,rn2);
+  }
+  return(res);
+}
+
+int getSeed(int *ptr) {
+  unsigned long long seed = (unsigned long long)ptr;
+  srand(seed);
+
+  return rand();
+}
+
+int loopStart(int lb, int ub, int *idx) {
+  int seed = getSeed(idx);
+
+  if(seed%2 == 0) {
+    return lb;
+  }
+  else {
+    return ub-1;
+  }
+}
+
+int loopEnd(int lb, int ub, int *idx) {
+  int seed = getSeed(idx);
+
+  if(seed%2 == 0) {
+    return ub;
+  }
+  else {
+    return lb-1;
+  }
+}
+
+int loopNext(int lb, int ub, int *idx) {
+  int seed = getSeed(idx);
+
+  if(seed%2 == 0) {
+    return *idx+1;
+  }
+  else {
+    return *idx-1;
+  }
+}
+
+#define PARALLEL_LOOP(lb, ub, idx)  for(idx=loopStart(lb, ub, &idx); idx!=loopEnd(lb, ub, &idx); idx=loopNext(lb, ub, &idx))
+
 
