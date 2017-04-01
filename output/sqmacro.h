@@ -25,6 +25,9 @@ struct Sequence {
   void   *ptr;
 };
 
+// cpu speed. compute result in ms
+#define CLOCKSPEED CLOCKS_PER_SEC*1000 
+
 int globalrefcount=0;
 int globalmalloc=0;
 int globalfree=0;
@@ -56,6 +59,10 @@ int atomicSub(int * a, int b){
 
 #define GET_ELEM_F(res, arr, idx) do { \
   res = ((float*)arr.ptr)[idx]; } while(0)
+
+#define GET_ELEM_PAIR_IF(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
 
 #define GET_ELEM_PAIR_F(res, arr, idx) do { \
   res.a = ((float*)arr.ptr)[idx]; \

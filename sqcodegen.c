@@ -78,19 +78,19 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "struct Sequence  %s", node->string);
       //sqcodegen(fptr,node->child);
       printparam(fptr, node->child);
-      fprintf(fptr, "{\nstruct Sequence res;\n");
+      fprintf(fptr, "{\nstruct Sequence _res;\n");
 //      fprintf(fptr, "struct Sequence tmp;\n");
 
       sqcodegen(fptr, node->child->rsibling->rsibling);
       DECREF(fptr, refTable.size);
-      fprintf(fptr, "return res;\n");
+      fprintf(fptr, "return _res;\n");
       fprintf(fptr, "\n}\n");
       break;
     case TypeTuple:
       fprintf(fptr, "struct TypeTuple %s", node->string);
       sqcodegen(fptr,node->child);
       fprintf(fptr, "{\n");
-      fprintf(fptr, "{\nstruct TypeTuple res;\n");
+      fprintf(fptr, "{\nstruct TypeTuple _res;\n");
       //fprintf(fptr, "struct TypeTuple tmp;\n");
       sqcodegen(fptr,node->child->rsibling->rsibling);
       fprintf(fptr, "\n}\n");
@@ -98,10 +98,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case TypeTuple_IF:
       fprintf(fptr, "struct tupleIF %s", node->string);
       printparam(fptr, node->child);
-      fprintf(fptr, "{\nstruct tupleIF res;\n");
+      fprintf(fptr, "{\nstruct tupleIF _res;\n");
       //fprintf(fptr, "struct TypeTuple tmp;\n");
       sqcodegen(fptr,node->child->rsibling->rsibling);
-      fprintf(fptr, "return res;\n");
+      DECREF(fptr,refTable.size);
+      fprintf(fptr, "return _res;\n");
       fprintf(fptr, "\n}\n");
     break;
     default:
@@ -129,7 +130,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   case NODE_THENSTMT:
     fprintf(fptr, "{\n");
     if(node->isEndofFunction)
-      fprintf(fptr, "res = ");
+      fprintf(fptr, "_res = ");
     sqcodegen(fptr, node->child);
     fprintf(fptr, ";\n}");
     break;
@@ -154,9 +155,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     //FIXME  dirtly bypass op_pp 
     if(node->child->op != OP_PP){
       if(node->isEndofFunction){
-        fprintf(fptr,"res = ");
+        if(node->valueType<=TypeTuple_I){
+        fprintf(fptr,"_res = ");
         sqcodegen(fptr, node->child);
         fprintf(fptr,";\n");
+        }
+        else {
+          sqcodegen(fptr, node->child);
+        }
       }
     }
     else
@@ -241,13 +247,13 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case NODE_FUNC_CALL:
         
         if(!strcmp(RHS->child->string, "time")){
-          fprintf(fptr, "{\nint t1,t2;\nfloat diff;\n");
-          fprintf(fptr, "t1 = clock();\n");
+          fprintf(fptr, "{\nclock_t _t1,_t2;\nfloat diff;\n");
+          fprintf(fptr, "_t1 = clock();\n");
           fprintf(fptr, "%s = ", LHS->child->child->child->string);
           sqcodegen(fptr, node->child->rsibling->child->rsibling->child);
           fprintf(fptr, ";\n");
-          fprintf(fptr, "t2 = clock();\n");
-          fprintf(fptr, "diff = ((float)(t2 - t1) / 1000000000.0F ) * 1000;\n");
+          fprintf(fptr, "_t2 = clock();\n");
+          fprintf(fptr, "diff = ((float)(_t2 - _t1) / CLOCKSPEED);\n");
           fprintf(fptr, "tm = diff;\n");
           fprintf(fptr, "}\n");
         }
@@ -268,7 +274,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       
       // FIXME node->parent is not general
       if(!node->inserttmp){
-        fprintf(fptr, "CONCAT(%s, %s, res, ",
+        fprintf(fptr, "CONCAT(%s, %s, _res, ",
               node->child->string,
               node->child->rsibling->string
         );
@@ -756,9 +762,9 @@ case GEN_APP2:{
       //use res
       if(node->child->nodeType == NODE_SEQ_REF)
         sqcodegen(fptr, node->child);
-      fprintf(fptr, "res.a = %s;\n",node->child->string);
+      fprintf(fptr, "_res.a = %s;\n",node->child->string);
       if(node->child->rsibling->nodeType == NODE_TOKEN)
-        fprintf(fptr, "res.b = %s;\n", node->child->rsibling->string);  
+        fprintf(fptr, "_res.b = %s;\n", node->child->rsibling->string);  
     }
     else{
       //use node->string "tmpn"

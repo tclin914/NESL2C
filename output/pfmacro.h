@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <time.h>
+#include <cuda.h>
 struct Pair_I {
   int   a;
   int   b;
@@ -24,7 +25,8 @@ struct Sequence {
   void   *ptr;
 };
 
-
+// shader speed. compute result in ms
+#define CLOCKSPEED 1110500 
 /* Macros to access sequences of various type
  * These should be generated automatically */
 #define REFCNT(seq, type) ((int*)(((uint8_t*)seq.ptr)+seq.cap*sizeof(type)))
@@ -197,7 +199,7 @@ struct Sequence {
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     _p = predExpr; \
     _mask = __ballot(_p); \
-    if(laneID() == 1) { \
+    if(laneID() == 0) { \
       _offset = atomicAdd(&_filteredLen, __popc(_mask)); \
     } \
     _offset = __shfl(_offset, 0); \
@@ -252,10 +254,12 @@ struct Sequence {
 }while(0) \
 
 #define NESLDIST(res, p1, p2)  do{\
+  int i =0;\
   MALLOC(res, p2, struct Sequence);\
-  for(i = 0; i<p2;i++){\
+  while(i<p2){\
     int elem = p1;\
     SET_ELEM_I(elem, res, i);\
+    i++;\
   }\
 }while(0)
 
@@ -274,8 +278,8 @@ __device__ int RAND_I(int range){
 curandState state;
   int tmp;
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  printf("hello ");
-  //curand_init(1337, idx, 0, &state);
+  //printf("hello ");
+  curand_init(1337, idx, 0, &state);
   tmp =  (curand_uniform(&state)*10000);
   tmp %= range;
   //printf("idx:%d, tmp:%d\n",idx,tmp);
@@ -283,12 +287,18 @@ curandState state;
 }
 __device__ void print_SEQ_I(struct Sequence src){
   int i,tmp;
-  //int len = src.len;
+  int len = src.len;
   //int idx = blockIdx.x * blockDim.x + threadIdx.x;
   //if(idx ==0){
-  for(i=0;i<src.len;i++){
-    printf("i:%d,elem:%d\n",i,((int*)src.ptr)[i]);
+  i=0;
+  while(i<len){
+    GET_ELEM_I(tmp,src,i);
+    printf("%d, ",tmp);
+
+    //printf("i:%d,elem:%d\n",i,((int*)src.ptr)[i]);
+    i++;
   }
+  printf("\n");
   //}
   //printf("idx:%d, tmp:%d\n",idx,tmp);
   return ;
@@ -313,11 +323,22 @@ __device__ int isContiguousList(int start, int len, struct Sequence list){
 
 __device__ struct Sequence genShuffledList(int start, int len){
   struct Sequence res;
-  int i,idx=0;
+  int i=0,idx=0;
+  int rn1,rn2,tmp2,tmp1;
   MALLOC(res, len, struct Sequence);
-  while(i<len){//for (i =0 ;i<len;i++){
+  while(i<len){
     SET_ELEM_I(len+start-i-1,res,idx++);
-    i++
+    i++;
+  }
+  i=0;
+  while(i<len){
+    rn1 = RAND_I(start);
+    GET_ELEM_I(tmp1,res,rn1); 
+    rn2 = RAND_I(start);
+    GET_ELEM_I(tmp2,res,rn2);
+    SET_ELEM_I(tmp2,res,rn1);
+    SET_ELEM_I(tmp1,res,rn2);
+    i++;
   }
   return(res);
 }

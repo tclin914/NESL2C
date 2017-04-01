@@ -466,24 +466,24 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_SEQ_REF:{
-      struct SymTableEntry * child = findSymbol(node->child->table, node->child->string);
+      struct SymTableEntry * entry = findSymbol(node->child->table, node->child->string);
       
-      assert(child);
-      assert(child->type <= TypeSEQ);
-      assert(child->type >= TypeSEQ_I);
-      switch(child->type){
+      assert(entry);
+      assert(entry->type <= TypeSEQ);
+      assert(entry->type >= TypeSEQ_I);
+      switch(entry->type){
         case TypeSEQ:
           //node->child
-          switch(child->link->typeNode->nodeType){
+          switch(entry->link->typeNode->nodeType){
             case NODE_APPLYBODY1:
               break;
             case NODE_APPLYBODY2:
               node->valueType = 
-              child->link->typeNode->child->valueType;
+              entry->link->typeNode->child->valueType;
               break;
             case NODE_APPLYBODY3:
               node->valueType = 
-              child->link->typeNode->child->valueType;
+              entry->link->typeNode->child->valueType;
               break;
             case NODE_APPLYBODY4:
               break;
@@ -544,6 +544,10 @@ void typeAnalysis( struct nodeType *node){
               struct SymTableEntry *entry = findSymbol(node->table,RHS->string);
               assert(entry);
               typeBinding(LHS,entry->link->typeNode);
+              break;}
+              case NODE_FUNC_CALL:{
+                assert(RHS->typeNode);
+                typeBinding(LHS,RHS->typeNode);
               break;}
               case NODE_SEQ_REF:
               //minx = points[min_index(x)];
@@ -709,7 +713,7 @@ void typeAnalysis( struct nodeType *node){
         refNode->valueType = TypeTuple;
         assert(node->child->rsibling->valueType);
         Lchild->table = node->table;
-        Lchild->tokenType = 99;
+        Lchild->tokenType = -1;
         Lchild->valueType = node->child->rsibling->valueType;
         node->typeNode = refNode;
         typeAnalysis(refNode);
