@@ -184,19 +184,31 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, " < ");
       sqcodegen(fptr, node->child->rsibling);
       break;
-
     case OP_GT:
       sqcodegen(fptr, node->child);
       fprintf(fptr, " > ");
       sqcodegen(fptr, node->child->rsibling);
       break;
-    
     case OP_ADD:
       sqcodegen(fptr, node->child);
       fprintf(fptr, " + ");
       sqcodegen(fptr, node->child->rsibling);
       break;
-
+    case OP_SUB:
+      sqcodegen(fptr, node->child);
+      fprintf(fptr, " - ");
+      sqcodegen(fptr, node->child->rsibling);
+      break;
+    case OP_MUL:
+      sqcodegen(fptr, node->child);
+      fprintf(fptr, " * ");
+      sqcodegen(fptr, node->child->rsibling);
+      break;
+    case OP_DIV:
+      sqcodegen(fptr, node->child);
+      fprintf(fptr, "/");
+      sqcodegen(fptr, node->child->rsibling);
+      break;
     case OP_EQ:
       sqcodegen(fptr, node->child);
       fprintf(fptr, " == ");
@@ -204,8 +216,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
 
     case OP_SHARP:
-      sqcodegen(fptr, node->child);
-      fprintf(fptr, ".len");
+      if(node->child->valueType >= TypeSEQ_I){
+      sqcodegen(fptr, node->child);fprintf(fptr, ".len");}
+      else assert(0); // not implement yet
       break;
 
     case OP_BIND:{
@@ -285,11 +298,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       printAddREF(fptr, node->string, node->valueType, node);
        // insertREF(node->string, node->valueType, node);
       }
-      break;
-    case OP_DIV:
-      sqcodegen(fptr, node->child);
-      fprintf(fptr, "/");
-      sqcodegen(fptr, node->child->rsibling);
       break;
     }
     break;
@@ -371,7 +379,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case TypeSEQ_I:
        fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
                 LHS->string, node->string, LHS->paramcount);
-        insertREF(LHS->string,TypeSEQ_I, LHS);
+        //insertREF(LHS->string,TypeSEQ_I, LHS);
       break;
       default:
         assert(0);
@@ -387,7 +395,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case TypeSEQ_I:
         fprintf(fptr,"SET_ELEM_SEQ_I(%s,%s,%d);\n", 
                 RHS->string, node->string, RHS->paramcount);
-        insertREF(RHS->string, TypeSEQ_I, RHS);
+        //insertREF(RHS->string, TypeSEQ_I, RHS);
       break;
     break;
     case NODE_SEQ_TUPLE:
@@ -396,7 +404,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }
     
     if(LHS->valueType>=TypeSEQ_I)
-      DECREF(fptr,node->counts);
+      //DECREF(fptr,node->counts);
     printAddREF(fptr, node->string, node->valueType, node);
   break;
   }// end of NEW_SEQ
@@ -458,6 +466,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
       }
       fprintf(fptr, "(%s,%s,i);\n",varchild->string,arrchild->string);
+    }
       fprintf(fptr, "%s = ", retchild->string);
       sqcodegen(fptr, LHS);
       fprintf(fptr, ";\n");
@@ -482,14 +491,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "(%s,%s,i);\n", retchild->string,node->string);
       // SET_ELEM contains atomicAdd.
       if(retchild->valueType>=TypeSEQ_I)
-        {insertREF(retchild->string, retchild->valueType, retchild);
-          forlooprefaddcount++;   
+        {
+          //insertREF(retchild->string, retchild->valueType, retchild);
+          //forlooprefaddcount++;   
         }
       
       varchild = varchild->rsibling;
       arrchild = arrchild->rsibling;
       DECREF(fptr,forlooprefaddcount);
-    }
     fprintf(fptr, "}\n");// close for
     
     if(node->parent->nodeType !=NODE_OP){

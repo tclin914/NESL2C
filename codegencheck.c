@@ -365,17 +365,6 @@ void pfcheck(struct nodeType* node){
         strcpy(node->string, tmp[index]);
         node->inserttmp = 1;
         issrand = 1;
-        //switch(node->child->rsibling->child->child->rsibling->nodeType){
-        //  case NODE_INT:{
-        //    char* buffer = malloc(sizeof(char)*100);
-        //    sprintf(buffer,"%d",node->iValue);
-        //    strcpy(node->string, buffer);
-        //  break;
-        //  }
-        //  case NODE_TOKEN:
-        //    strcpy(node->string, node->child->rsibling->string);
-        //  break;
-        //}
       }
         pfcheck(node->child);
         pfcheck(node->child->rsibling);
@@ -513,36 +502,36 @@ void pfcheck(struct nodeType* node){
       }
       
       if(node->parent->nodeType == NODE_APPLYBODY2){
-      struct nodeType* sourceArrays = newNode(NODE_SRCARR);
-      struct nodeType* freeVars = newNode(NODE_FreeVars);
-      struct nodeType *arrchild, *varchild;
-      addChild(node->parent, sourceArrays);
-      addChild(node->parent, freeVars);
-      child = node->child;
-      for(int i =0; i<count;i++){
-        arrchild = child->child->rsibling;
-        varchild = child->child;
-        if(arrchild->lsibling == varchild)
-          arrchild->lsibling = arrchild;
-        if(arrchild->rsibling == varchild)
-          arrchild->rsibling = arrchild;
-        if(varchild->rsibling == arrchild)
-          varchild->rsibling = varchild;
-        if(varchild->lsibling == arrchild)
-          varchild->lsibling = varchild;
-        addChild(sourceArrays, arrchild);
-        addChild(freeVars, varchild);
-        freeVars->counts++;
-        //child->child->rsibling = child->child;
-        //child->child->lsibling = child->child;
-        //child->child->rsibling->rsibling = child->child->rsibling;
-        //child->child->rsibling->lsibling = child->child->rsibling;
-        
-        child = child->rsibling;
-      }
-      node->lsibling->rsibling = node->rsibling;
-      node->rsibling->lsibling = node->lsibling;
-      printTree(node->parent,0);
+        struct nodeType* sourceArrays = newNode(NODE_SRCARR);
+        struct nodeType* freeVars = newNode(NODE_FreeVars);
+        struct nodeType *arrchild, *varchild;
+        addChild(node->parent, sourceArrays);
+        addChild(node->parent, freeVars);
+        child = node->child;
+        for(int i =0; i<count;i++){
+          arrchild = child->child->rsibling;
+          varchild = child->child;
+          if(arrchild->lsibling == varchild)
+            arrchild->lsibling = arrchild;
+          if(arrchild->rsibling == varchild)
+            arrchild->rsibling = arrchild;
+          if(varchild->rsibling == arrchild)
+            varchild->rsibling = varchild;
+          if(varchild->lsibling == arrchild)
+            varchild->lsibling = varchild;
+          addChild(sourceArrays, arrchild);
+          addChild(freeVars, varchild);
+          freeVars->counts++;
+          //child->child->rsibling = child->child;
+          //child->child->lsibling = child->child;
+          //child->child->rsibling->rsibling = child->child->rsibling;
+          //child->child->rsibling->lsibling = child->child->rsibling;
+
+          child = child->rsibling;
+        }
+        node->lsibling->rsibling = node->rsibling;
+        node->rsibling->lsibling = node->lsibling;
+        printTree(node->parent,0);
       }
       else if (node->parent->nodeType == NODE_APPLYBODY3){
         struct nodeType* sourceArrays = newNode(NODE_SRCARR);

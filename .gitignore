@@ -9,3 +9,5 @@ doc/
 lex.yy.c
 output/
 *.cu
+nvme*
+qs*

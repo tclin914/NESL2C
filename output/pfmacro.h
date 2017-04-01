@@ -1,7 +1,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <time.h>
-
 struct Pair_I {
   int   a;
   int   b;
@@ -198,7 +197,7 @@ struct Sequence {
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     _p = predExpr; \
     _mask = __ballot(_p); \
-    if(laneID() == 0) { \
+    if(laneID() == 1) { \
       _offset = atomicAdd(&_filteredLen, __popc(_mask)); \
     } \
     _offset = __shfl(_offset, 0); \
@@ -224,7 +223,7 @@ struct Sequence {
     GET_ELEM_ ## typeMacro2(e2, s2, _i); \
     _p = predExpr; \
     _mask = __ballot(_p); \
-    if(laneID() == 0) { \
+    if(laneID() == 1) { \
       _offset = atomicAdd(&_filteredLen, __popc(_mask)); \
     } \
     _offset = __shfl(_offset, 0); \
@@ -252,16 +251,6 @@ struct Sequence {
   printf("\n"); \
 }while(0) \
 
-#define print_SEQ_I(src) do{ \
-  int i,e; \
-  printf("printSEQ %s: \n",#src); \
-  for(i=0;i<src.len;i++){  \
-    GET_ELEM_I(e, src, i); \
-    print_I(e);\
-  }\
-  printf("\n"); \
-}while(0)
-
 #define NESLDIST(res, p1, p2)  do{\
   MALLOC(res, p2, struct Sequence);\
   for(i = 0; i<p2;i++){\
@@ -269,37 +258,72 @@ struct Sequence {
     SET_ELEM_I(elem, res, i);\
   }\
 }while(0)
- 
-#if __PF_COMPILER__ ==1 
+
+
+
+#if __PF_COMPILER__ == 1 
 #pragma pf device 
 int RAND_I(int range);
+void print_SEQ_I(struct Sequence src);
+int isContiguousList(int start, int len, struct Sequence list);
+struct Sequence genShuffledList(int start, int len);
 #else
+#include <curand_kernel.h>
+#include <cuda.h>
 __device__ int RAND_I(int range){
 curandState state;
   int tmp;
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-  curand_init(1337, idx, 0, &state);
+  printf("hello ");
+  //curand_init(1337, idx, 0, &state);
   tmp =  (curand_uniform(&state)*10000);
   tmp %= range;
+  //printf("idx:%d, tmp:%d\n",idx,tmp);
   return tmp;
 }
+__device__ void print_SEQ_I(struct Sequence src){
+  int i,tmp;
+  //int len = src.len;
+  //int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  //if(idx ==0){
+  for(i=0;i<src.len;i++){
+    printf("i:%d,elem:%d\n",i,((int*)src.ptr)[i]);
+  }
+  //}
+  //printf("idx:%d, tmp:%d\n",idx,tmp);
+  return ;
+}
+__device__ int isContiguousList(int start, int len, struct Sequence list){
+  int elm;
+  int noerror=1;
+  int i =0;
+  while(i<len){// for(int i=0;i<len;i++){
+    GET_ELEM_I(elm , list, i);
+    if(elm!=start+i){
+      printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
+      noerror= 0;
+      }
+    i++;
+  }
+  if(noerror){
+    printf("this is a Contiguous list.!\n");
+  }
+  return noerror;
+}
+
+__device__ struct Sequence genShuffledList(int start, int len){
+  struct Sequence res;
+  int i,idx=0;
+  MALLOC(res, len, struct Sequence);
+  while(i<len){//for (i =0 ;i<len;i++){
+    SET_ELEM_I(len+start-i-1,res,idx++);
+    i++
+  }
+  return(res);
+}
+
+
 #endif
 
 #define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
-
-//#if PF_COMPILER == 1
-//#pragma pf device 
-//int myRand();
-//#pragma pf device 
-//void initialize();
-//
-//#else 
-//__device__ curandState *State;
-//#define myRand() cuRandUniform ();
-//curandState *mystate = (curandState*)malloc(sizeof(curandState));
-//curand_init(1337, idx, 0, &mystate[0]);
-//float RN = curand_uniform(&mystate[0]);
-//#endif 
-
 

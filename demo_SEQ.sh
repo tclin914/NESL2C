@@ -2,7 +2,7 @@
 
 make all
 ./NESL2C test/qs_test.nesl -sqc
-gcc output/qs_test_sqc.c -o qs_test_sqc
+gcc output/qs_test_sqc.c -o qs_test_sqc -g
 ./qs_test_sqc
 
 
