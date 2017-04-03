@@ -440,7 +440,11 @@ void dumpTable(FILE *fptr, struct nodeType* node){
 
 void printparam(FILE *fptr, struct nodeType* node){
  switch(node->nodeType){
-      
+  case NODE_TUPLE:
+    printparam(fptr, node->child);
+    fprintf(fptr, ", ");
+    printparam(fptr, node->child->rsibling);
+  break;
   case NODE_PAIR:
     fprintf(fptr, "(");
     printparam(fptr, node->child);
@@ -466,8 +470,15 @@ void printparam(FILE *fptr, struct nodeType* node){
       case TypeBool:
         fprintf(fptr, "bool ");
       break;
+      case TypeTuple_F:
+        fprintf(fptr, "struct PAIR_F");
+      break;
       case TypeTuple_IF:
         fprintf(fptr, "struct tupleIF ");
+      break;
+      case TypeTuple:
+        fprintf(fptr, "struct tuple");
+      break;
       break;
       default:
         assert(0); // tuple not implemented.
@@ -539,6 +550,96 @@ void printNewSeq(FILE *fptr, struct nodeType* node){
   }
 
 }
+
+void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
+  assert(node1); assert(node2);
+  //printTree(node1,0);
+  //printTree(node2,0);
+  struct nodeType *child1 = node1->child;
+  struct nodeType *child2 = node2->child;
+  switch(node1->nodeType){
+  case NODE_PATTERN:
+    printBindTuple(fptr, child1, node2);
+  return;
+  case NODE_PAIR:
+    printBindTuple(fptr, child1, node2);
+  return;
+  
+  }
+  switch(node2->nodeType){
+  case NODE_PATTERN:
+    printBindTuple(fptr, node1, child2);
+  return;
+  case NODE_TYPE_PAIR:
+    printBindTuple(fptr, node1, child2);
+  return;
+  case NODE_PAIR:
+    printBindTuple(fptr, node1, child2);
+  return;
+  }
+
+  switch(node1->nodeType){
+  case NODE_TOKEN:
+  fprintf(fptr, "%s = ",node1->string);  
+    switch(node2->nodeType){
+    case NODE_TOKEN: //not likely happened.
+    fprintf(fptr, "%s;\n",node2->string);
+    break;
+    case NODE_TUPLE:
+    fprintf(fptr, "%s;\n",node2->string);
+    break;
+    }
+  break;
+  case NODE_TUPLE:
+    switch(node2->nodeType){
+      //fprintf(fptr, "%s = %s;\n", node1->string, node2->string);
+    //  fprintf(fptr, "%s = %s.a;\n", child1->string, node1->string);
+    //  fprintf(fptr, "%s = %s.b;\n", child1->rsibling->string, node1->string);
+    //  
+    //  if(child1->valueType>= TypeTuple_I){
+    //    
+    //  }
+    //  
+    //  //printBindTuple(fptr,child1,child1);
+    //  //printBindTuple(fptr,child1->rsibling,child1);
+    //
+    //break;
+    case NODE_TOKEN:
+
+      assert(node2->valueType >= TypeTuple_I);
+      fprintf(fptr, "%s = %s;\n", node1->string, node2->string);
+      
+    case NODE_TUPLE:{
+      struct nodeType* refnode = newNode(NODE_TUPLE);
+      refnode->valueType = node1->valueType;
+      refnode->string = malloc(sizeof(char)*100);
+      strcpy(refnode->string, node1->string);
+      child1 = child1;
+      child2 = child1->rsibling;
+      while(child1->nodeType==NODE_PAIR)// remove Pair
+        child1=child1->child;
+      while(child2->nodeType==NODE_PAIR)
+        child2=child2->child;
+      fprintf(fptr, "%s = %s.a;\n",child1->string, node1->string);
+      fprintf(fptr, "%s = %s.b;\n",child2->string, node1->string);
+      if(child1->valueType >= TypeTuple_I){ 
+        printBindTuple(fptr, child1, refnode);
+      }
+      if(child2->valueType >= TypeTuple_I){ 
+        printBindTuple(fptr, child2, refnode);
+      }
+      free(refnode);
+    break;}
+    }
+  break;
+  }
+  
+}
+
+
+/*below seems not used.*/
+
+
 
 void APP2printFor(FILE *fptr, struct nodeType* node1, struct nodeType* node2){
   //char[100] seqname = node2->child->child->

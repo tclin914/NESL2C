@@ -74,6 +74,16 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "\n}\n");
       fprintf(fptr, "\n");
       break;
+    case TypeFloat:
+      fprintf(fptr, "float %s", node->string);
+      printparam(fptr, node->child);
+      fprintf(fptr, "{\nfloat _res;\n");
+      //fprintf(fptr, "struct TypeTuple tmp;\n");
+      sqcodegen(fptr,node->child->rsibling->rsibling);
+      DECREF(fptr,refTable.size);
+      fprintf(fptr, "return _res;\n");
+      fprintf(fptr, "\n}\n");
+    break;
     case TypeSEQ_I:
       fprintf(fptr, "struct Sequence  %s", node->string);
       //sqcodegen(fptr,node->child);
@@ -256,6 +266,23 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "diff = ((float)(_t2 - _t1) / CLOCKSPEED);\n");
           fprintf(fptr, "tm = diff;\n");
           fprintf(fptr, "}\n");
+        }
+      break;
+      case NODE_TUPLE:
+        assert(0); // not likely happened.
+      break;
+      case NODE_TOKEN:
+        if(RHS->valueType >= TypeTuple_I){
+          assert(RHS->string);
+          struct SymTableEntry *entry = findSymbol(node->table, RHS->string);
+          assert(entry);
+          //fprintf("%s = %s;\n", 
+          printBindTuple(fptr, LHS, entry->link);
+        }
+        else{
+        fprintf(fptr, " = ");
+        sqcodegen(fptr, node->child->rsibling);
+        fprintf(fptr, ";\n");
         }
       break;
       default :

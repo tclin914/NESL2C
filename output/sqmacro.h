@@ -26,7 +26,7 @@ struct Sequence {
 };
 
 // cpu speed. compute result in ms
-#define CLOCKSPEED CLOCKS_PER_SEC*1000 
+#define CLOCKSPEED CLOCKS_PER_SEC*1000.0 
 
 int globalrefcount=0;
 int globalmalloc=0;

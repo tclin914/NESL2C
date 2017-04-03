@@ -582,7 +582,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
                     // struct sequence since it's TypeSEQ_I
                     // indicate that parent is TypeSEQ_SEQ_I
                     insertREF(phase2->string, phase2->valueType, phase2);
-                    deleteREF(phase1->string);
+                    //deleteREF(phase1->string);
                     break;
                 }// end of switch paramEntry
                 break;
