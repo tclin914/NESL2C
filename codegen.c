@@ -438,6 +438,50 @@ void dumpTable(FILE *fptr, struct nodeType* node){
 
 }// end of dumpTable.
 
+
+void printTupleParam(FILE *fptr, struct nodeType* node){
+  if(node->nodeType == NODE_TUPLE){
+    printTupleParam(fptr, node->child);
+    printTupleParam(fptr, node->child->rsibling);
+    
+  }else if(node->nodeType == NODE_PAIR){
+    printTupleParam(fptr, node->child);
+    return;
+  }
+  else {
+   switch(node->valueType){
+   case TypeFloat:
+    fprintf(fptr, "%f;\n", node->rValue);
+   break;
+   case TypeInt:
+    fprintf(fptr, "%d;\n", node->iValue);
+   break;
+   case TypeSEQ_I:
+   case TypeSEQ_F:
+   case TypeSEQ_B:
+   case TypeSEQ_C:
+   case TypeSEQ:
+    
+   break;
+   } 
+  }
+  assert(node->nodeType == NODE_TUPLE); // make sure it's tuple here.
+  struct nodeType *LHS = node->child;
+  struct nodeType *RHS = node->child->rsibling;
+  while(LHS->nodeType == NODE_PAIR)
+    LHS=LHS->child;
+  while(RHS->nodeType == NODE_PAIR)
+    RHS=RHS->child;
+  fprintf(fptr, "%s = %s.a;\n", LHS->string, node->string);
+  fprintf(fptr, "%s = %s.b;\n", RHS->string, node->string);
+  if(LHS->nodeType == NODE_TUPLE)
+    printTupleParam(fptr,LHS);
+  if(RHS->nodeType == NODE_TUPLE)
+    printTupleParam(fptr,RHS);
+
+}
+
+
 void printparam(FILE *fptr, struct nodeType* node){
  switch(node->nodeType){
   case NODE_TUPLE:
@@ -503,58 +547,8 @@ void printparam(FILE *fptr, struct nodeType* node){
 
 }
 
-
-void APP3printFor(FILE *fptr, struct nodeType* node1, struct nodeType* node2){
-  char seqname[100];
-  strcpy(seqname, node1->child->child->rsibling->string);
-  fprintf(fptr, "for(int i = 0, count =0; i<%s.len; i++){\n", seqname);
-  
-  // ugly declare the "e" by dump it.
-  dumpTable(fptr, node2->child);
-  
-  // and initialize it by assigning an element value.
-  fprintf(fptr, "  %s = %s.ptr[i];\n",node1->child->child->string,seqname);
-  
-  // print the FILTER 
-  // may also use boolean guard here.
-  fprintf(fptr, "  if(");
-
-  assert(node2->nodeType == NODE_FILTER);
-  codegen(fptr, node2->child);
-  fprintf(fptr, "){\n");
-  
-  fprintf(fptr, "    %s.ptr[count] = %s.ptr[i];\n    count++;\n    %s.len++;\n}\n", 
-          node1->parent->rsibling->child->string,
-          seqname,
-          node1->parent->rsibling->child->string
-          );
-  fprintf(fptr, "}\n");
-  
-}
-
-void printNewSeq(FILE *fptr, struct nodeType* node){
-  
-  // this should be called from APP3printFor
-  // aim to allocate the tmp array v in quicksort.
-
-  assert(node->nodeType == NODE_IN);
-  struct nodeType *elm = node->child;
-  struct nodeType *newSEQ = node->child->rsibling;
-  //fprintf(fptr, "for( int i =0;  i < %d; i++){\n", newSEQ->counts);
-  struct nodeType *newelm = newSEQ->child;
-  fprintf(fptr, "%s = malloc(sizeof(%s)*%d);\n",elm->string, 
-                                        newelm->string, newSEQ->counts);
-  for(int i =0;i<newSEQ->counts;i++){
-    fprintf(fptr, "%s.ptr[i] = %s;\n",elm->string,newelm->string);
-    newelm = newelm->rsibling;
-  }
-
-}
-
 void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
   assert(node1); assert(node2);
-  //printTree(node1,0);
-  //printTree(node2,0);
   struct nodeType *child1 = node1->child;
   struct nodeType *child2 = node2->child;
   switch(node1->nodeType){
@@ -592,18 +586,6 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
   break;
   case NODE_TUPLE:
     switch(node2->nodeType){
-      //fprintf(fptr, "%s = %s;\n", node1->string, node2->string);
-    //  fprintf(fptr, "%s = %s.a;\n", child1->string, node1->string);
-    //  fprintf(fptr, "%s = %s.b;\n", child1->rsibling->string, node1->string);
-    //  
-    //  if(child1->valueType>= TypeTuple_I){
-    //    
-    //  }
-    //  
-    //  //printBindTuple(fptr,child1,child1);
-    //  //printBindTuple(fptr,child1->rsibling,child1);
-    //
-    //break;
     case NODE_TOKEN:
 
       assert(node2->valueType >= TypeTuple_I);
@@ -635,372 +617,3 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
   }
   
 }
-
-
-/*below seems not used.*/
-
-
-
-void APP2printFor(FILE *fptr, struct nodeType* node1, struct nodeType* node2){
-  //char[100] seqname = node2->child->child->
-  
-  // below for qs.nesl
-  struct nodeType *newseq = node2->child->child->rsibling;
-  if(newseq!=0 && newseq->nodeType == NODE_NEW_SEQ){
-    // node1 might be functioncall or node_op;
-    // here consider node_op firstly.
-    fprintf(fptr, "{\n");
-    dumpTable(fptr, node1);
-    printNewSeq(fptr, node2->child);  
-    //fprintf(fptr, "for( int i =0; i<%d;i++){\n", newseq->counts);
-    //fprintf(fptr, "  %s.ptr[i] = %s;\n"
-    
-    switch(node1->nodeType){
-      case NODE_FUNC_CALL:{
-        struct nodeType *funcName = node1->child;
-        struct nodeType *funcPara = funcName->rsibling;// usually a node pair.
-        fprintf(fptr, "for( int i =0; i<%d;i++){\n", newseq->counts);
-        fprintf(fptr, "  %s.ptr[i] = %s(%s.ptr[i]);\n", 
-                node1->parent->rsibling->child->string,
-                funcName->string,
-                funcPara->child->string
-                );
-
-        fprintf(fptr, "}\n");
-
-        break;
-      }
-      default:
-        assert(0);// not implement.
-        break; 
-    }
-    fprintf(fptr, "}\n");
-
-  }else{ 
-    // other cases 
-
-    fprintf(fptr, "for(int i = 0, count =0; i<newseq.len; i++){\n");
-    fprintf(fptr, "}\n");
-  } 
-  //fprintf(fptr, "for(int i = 0, count =0; i<%s.len; i++){\n");
-}
-
-void codegen(FILE *fptr, struct nodeType* node){
-
-  struct nodeType *child = node->child;
-      switch(node->nodeType){
-        case NODE_NESL:{
-          
-          for(int i =0; i<node->counts ; i++){
-            if(child->nodeType == NODE_DATATYPE){
-              assert(0);// not implement;
-            }
-            child = child->rsibling;
-          }
-          for(int i =0 ; i< node-> counts ; i++ ){
-            if(child->nodeType == NODE_FUNC){
-              codegen(fptr, child);
-            }
-            child = child->rsibling;
-          }
-          fprintf(fptr, "int main(){\n");
-          dumpTable(fptr,child);
-          for(int i=0; i< node->counts; i++){
-            if(child->nodeType !=NODE_FUNC && child->nodeType != NODE_DATATYPE)
-              codegen(fptr, child);
-          }
-          fprintf(fptr, "\nreturn 0;\n}"); 
-          break;
-        }
-
-        case NODE_FUNC:{
-          struct SymTableEntry * entry = findSymbol(node->child->table, node->string);
-          assert(entry);
-          switch(entry->type){
-            case TypeInt:
-              fprintf(fptr, "int %s", node->string);
-              codegen(fptr,node->child); //input parameter
-              fprintf(fptr, "{\n");
-              dumpTable(fptr, node->child);
-    
-              codegen(fptr,node->child->rsibling->rsibling);
-              fprintf(fptr, "\n}\n");
-              fprintf(fptr, "\n");
-              break;
-            case TypeSEQ_I:
-              fprintf(fptr, "struct Sequence  %s", node->string);
-              //codegen(fptr,node->child);
-              printparam(fptr, node->child);
-              fprintf(fptr, "{\nstruct Sequence res;\n");
-              fprintf(fptr, "struct Sequence tmp;\n");
-              
-              // FIXME how to dump table without the inputparam
-              //dumpTable(fptr, node->child);
-              
-              codegen(fptr, node->child->rsibling->rsibling);
-              fprintf(fptr, "res = tmp;\nreturn res;\n");
-              fprintf(fptr, "\n}\n");
-              break;
-            case TypeTuple:
-              fprintf(fptr, "struct TypeTuple %s", node->string);
-              codegen(fptr,node->child);
-              fprintf(fptr, "{\n");
-              fprintf(fptr, "{\nstruct TypeTuple res;\n");
-              fprintf(fptr, "struct TypeTuple tmp;\n");
-              codegen(fptr,node->child->rsibling->rsibling);
-              fprintf(fptr, "\n}\n");
-              break;
-            default:
-              assert(0);//not implement;
-            break;
-          }
-          break;
-        }
-        
-        case NODE_IFELSE:{
-          struct nodeType* ifstmt = node->child;
-          struct nodeType* thstmt = node->child->rsibling;
-          struct nodeType* elstmt = node->child->rsibling->rsibling;
-          codegen(fptr,ifstmt);
-          codegen(fptr,thstmt);
-          codegen(fptr,elstmt);
-          break;
-        }
-
-        case NODE_IFSTMT:
-          fprintf(fptr, "if");
-          codegen(fptr, node->child);
-          break;
-        
-        case NODE_THENSTMT:
-          fprintf(fptr, "{\n");
-          fprintf(fptr, "tmp = ");
-          codegen(fptr, node->child);
-          fprintf(fptr, ";\n}");
-          break;
-
-        case NODE_ELSESTMT:
-          fprintf(fptr, "else{\n");
-          codegen(fptr, node->child);
-          fprintf(fptr, "}\n");
-          break;
-        
-        case NODE_LET:
-          dumpTable(fptr, node);
-          codegen(fptr, node->child);
-          fprintf(fptr, "\ntmp = ");
-          codegen(fptr, node->child->rsibling);
-          fprintf(fptr, ";\n");
-          break;
-        
-        case NODE_BIND:{
-          struct nodeType* child = node->child;
-          if(child){
-            do{
-              codegen(fptr, child);
-              child = child->rsibling;
-            }while(child!=node->child);
-          }  
-          break;
-        }
-        case NODE_EXP:
-        case NODE_PATTERN:
-          codegen(fptr, node->child);
-          break;
-        case NODE_OP:
-          switch(node->op){
-            case OP_LT:
-              codegen(fptr, node->child);
-              fprintf(fptr, " < ");
-              codegen(fptr, node->child->rsibling);
-              break;
-            
-            case OP_GT:
-              codegen(fptr, node->child);
-              fprintf(fptr, " > ");
-              codegen(fptr, node->child->rsibling);
-              break;
-            
-            case OP_EQ:
-              codegen(fptr, node->child);
-              fprintf(fptr, " == ");
-              codegen(fptr, node->child->rsibling);
-              break;
-            
-            case OP_SHARP:
-              codegen(fptr, node->child);
-              fprintf(fptr, ".len");
-              break;
-            
-            case OP_BIND:
-              
-              codegen(fptr, node->child);
-              switch(node->child->rsibling->nodeType){
-              case NODE_APPLYBODY1:
-              case NODE_APPLYBODY2:
-              case NODE_APPLYBODY3:
-              case NODE_APPLYBODY4:
-                fprintf(fptr, ".ptr = ");
-                codegen(fptr, node->child->rsibling);
-                break;
-              default :
-                fprintf(fptr, " = ");
-                codegen(fptr, node->child->rsibling);
-                fprintf(fptr, ";\n");
-              }
-              break;
-            
-            case OP_PP:
-              fprintf(fptr, "concat(");
-              codegen(fptr, node->child);
-              fprintf(fptr, ",");
-              codegen(fptr, node->child->rsibling);
-              fprintf(fptr, ")");
-              break;
-            case OP_DIV:
-              codegen(fptr, node->child);
-              fprintf(fptr, "/");
-              codegen(fptr, node->child->rsibling);
-              break;
-          }
-          break;
-       
-        case NODE_SEQ_REF:
-          codegen(fptr, node->child);
-          fprintf(fptr, ".ptr[");
-          codegen(fptr, node->child->rsibling);
-          fprintf(fptr, "]");
-          break;
-        
-        case NODE_APPLYBODY1:
-          abort();
-          break;
-        
-        case NODE_APPLYBODY2:
-          codegen(fptr, node->child->rsibling);
-          APP2printFor(fptr, node->child, node->child->rsibling);
-          //fprintf(fptr, "for loop");
-          break;
-        
-        case NODE_APPLYBODY3:
-          codegen(fptr, node->child);
-          APP3printFor(fptr, node->child, node->child->rsibling);
-          //fprintf(fptr, "for loop");
-
-          break;
-        
-        case NODE_APPLYBODY4:
-          break;
-        
-        case NODE_RBINDS:
-          //FIXME might have many children
-          codegen(fptr, node->child);
-          break;
-        
-        case NODE_IN:
-          //FIXME here only consider the simple ApplyBody Exp.
-          assert(node->child->nodeType == NODE_TOKEN);
-          //assert(node->child->rsibling->nodeType == NODE_TOKEN);
-          switch(node->child->rsibling->nodeType){
-          case NODE_TOKEN:{
-            struct SymTableEntry *entry = 
-              findSymbol(node->table, node->child->rsibling->string);
-            assert(entry);
-            switch(entry->type){
-              case TypeSEQ_I:
-                fprintf(fptr, "malloc(sizeof(int)*%s.len);\n",entry->name);
-                break;
-              case TypeSEQ_F:
-                fprintf(fptr, "malloc(sizeof(float)*%s.len);\n",entry->name);
-                break;
-              case TypeSEQ_B:
-                fprintf(fptr, "malloc(sizeof(bool)*%s.len);\n",entry->name);
-                break;
-              case TypeSEQ_C:
-                fprintf(fptr, "malloc(sizeof(char)*%s.len);\n",entry->name);
-                break;
-              case TypeSEQ:
-                fprintf(fptr, "malloc(sizeof(%s.ptr[0])*%s.len);\n",
-                                            entry->name,entry->name);
-                break;
-              default:
-                assert(0); //break;
-                break;
-            }
-            break;
-          }
-          
-          case NODE_NEW_SEQ:
-            switch(node->valueType){
-              case TypeSEQ:
-                fprintf(fptr, "malloc(sizeof(%s)*%d);\n",
-                              node->child->rsibling->child->string,
-                              node->child->rsibling->counts);
-                //FIXME problems in the future.
-                fprintf(fptr, "%s.len = %d;\n",
-                              node->parent->parent->rsibling->child->string,
-                              node->child->rsibling->counts);
-                break;
-
-            }
-          break;
-          case NODE_FUNC_CALL:
-           break; 
-          default:
-            abort();
-            break;
-          }
-          break;
-
-        case NODE_TUPLE:
-          codegen(fptr, node->child);
-          fprintf(fptr, " , ");
-          codegen(fptr, node->child->rsibling);
-          break;
-
-        case NODE_PAIR:
-          fprintf(fptr, "(");
-          assert(child);
-          //codegen(fptr,node->child);
-          do{
-            codegen(fptr,node->child);
-            child = child->rsibling;
-          }while(child!=node->child);
-          fprintf(fptr, ")");
-          break;
-        case NODE_INT:
-          fprintf(fptr," %d ",node->iValue);
-          break;
-
-        case NODE_FUNC_CALL:{
-          if(!strcmp(node->child->string, "rand")){
-             fprintf(fptr, "rand"); 
-          }else if(!strcmp(node->child->string, "dist")){
-             fprintf(fptr, "dist"); 
-          }else if(!strcmp(node->child->string, "time")){
-             fprintf(fptr, "time"); 
-          }else{
-            codegen(fptr, node->child);
-          }
-          codegen(fptr, node->child->rsibling);
-          break;
-        }
-        
-        case NODE_TOKEN:
-          switch(node->tokenType){
-            case TOKE_ID:{
-              // FIXME 0215 if I dump the table in the first, then I don't need
-              // to worried whether here is the declaration or assignment.
-              struct SymTableEntry* entry = findSymbol(node->table, node->string);
-              assert(entry);
-              fprintf(fptr, "%s", node->string);
-            }
-              
-          }
-          break;
-        default:
-          break;
-      }
-  return;
-}
-

@@ -630,8 +630,6 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
   }
   case NODE_APPLYBODY3:
     pfcodegen(fptr, node->child);
-    //APP3printFor(fptr, node->child, node->child->rsibling);
-    //fprintf(fptr, "for loop");
 
     break;
 

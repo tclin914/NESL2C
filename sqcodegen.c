@@ -285,6 +285,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, ";\n");
         }
       break;
+      case NODE_PAIR:{
+        fprintf(fptr,"pair\n");
+      break;}
       default :
         fprintf(fptr, " = ");
         sqcodegen(fptr, node->child->rsibling);
@@ -556,123 +559,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
     break;
   }
-/*
-case GEN_APP2:{
-    struct nodeType* phase1 = node->child->rsibling->child->rsibling->child;
-    struct nodeType *phase2 = node->child->child;
-    struct nodeType* phase3 = node->child->rsibling->child;
-
-    if(phase1->nodeType == NODE_IN){
-      if(phase1->child->rsibling->nodeType == NODE_FUNC_CALL){
-        //sqcodegen(fptr, phase1->child->rsibling);
-        if(!strcmp(phase1->child->rsibling->child->string,"dist")){
-          struct nodeType* param1 = phase1->child->rsibling->child->rsibling->child->child;
-          struct nodeType* param2 = phase1->child->rsibling->child->rsibling->child->child->rsibling;
-          struct nodeType* APP2 = node->child->rsibling;
-
-          fprintf(fptr, "{\n");
-          dumpTable(fptr, phase1);
-          sqcodegen(fptr, phase1);
-          
-          //FIXME sencond parameter 不該是 param2.
-          // sqcodegen(fptr,phase3);
-          fprintf(fptr, "for(i =0 ; i<%s.len, i++){\n", APP2->string);
-          fprintf(fptr, "NESLRAND_SEQ(%s,%s,%s,%s,", 
-                  node->string, 
-                  param2->string,
-                  phase1->string,
-                  phase1->child->string
-                  );
-          assert(phase1->child->valueType);
-          switch(phase1->child->valueType){
-            case TypeInt:
-              fprintf(fptr, "I");
-            break;
-            default:
-              assert(0);
-          }
-          fprintf(fptr, ");\n\n");
-          fprintf(fptr, "}\n");
-          
-        }
-      
-    }else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ){
-        int count = phase1->child->rsibling->counts;
-        assert(count);
-        if(count == 2){
-          fprintf(fptr, "MAKE_SEQ_2(%s, ",phase1->string);
-          switch(phase1->child->rsibling->child->valueType){
-            case TypeSEQ_I:
-              fprintf(fptr, "struct Sequence, SEQ_I, ");
-              break;
-          }
-          fprintf(fptr, "%s,%s);\n", 
-            phase1->child->rsibling->child->string,
-            phase1->child->rsibling->child->rsibling->string);  
-          
-          switch(phase1->valueType){
-            case TypeSEQ:
-              break;
-          }
-          insertREF(phase1->string, phase1->valueType, phase1);
-          
-          fprintf(fptr, "MALLOC(%s, 2, ",phase2->string);
-          switch(phase2->valueType){
-            case TypeSEQ:
-            case TypeSEQ_I:
-            case TypeSEQ_B:
-            case TypeSEQ_F:
-            case TypeSEQ_C:
-              fprintf(fptr, "struct Sequence);\n");
-          }
-
-          //TODO phase 3 forloop and set REFCNT
-          if(node->isparallel_rr){
-            fprintf(fptr, "#pragma pf parallel_rr\n");
-            fprintf(fptr, "for(i=0;i<%d;i++){\n", phase1->child->rsibling->counts);
-            dumpTable(fptr, phase3);
-            
-            // phase3 is action node
-            // phase3->rsibling is RBINDS
-            switch(phase3->nodeType){
-              case NODE_FUNC_CALL:{
-                struct SymTableEntry *paramEntry = 
-                  findSymbol(phase3->table, phase3->child->rsibling->child->string);
-                switch(paramEntry->type){
-                  case TypeSEQ_I:
-                    fprintf(fptr, "GET_ELEM_SEQ_I(%s, %s, i);\n",
-                      phase3->child->rsibling->child->string,
-                      phase1->string);
-                    if(phase3->isEndofFunction){
-                      fprintf(fptr, "res = %s", phase3->child->string);
-                      sqcodegen(fptr, phase3->child->rsibling);
-                      fprintf(fptr, ";\n");
-                      // int because paramtype is TypeSEQ_I
-                      fprintf(fptr, "SET_ELEM_SEQ_I(res, %s, i);\n", phase2->string);
-                      //fprintf(fptr, "}\n");
-                    }
-                    
-                    // struct sequence since it's TypeSEQ_I
-                    // indicate that parent is TypeSEQ_SEQ_I
-                    insertREF(phase2->string, phase2->valueType, phase2);
-                    deleteREF(phase1->string);
-                    break;
-                }// end of switch paramEntry
-                break;
-              }
-              default:
-                assert(0);//not implement;
-                break;
-            }// end of switch(phase3->nodeType)
-            fprintf(fptr, "}\n");
-          }// end of if(node->isparallel_rr)
-        }// end of else if(phase1->child->rsibling->nodeType == NODE_NEW_SEQ)
-      }//end of gen_app2
-  } 
-    
-  break;
-  }
-  */
   case GEN_APP3:{
     struct nodeType *APP3 = node->child->rsibling;
     struct nodeType *SRCARR = APP3->child;
@@ -699,45 +585,10 @@ case GEN_APP2:{
 
     printAddREF(fptr, node->string, node->valueType, node);
 
-    //fprintf(fptr, "FILTER_1(%s, %s,",node->string, node->child->rsibling->child->child->child->string);
-    //switch(node->valueType){
-    //  case TypeSEQ_I:
-    //    fprintf(fptr, " int, I,\n");
-    //  break;
-    //}
-    //fprintf(fptr, "%s, %s, ", 
-    //    node->child->rsibling->child->child->child->rsibling->string,
-    //    node->child->rsibling->child->child->child->string);
-    //switch(node->valueType){
-    //  case TypeSEQ_I:
-    //    fprintf(fptr, " int, I,\n");
-    //  break;
-    //}
-    //fprintf(fptr, "(");
-    //sqcodegen(fptr, node->child->rsibling->child->rsibling->child);
-    //fprintf(fptr, "));\n");
-    //switch(node->valueType){
-    //  case TypeSEQ_I:
-    //    //fprintf(fptr, "int), 1);\n");
-    //    break;
-    //}
-    //printAddREF(fptr, node->string, node->valueType, node);
     break;
   } // end of GEN_APP3
 
   case NODE_APPLYBODY3:{
-    //struct nodeType* refchild = node->child->child->rsibling;
-    //struct nodeType* arrchild = node->child->child->rsibling;
-    ////struct 
-    //switch(arrchild->nodeType){
-    //case NODE_NEW_SEQ:
-    //  sqcodegen(fptr, node->child);
-    //  //referencecount updated when generate.
-    //break;
-
-    //}
-    //APP3printFor(fptr, node->child, node->child->rsibling);
-    //fprintf(fptr, "for loop");
     struct nodeType *SRCARR = node->child;
     struct nodeType *FREVAR = SRCARR->rsibling;
     struct nodeType *FILTER = FREVAR->rsibling;
@@ -849,6 +700,9 @@ case GEN_APP2:{
           //sqcodegen(fptr, node->child);
         }
       }
+      break;
+      case NODE_TUPLE:
+        //printTupleParam(fptr, node->child->rsibling->child); 
       break;
       default:
       if(node->string){
