@@ -263,6 +263,11 @@ void printNESL(struct nodeType *node, FILE* yyout){
       fprintf(yyout,"%d",node->iValue);
       break;
     }
+    case NODE_BOOL:{
+      fprintf(yyout,"%s",node->string);
+      break;
+    }
+
 
     case NODE_IN:{
       printNESL(node->child, yyout);

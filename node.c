@@ -236,6 +236,9 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sNODE_EXP\n", blank);
             ident++;
             break;
+        case NODE_BOOL:
+            printf("%sNODE_BOOL: %s\n", blank, node->string);
+            break;
         case NODE_INT:
             printf("%s%d\n", blank, node->iValue);
             break;

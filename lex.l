@@ -94,7 +94,11 @@ struct nodeType* newTokenNode(int tokenType);
 "NOR"               {yylval.node = newTokenNode(NOR); token(NOR);}
 "XOR"               {yylval.node = newTokenNode(XOR); token(XOR);}
 "OR"      {yylval.node = newTokenNode(OR); token(OR);  }
-
+"PI"    {yylval.node = newTokenNode(floatconst);
+         yylval.node->valueValid = VALUE_R_VALID;
+         yylval.node->rValue = 3.141592653589793;
+         token(floatconst);
+        }
 
 [0-9]+ { 
     yylval.node = newTokenNode(intconst);
@@ -108,18 +112,25 @@ struct nodeType* newTokenNode(int tokenType);
     yylval.node->rValue = atof(yytext);
     token(floatconst);
 }
+"T"        {
+            yylval.node = newTokenNode(NODE_BOOL);
+            yylval.node->string = (char*)malloc(yyleng+1);
+            strcpy(yylval.node->string, yytext);
+            token(boolconst);
+}
+"F" {
+            yylval.node = newTokenNode(NODE_BOOL);
+            yylval.node->string = (char*)malloc(yyleng+1);
+            strcpy(yylval.node->string, yytext);
+            token(boolconst);
+}
 [_a-z0-9]+  {
             yylval.node = newTokenNode(TOKE_ID);
             yylval.node->string = (char*)malloc(yyleng+1);
             strcpy(yylval.node->string, yytext);
             token(ID);
 }
-'T'        {
-            token(boolconst);
-}
-'F' {
-            token(boolconst);
-}
+
 \"[^"]*\"     {
             yylval.node = newTokenNode(TOKE_STRING);
             yylval.node->string = (char*)malloc(yyleng+1);
