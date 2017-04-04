@@ -1,0 +1,14 @@
+function cross_product(o,line) :((float,float),(float,float),(float,float)) ->float =
+let (xo,yo) = o; 
+    ((x1,y1),(x2,y2)) = line;
+in (x1-xo)*(y2-yo) - (y1-yo)*(x2-xo);
+
+function hsplit(points,p1,p2) :([(float, float)],(float,float),(float,float)) -> [(float,float)]=
+let cross = {cross_product(p,(p1,p2)): p in points};
+    packed = {p in points; c in cross | plusp(c)};
+in if (#packed < 2) then [p1] ++ packed
+   else
+     let pm = points[max_index(cross)];
+     in flatten({hsplit(packed,p1,p2): p1 in [p1,pm]; p2 in [pm,p2]});
+
+
