@@ -753,6 +753,21 @@ void typeAnalysis( struct nodeType *node){
         node->valueType = TypeBool;
         assert(RHS->valueType == TypeSEQ_C);
         return;
+      }else if(strcmp(LHS->string, "sum") == 0){
+        switch(RHS->valueType){
+        case TypeSEQ_I:
+          node->valueType = TypeInt;
+        break;
+        case TypeSEQ_F:
+          node->valueType = TypeFloat;
+        break;
+        case TypeSEQ:
+          node->valueType = RHS->typeNode->valueType;
+          break;
+        default:
+          assert(0);// error
+        }  
+        return;
       }else{
           // TODO other built-in functions
       typeAnalysis(node->child);

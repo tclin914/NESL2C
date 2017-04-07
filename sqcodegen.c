@@ -477,11 +477,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   }
   case NODE_APPLYBODY2:{
     struct nodeType *LHS = node->child;
-    struct nodeType *SRCARR = node->child->rsibling;
-    struct nodeType *VARNODE = node->child->rsibling->rsibling;
-    struct nodeType *varchild = VARNODE->child;
-    struct nodeType *arrchild = SRCARR->child;
-//    struct nodeType *retchild = VARNODE->rsibling;
+    struct nodeType *RBINDS = LHS->rsibling;
+    struct nodeType *rbchild = RBINDS->child;
+    struct nodeType *varchild = rbchild->child;
+    struct nodeType *arrchild = varchild->rsibling;
     int refaddcount=0;
     int forlooprefaddcount=0;
 
@@ -489,18 +488,29 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "{\n");
     dumpTable(fptr, node->child);
 
-    //generate src array.
+    /*generate the src arrays.*/
     refaddcount = refTable.size;
-    sqcodegen(fptr, SRCARR);
+      //sqcodegen(fptr, SRCARR);
+    do{
+      arrchild = rbchild->child->rsibling;
+      sqcodegen(fptr, arrchild);
+      rbchild = rbchild->rsibling;
+    }while(rbchild!=RBINDS->child);
+    
     refaddcount = refTable.size-refaddcount; 
-    // allocate the dest array.
-    fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, SRCARR->string);
-    // loop the src array and apply the action.
+    
+    /* allocate the dest array.*/
+    fprintf(fptr, "MALLOC(%s,%s.len,struct Sequence);\n",node->string, arrchild->string);
+    
+    /* generate for loop */
     fprintf(fptr, "_len = %s.len;\n",node->string);
     fprintf(fptr, "#pragma pf parallel_rr\n");
     fprintf(fptr, "for (_i =0; _i <_len;_i++){\n");
-    for(int i =0;i<VARNODE->counts;i++){
-      // get elem from src array.
+    
+    /* get elem from src array.*/
+    do{
+      varchild = rbchild->child;
+      arrchild = rbchild->child->rsibling;
       switch(varchild->valueType){
       case TypeInt:
         fprintf(fptr, "GET_ELEM_I");
@@ -516,7 +526,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
       }
       fprintf(fptr, "(%s,%s,_i);\n",varchild->string,arrchild->string);
-    }
+      rbchild= rbchild->rsibling;
+    }while(rbchild!=RBINDS->child);
+
       fprintf(fptr, "%s = ", LHS->string);
       sqcodegen(fptr, LHS);
       fprintf(fptr, ";\n");
@@ -541,20 +553,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       assert(0);
       break;
       }
-      fprintf(fptr, "(%s,%s,_i);\n", LHS->string,node->string);
-      // SET_ELEM contains atomicAdd.
-      if(LHS->valueType>=TypeSEQ_I)
-        {
-          //insertREF(retchild->string, retchild->valueType, retchild);
-          //forlooprefaddcount++;   
-        }
+      fprintf(fptr, "(%s,%s,_i);\n", LHS->string, node->string);
       
-      varchild = varchild->rsibling;
-      arrchild = arrchild->rsibling;
       DECREF(fptr,forlooprefaddcount);
     fprintf(fptr, "}\n");// close for
     
-    if(node->parent->nodeType !=NODE_OP){
+    if((node->parent->nodeType !=NODE_OP)&&(node->parent->nodeType !=NODE_PAIR)){
     switch(node->valueType){
     case TypeTuple_IF:
       fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
@@ -578,19 +582,23 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   }
   case GEN_APP3:{
     struct nodeType *APP3 = node->child->rsibling;
-    struct nodeType *SRCARR = APP3->child;
-    struct nodeType *FREVAR = SRCARR->rsibling;
-    struct nodeType *FILTER = FREVAR->rsibling;
+    struct nodeType *RBINDS = APP3->child;
+    struct nodeType *rbchild = RBINDS->child;
+    struct nodeType *FREVAR = rbchild->child;
+    struct nodeType *SRCARR = FREVAR->rsibling;
+    struct nodeType *FILTER = RBINDS->rsibling; // TODO remove the pair in yacc.
     
-    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->child->string);
+            //do{}while(rbchild!=RBINDS->child); //this is for future FILTER_2.
+
+    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
       break;
     }
     fprintf(fptr, "%s, %s, ", 
-        SRCARR->child->string, 
-        FREVAR->child->string);
+        SRCARR->string, 
+        FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
@@ -606,19 +614,21 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   } // end of GEN_APP3
 
   case NODE_APPLYBODY3:{
-    struct nodeType *SRCARR = node->child;
-    struct nodeType *FREVAR = SRCARR->rsibling;
-    struct nodeType *FILTER = FREVAR->rsibling;
+    struct nodeType *RBINDS = node->child;
+    struct nodeType *rbchild = RBINDS->child;
+    struct nodeType *FREVAR = rbchild->child;
+    struct nodeType *SRCARR = FREVAR->rsibling;
+    struct nodeType *FILTER = RBINDS->rsibling; // TODO remove the pair in yacc.
     
-    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->child->string);
+    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
       break;
     }
     fprintf(fptr, "%s, %s, ", 
-        SRCARR->child->string, 
-        FREVAR->child->string);
+        SRCARR->string, 
+        FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
@@ -627,11 +637,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "(");
     sqcodegen(fptr,FILTER->child);
     fprintf(fptr, "));\n");
-
-
-
-
-
   break;
   }
 
