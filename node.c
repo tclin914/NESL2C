@@ -183,6 +183,10 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sNODE_SEQ_TUPLE\n", blank);
             ident++;
             break;
+        case NODE_ACTION_TUPLE:
+            printf("%sACTION_TUPLE\n", blank);
+            ident++;
+            break;
         case ELEM_TUPLE:
             printf("%sELEM_TUPLE\n", blank);
             ident++;

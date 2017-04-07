@@ -261,6 +261,7 @@ int atomicSub(int * a, int b){
 }while(0)
 
 #define NESLDIST(res, p1, p2)  do{\
+  int i;\
   MALLOC(res, p2, struct Sequence);\
   for(i = 0; i<p2;i++){\
     int elem = p1;\

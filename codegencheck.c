@@ -12,10 +12,15 @@ struct RefTable refTable;
 int elmindex[MAX];
 int tmpindex[MAX];
 int appindex[MAX];
-char elm[MAX][5] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10"};
-char tmp[MAX][5] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10"};
-char app[MAX][5] = {"app1","app2","app3","app4","app5","app6","app7","app8","app9","app10"};
-
+char elm[MAX][6] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10",
+        "elm11","elm12","elm13","elm14","elm15","elm16","elm17","elm18","elm19","elm20",
+        "elm21","elm22","elm23","elm24","elm25","elm26","elm27","elm28","elm29","elm30"};
+char tmp[MAX][6] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10",
+"tmp11","tmp12","tmp13","tmp14","tmp15","tmp16","tmp17","tmp18","tmp19","tmp20",
+"tmp21","tmp22","tmp23","tmp24","tmp25","tmp26","tmp27","tmp28","tmp29","tmp30"};
+char app[MAX][6] = {"app1","app2","app3","app4","app5","app6","app7","app8","app9","app10",
+        "app11","app12","app13","app14","app15","app16","app17","app18","app19","app20",
+        "app21","app22","app23","app24","app25","app26","app27","app28","app29","app30"};
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
   insertREF(string, type, node);
   if(type == TypeSEQ_I)
@@ -25,8 +30,7 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
 }
 
 void insertREF(char *s, enum StdType type, struct nodeType *link){
-  int index = refTable.size;
-  (refTable.size)++;
+  int index = refTable.size++;
   strcpy(refTable.entries[index].name, s);
   refTable.entries[index].type = type;
   refTable.entries[index].link = link;
@@ -64,6 +68,7 @@ void dumprefTable(){
 
 void DECREF(FILE* fptr,int n){
     int end = refTable.size;
+    assert(end>=n);
     for(int i =refTable.size-n;i<end;i++){
       if(strcmp("",refTable.entries[i].name)){
         switch(refTable.entries[i].type){
@@ -205,7 +210,7 @@ void pfcheck(struct nodeType* node){
             RHS->inserttmp = 1;
             RHS->isEndofFunction=0;
           }
-          
+          node->typeNode = LHS->typeNode;  
           int index = inserttmp(node);
           assert(index!=-1);
           node->string = malloc(sizeof(char)*100);
@@ -234,17 +239,7 @@ void pfcheck(struct nodeType* node){
                 assert(0);//not implement.
               break;
               }
-              //pfcheck(RHS);
-              //node->needcounter = RHS->needcounter;
               node->isparallel_rr = RHS->isparallel_rr;
-              ////assert(node->needcounter);
-              //if(node->needcounter){
-              //  if(!findSymbol(node->table,"i"))
-              //    addVariable("i", TypeInt, node->parent->parent);
-              //}
-              //node->nodeType = GEN_APP2;
-              //node->string = malloc(sizeof(char)*100);
-              //strcpy(node->string, child->child->string);
               
               break;
             case NODE_APPLYBODY3:
@@ -254,16 +249,24 @@ void pfcheck(struct nodeType* node){
               node->isparallel_rr = RHS->isparallel_rr;
               
               if(node->needcounter)
-                if(!findSymbol(node->table,"i"))
-                addVariable("i", TypeInt, node->parent->parent);
+                if(!findSymbol(node->table,"_i"))
+                addVariable("_i", TypeInt, node->parent->parent);
               node->nodeType = GEN_APP3;
               node->string = malloc(sizeof(char)*100);
-              switch(child->nodeType){
-              case NODE_PATTERN:
-                strcpy(node->string, child->child->string);
-              break;
+              switch(LHS->nodeType){
+              case NODE_PATTERN:{
+                struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string);
+                if(ent){
+                  if(ent->link->typeNode){
+                    ent->link->typeNode = RHS->typeNode;
+                  }
+                }
+                strcpy(node->string, LHS->child->string);
+                LHS->child->typeNode = RHS;
+              break;}
               case NODE_TOKEN:
-                strcpy(node->string, child->string);
+                strcpy(node->string, LHS->string);
+                LHS->typeNode = RHS;
               break;
               }
               break;  
@@ -303,8 +306,22 @@ void pfcheck(struct nodeType* node){
       break;
     }//end of case node->op
     case NODE_ACTION_TUPLE:{
-      assert(0);//not implement
-      //TODO if there is another tuple, transform and pfcheck it.
+      //if there is another tuple, transform and pfcheck it.
+      struct nodeType *child = node->child;
+      do{
+      if(child->nodeType == NODE_TUPLE){
+        child->nodeType = NODE_ACTION_TUPLE;
+        pfcheck(child);
+      }
+      child = child->rsibling;
+      }while(child!=node->child);
+      
+      int index = inserttmp(node);
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, tmp[index]);
+      node->inserttmp = 1;
+      pfcheck(node->child);
+      pfcheck(node->child->rsibling);
     break;
     }
     case NODE_APPLYBODY2:{
@@ -321,8 +338,8 @@ void pfcheck(struct nodeType* node){
       node->isparallel_rr = 1;
       if(!findSymbol(node->table,"_len"))
         addVariable("_len", TypeInt, node);
-      if(!findSymbol(node->table,"i"))
-        addVariable("i", TypeInt, node);
+      if(!findSymbol(node->table,"_i"))
+        addVariable("_i", TypeInt, node);
       int idx = insertapp(node); 
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, app[idx]);
@@ -346,14 +363,15 @@ void pfcheck(struct nodeType* node){
       pfcheck(node->child->rsibling);
       node->needcounter = node->child->needcounter;
       node->isparallel_rr = node->child->isparallel_rr;
-      break;
 
       struct nodeType * returnchild = newNode(NODE_APPRET);
-      returnchild->valueType = node->child->valueType;
-      returnchild->typeNode = node->child->typeNode;
+      returnchild->valueType = node->child->rsibling->child->valueType;
+      returnchild->typeNode = node->child->rsibling->child->typeNode;
+      node->typeNode = node->child->rsibling->child->typeNode;
       returnchild->string = malloc(sizeof(char)*100);
       strcpy(returnchild->string, "tmp");
       addChild(node, returnchild);
+      break;
     }
      
     case NODE_FUNC_CALL:{

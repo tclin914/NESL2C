@@ -914,9 +914,9 @@ void typeAnalysis( struct nodeType *node){
           assert(RHS->valueType ==9);
           switch(RHS->nodeType){
           case NODE_NEW_SEQ:
-          assert(node->child->rsibling->child->valueType>=10);
-          node->child->typeNode = node->child->rsibling->typeNode;
-          typeAnalysis(node->child);
+          assert(RHS->child->valueType>=10);
+          LHS->typeNode = RHS->typeNode;
+          typeAnalysis(LHS);
           break;
           case NODE_TOKEN:{
             struct SymTableEntry *entry = findSymbol(RHS->table, RHS->string);
@@ -988,7 +988,9 @@ void typeAnalysis( struct nodeType *node){
             if(entry)
               node->valueType = entry->type; 
             //else //FIXME
-              
+              if(node->valueType==TypeSEQ || node->valueType == TypeTuple){
+                node->typeNode = entry->link->typeNode;
+              }
               //addVariable(node->string, TypeInt, node);
 
             break;
@@ -1251,6 +1253,7 @@ void typeAnalysis( struct nodeType *node){
           case TypeSEQ_C:
           default:
             node->valueType = TypeSEQ;
+            node->typeNode = child;
             break;
         }
 
