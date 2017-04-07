@@ -582,19 +582,23 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   }
   case GEN_APP3:{
     struct nodeType *APP3 = node->child->rsibling;
-    struct nodeType *SRCARR = APP3->child;
-    struct nodeType *FREVAR = SRCARR->rsibling;
-    struct nodeType *FILTER = FREVAR->rsibling;
+    struct nodeType *RBINDS = APP3->child;
+    struct nodeType *rbchild = RBINDS->child;
+    struct nodeType *FREVAR = rbchild->child;
+    struct nodeType *SRCARR = FREVAR->rsibling;
+    struct nodeType *FILTER = RBINDS->rsibling; // TODO remove the pair in yacc.
     
-    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->child->string);
+            //do{}while(rbchild!=RBINDS->child); //this is for future FILTER_2.
+
+    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
       break;
     }
     fprintf(fptr, "%s, %s, ", 
-        SRCARR->child->string, 
-        FREVAR->child->string);
+        SRCARR->string, 
+        FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
@@ -610,19 +614,21 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   } // end of GEN_APP3
 
   case NODE_APPLYBODY3:{
-    struct nodeType *SRCARR = node->child;
-    struct nodeType *FREVAR = SRCARR->rsibling;
-    struct nodeType *FILTER = FREVAR->rsibling;
+    struct nodeType *RBINDS = node->child;
+    struct nodeType *rbchild = RBINDS->child;
+    struct nodeType *FREVAR = rbchild->child;
+    struct nodeType *SRCARR = FREVAR->rsibling;
+    struct nodeType *FILTER = RBINDS->rsibling; // TODO remove the pair in yacc.
     
-    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->child->string);
+    fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
       break;
     }
     fprintf(fptr, "%s, %s, ", 
-        SRCARR->child->string, 
-        FREVAR->child->string);
+        SRCARR->string, 
+        FREVAR->string);
     switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, " int, I,\n");
@@ -631,11 +637,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "(");
     sqcodegen(fptr,FILTER->child);
     fprintf(fptr, "));\n");
-
-
-
-
-
   break;
   }
 
