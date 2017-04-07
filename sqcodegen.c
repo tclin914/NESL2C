@@ -40,6 +40,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     
     fprintf(fptr, "#pragma pf global parallel\n");
     fprintf(fptr, "void myFunc1(){\n");
+    dumpTable(fptr, node);
     for(int i =0;i<node->counts;i++){
       if(child->nodeType !=NODE_DATATYPE && child->nodeType != NODE_FUNC){
         sqcodegen(fptr, child);
@@ -480,7 +481,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType *VARNODE = node->child->rsibling->rsibling;
     struct nodeType *varchild = VARNODE->child;
     struct nodeType *arrchild = SRCARR->child;
-    struct nodeType *retchild = VARNODE->rsibling;
+//    struct nodeType *retchild = VARNODE->rsibling;
     int refaddcount=0;
     int forlooprefaddcount=0;
 
@@ -516,16 +517,16 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }
       fprintf(fptr, "(%s,%s,_i);\n",varchild->string,arrchild->string);
     }
-      fprintf(fptr, "%s = ", retchild->string);
+      fprintf(fptr, "%s = ", LHS->string);
       sqcodegen(fptr, LHS);
       fprintf(fptr, ";\n");
       
-      if(retchild->valueType >=TypeSEQ_I&&retchild->valueType<=TypeSEQ){
-        retchild->typeNode = node;
-        printAddREF(fptr, retchild->string, retchild->valueType, retchild);
+      if(LHS->valueType >=TypeSEQ_I&&LHS->valueType<=TypeSEQ){
+        LHS->typeNode = node;
+        printAddREF(fptr, LHS->string, LHS->valueType, LHS);
         forlooprefaddcount++;
       }
-      switch(retchild->valueType){
+      switch(LHS->valueType){
       case TypeInt:
         fprintf(fptr, "SET_ELEM_I");
       break;
@@ -540,9 +541,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       assert(0);
       break;
       }
-      fprintf(fptr, "(%s,%s,_i);\n", retchild->string,node->string);
+      fprintf(fptr, "(%s,%s,_i);\n", LHS->string,node->string);
       // SET_ELEM contains atomicAdd.
-      if(retchild->valueType>=TypeSEQ_I)
+      if(LHS->valueType>=TypeSEQ_I)
         {
           //insertREF(retchild->string, retchild->valueType, retchild);
           //forlooprefaddcount++;   
@@ -765,8 +766,27 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         struct nodeType* param1 = node->child->rsibling->child->child;
         struct nodeType* param2 = node->child->rsibling->child->child->rsibling;
 
-        fprintf(fptr, "NESLDIST(%s,%d,%s);\n", 
-                node->string, param1->iValue, param2->string);      
+        fprintf(fptr, "NESLDIST(%s,",node->string);
+        switch(param1->nodeType){
+          case NODE_TOKEN:
+          fprintf(fptr,"%s,",param1->string);
+          break;
+          case NODE_INT:
+          fprintf(fptr,"%d,",param1->iValue);
+          break;
+          default:
+          assert(0);
+        }
+        switch(param2->nodeType){
+          case NODE_TOKEN:
+          fprintf(fptr,"%s);\n",param2->string);
+          break;
+          case NODE_INT:
+          fprintf(fptr,"%d);\n",param2->iValue);
+          break;
+          default:
+          assert(0);
+        }
         printAddREF(fptr, node->string, TypeSEQ_I, node);
       }else if(!strcmp(node->child->string, "time")){
         fprintf(fptr, "time"); 

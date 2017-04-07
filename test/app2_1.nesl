@@ -1,1 +1,1 @@
-nums = {rand(e): e in dist(100,n)};
+nums = {rand(e): e in dist(100,10)};

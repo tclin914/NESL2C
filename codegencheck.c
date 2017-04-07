@@ -346,14 +346,19 @@ void pfcheck(struct nodeType* node){
       //node->string = malloc(sizeof(char)*100);
       //strcpy(node->string, child->child->string);
               
-      struct nodeType * returnchild = newNode(NODE_APPRET);
-      returnchild->valueType = node->child->valueType;
-      returnchild->typeNode = node->child->typeNode;
-      returnchild->table = node->child->table;
-      returnchild->string = malloc(sizeof(char)*100);
-      strcpy(returnchild->string, "tmp");
-      addChild(node, returnchild);
-      addVariable(returnchild->string, returnchild->valueType, returnchild);
+      //struct nodeType * returnchild = newNode(NODE_APPRET);
+      //returnchild->valueType = node->child->valueType;
+      //returnchild->typeNode = node->child->typeNode;
+      //returnchild->table = node->child->table;
+      //returnchild->string = malloc(sizeof(char)*100);
+      //strcpy(returnchild->string, "tmp");
+      if(!node->child->string){
+      node->child->string = malloc(sizeof(char)*100);
+      strcpy(node->child->string, "tmp");
+      addVariable(node->child->string, node->child->valueType, node->child);
+      }
+      //addChild(node, returnchild);
+      //addVariable(returnchild->string, returnchild->valueType, returnchild);
       printTree(node,0);
       break;  
     }
