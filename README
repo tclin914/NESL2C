@@ -1,70 +1,30 @@
 NESL to Annotated C compiler
 
-Goal:
-    Translate nesl programs to Annotated C for partial flattening in CUDA.
 
-input : *.nesl
-output: *.c
+#DOWNLOAD
 
-TODO
-v 1. build lexer
-    a. got to fix the boolean definition
-v 2. build parser
-    a. should try the nested array first.
-v 3. build Tree
-v 4. build SymbolTable
-_ 5. Semantic analysis
-_ 6. Codegeneration
-X 7. Validation and optimization
+git clone https://github.com/jerry4chen/NESL2C.git
 
-%%%%%%%
-9th Mar.
-Add sample folder
+#BUILD
 
-gcc -g modifromcuda.c 
-./a.out 100
+make all
 
-//mytarget.c is referenced from test/qs.nesl
-gcc -g mytarget.c
-./a.out 
+#USE
+#
+#-pfc for PartialFlattening C.
+#-sqc for Sequential C.
+#-rev for reverse output NESL.
+#
+./NESL  <neslfile>.nesl [-sqc][-pfc][-rev]
 
+#compile sqc
 
+gcc output/<neslfile>.c 
 
-%%%%%%%
-23th Feb. 
-Make : make all
-Run : 
-    ./NESL2C test/qs_core.nesl [option, ex: -pfc -rev -omp -sqc]
-Output:
-    vim output/<filename>
-    vim reverseroutput/<filename>
+#execution
 
-%%%%%%%
-For Branch newgrammar:
-Build:
-    make newtest( contains the debug info.)
+./a.out
 
-Run:
-    ./a.out < test/sequence_good
-    ./a.out < test/function_good
-    ./a.out < test/qs.nesl
-    ./a.out < test/qh.nesl
-
-
-%%%%%%%
-
-Make:
-    make all
-Run: 
-    ./a.out < "Input-file"
-
-debug:
-    make debug
-    gdb
-    (gdb) file a.out
-    (gdb) b main
-    (gdb) r < test 
-
-NOTE:
-    Nov./03: search highlight the comments in nesl :
-        /%\_.\{-}%
+#quicksort demo
+chmod +x demo_SEQ.sh
+./demo_SEQ.sh
