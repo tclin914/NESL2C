@@ -15,7 +15,7 @@ void pfcodegen(FILE *fptr, struct nodeType* node){
     
     for(int i =0; i<node->counts ; i++){
       if(child->nodeType != NODE_DATATYPE && child->nodeType!= NODE_FUNC){
-        phase1(fptr, child); 
+        printGlobalVar(fptr, child); 
       }
       child = child->rsibling;
     }

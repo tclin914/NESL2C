@@ -545,7 +545,8 @@ void pfcheck(struct nodeType* node){
   }// end of switch node->nodeType
 }
 
-void phase1(FILE *fptr, struct nodeType* node){
+/*declare global variables.*/
+void printGlobalVar(FILE *fptr, struct nodeType* node){
   switch(node->nodeType){
   case NODE_TOKEN:
     if(node->tokenType == TOKE_ID){
@@ -562,17 +563,17 @@ void phase1(FILE *fptr, struct nodeType* node){
   case NODE_OP:{
     switch(node->op){
     case OP_BIND:
-      phase1(fptr, node->child);
+      printGlobalVar(fptr, node->child);
       break;
     }
     break;
   }
   case NODE_PAIR:{
-    phase1(fptr, node->child); 
+    printGlobalVar(fptr, node->child); 
   break;
   }
   case NODE_TUPLE:{
-    //phase1(fptr, node->child); 
+    //printGlobalVar(fptr, node->child); 
     switch (node->valueType){
     //case TypeTuple_I: 
     //  fprintf(fptr, "struct "); 
@@ -585,13 +586,13 @@ void phase1(FILE *fptr, struct nodeType* node){
     //break;
     case TypeTuple_F: 
       fprintf(fptr, "struct Pair_F %s;\n", node->string); 
-      phase1(fptr,node->child);
-      phase1(fptr,node->child->rsibling);
+      printGlobalVar(fptr,node->child);
+      (fptr,node->child->rsibling);
     break;
     case TypeTuple: 
       fprintf(fptr, "struct Tuple %s;\n", node->string); 
-      phase1(fptr,node->child);
-      phase1(fptr,node->child->rsibling);
+      printGlobalVar(fptr,node->child);
+      printGlobalVar(fptr,node->child->rsibling);
     break;
     }
   break;
