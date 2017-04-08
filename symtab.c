@@ -605,6 +605,7 @@ void typeAnalysis( struct nodeType *node){
         case OP_ADD:
           assert(LHS->valueType == RHS->valueType);
           node->valueType = RHS->valueType;
+          assert(node->valueType<=TypeFloat);
           break;
         case OP_SUB:
           assert(LHS->valueType == RHS->valueType);

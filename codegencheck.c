@@ -12,6 +12,10 @@ struct RefTable refTable;
 int elmindex[MAX];
 int tmpindex[MAX];
 int appindex[MAX];
+int addindex[MAX];
+int subindex[MAX];
+int mulindex[MAX];
+int divindex[MAX];
 char elm[MAX][6] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10",
         "elm11","elm12","elm13","elm14","elm15","elm16","elm17","elm18","elm19","elm20",
         "elm21","elm22","elm23","elm24","elm25","elm26","elm27","elm28","elm29","elm30"};
@@ -21,6 +25,19 @@ char tmp[MAX][6] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp
 char app[MAX][6] = {"app1","app2","app3","app4","app5","app6","app7","app8","app9","app10",
         "app11","app12","app13","app14","app15","app16","app17","app18","app19","app20",
         "app21","app22","app23","app24","app25","app26","app27","app28","app29","app30"};
+char add[MAX][6] = {"add1","add2","add3","add4","add5","add6","add7","add8","add9","add10",
+        "add11","add12","add13","add14","add15","add16","add17","add18","add19","add20",
+        "add21","add22","add23","add24","add25","add26","add27","add28","add29","add30"};
+char sub[MAX][6] = {"sub1","sub2","sub3","sub4","sub5","sub6","sub7","sub8","sub9","sub10",
+        "sub11","sub12","sub13","sub14","sub15","sub16","sub17","sub18","sub19","sub20",
+        "sub21","sub22","sub23","sub24","sub25","sub26","sub27","sub28","sub29","sub30"};
+char mul[MAX][6] = {"mul1","mul2","mul3","mul4","mul5","mul6","mul7","mul8","mul9","mul10",
+        "mul11","mul12","mul13","mul14","mul15","mul16","mul17","mul18","mul19","mul20",
+        "mul21","mul22","mul23","mul24","mul25","mul26","mul27","mul28","mul29","mul30"};
+char ddiv[MAX][6] = {"div1","div2","div3","div4","div5","div6","div7","div8","div9","div10",
+        "div11","div12","div13","div14","div15","div16","div17","div18","div19","div20",
+        "div21","div22","div23","div24","div25","div26","div27","div28","div29","div30"};
+
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
   insertREF(string, type, node);
   if(type == TypeSEQ_I)
@@ -99,6 +116,46 @@ void DECREF(FILE* fptr,int n){
       }
     }
     deleteREF(end-n,refTable.size);
+}
+
+int insertadd(struct nodeType* node){
+  for(int i =0; i<MAX; i++){
+    if(addindex[i] ==0){
+      addVariable(add[i], node->valueType, node);
+      addindex[i]=1;
+      return i;
+    }else if(i==MAX) return -1;
+  }
+}
+
+int insertsub(struct nodeType* node){
+  for(int i =0; i<MAX; i++){
+    if(subindex[i] ==0){
+      addVariable(sub[i], node->valueType, node);
+      subindex[i]=1;
+      return i;
+    }else if(i==MAX) return -1;
+  }
+}
+
+int insertmul(struct nodeType* node){
+  for(int i =0; i<MAX; i++){
+    if(mulindex[i] ==0){
+      addVariable(mul[i], node->valueType, node);
+      mulindex[i]=1;
+      return i;
+    }else if(i==MAX) return -1;
+  }
+}
+
+int insertdiv(struct nodeType* node){
+  for(int i =0; i<MAX; i++){
+    if(divindex[i] ==0){
+      addVariable(ddiv[i], node->valueType, node);
+      divindex[i]=1;
+      return i;
+    }else if(i==MAX) return -1;
+  }
 }
 
 int insertelm(struct nodeType* node){
@@ -197,6 +254,47 @@ void pfcheck(struct nodeType* node){
         RHS->isEndofFunction = node->isEndofFunction;
       }
       switch(node->op){
+        case OP_ADD:{
+          
+          int index= insertadd(node);
+          assert(index!=-1);
+          node->string = malloc(sizeof(char)*100);
+          strcpy(node->string, add[index]);
+          assert(node->string);
+          pfcheck(LHS);
+          pfcheck(RHS);
+          break;
+        }case OP_SUB:{
+          
+          int index= insertsub(node);
+          assert(index!=-1);
+          node->string = malloc(sizeof(char)*100);
+          strcpy(node->string, sub[index]);
+          assert(node->string);
+          pfcheck(LHS);
+          pfcheck(RHS);
+          break;
+        }case OP_MUL:{
+          
+          int index= insertmul(node);
+          assert(index!=-1);
+          node->string = malloc(sizeof(char)*100);
+          strcpy(node->string, mul[index]);
+          assert(node->string);
+          pfcheck(LHS);
+          pfcheck(RHS);
+          break;
+        }case OP_DIV:{
+          
+          int index= insertdiv(node);
+          assert(index!=-1);
+          node->string = malloc(sizeof(char)*100);
+          strcpy(node->string, ddiv[index]);
+          assert(node->string);
+          pfcheck(LHS);
+          pfcheck(RHS);
+          break;
+        }
         case OP_PP:{
           //node->isEndofFunction = node->parent->isEndofFunction;
           pfcheck(LHS);
@@ -291,7 +389,9 @@ void pfcheck(struct nodeType* node){
               pfcheck(RHS);
               if(LHS->nodeType == NODE_TOKEN){
                 assert(LHS->string);
-                addVariable(LHS->string, LHS->valueType, LHS);
+                if(!findSymbol(node->table, LHS->string)){
+                  addVariable(LHS->string, LHS->valueType, LHS);
+                }
               }
               break;
            }
