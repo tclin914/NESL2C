@@ -388,7 +388,8 @@ void printNESL(struct nodeType *node, FILE* yyout){
 void dumpTable(FILE *fptr, struct nodeType* node){
   struct SymTable * table = node->table;
   for(int i = 0; i<table->size ; i++){
-    if(table->entries[i].link->nodeType!=NODE_FUNC){
+    if(table->entries[i].link->nodeType!=NODE_FUNC 
+      && table->entries[i].isParam!=1){
       switch(table->entries[i].type){
         case TypeInt :
           fprintf(fptr, "int %s;\n",table->entries[i].name);

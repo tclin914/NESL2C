@@ -51,6 +51,7 @@ struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* l
     strcpy(SymbolTable->entries[index].name, s);
     SymbolTable->entries[index].type = type;
     SymbolTable->entries[index].link = link;
+    SymbolTable->entries[index].isParam = link->isParam;
     //printf("dump entry:%d, name:%s, type:%d, link:%x\n", index, 
     //    SymbolTable->entries[index].type,
     //    SymbolTable->entries[index].link);
@@ -164,6 +165,7 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
     case NODE_PATTERN:
     case NODE_PAIR:
       node1= node1->child;
+      node1->isParam = node1->parent->isParam;
       typeBinding(node1, node2);
       return;
     case RB_TUPLE:{
@@ -176,11 +178,13 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
       assert(node2->nodeType == NODE_TUPLE);
       struct nodeType * child1,*child2;
       child1 = node1->child;
+      child1->isParam = node1->isParam;
       child2 = node2->child;
-      if(node1->child!=0 && node2->child!=0){
+      if(child1 && child2){
         do{
           typeBinding(child1, child2);
           child1 = child1->rsibling;
+          child1->isParam = node1->isParam;
           child2 = child2->rsibling;
         }while((child1!=node1->child) && (child2!=node2->child));
       }
@@ -370,12 +374,14 @@ void typeAnalysis( struct nodeType *node){
       
       if(typeDef->op == OP_RARROW){
         // Bind the inputParameter with TypeDeclaration
+        inputParam->isParam=1;
         typeBinding(inputParam, typeDef->child);
         typeAnalysis(typeDef->child);
 
         // Analyse the returnType of the function, RHS of op_rarrow.
         typeAnalysis(typeDef->child->rsibling);
         node->table = node->parent->table;
+        node->isParam = 1;
         addVariable(node->string, typeDef->child->rsibling->valueType, node);  
         
         // Assign the returnType to the functionNode
@@ -546,7 +552,8 @@ void typeAnalysis( struct nodeType *node){
       case OP_BIND:{
         assert(RHS->valueType);
         LHS->valueType = RHS->valueType;
-
+        if(node->parent->nodeType == NODE_NESL)
+          LHS->isParam = 1;
         if(LHS->nodeType == NODE_PATTERN){
           // might have pattern->pair->tuple-id&id,
           // can't directly addVariable.

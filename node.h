@@ -48,6 +48,8 @@ struct nodeType {
     int needcounter;
     int isparallel_rr;
     int inserttmp;
+    int infilter;
+    int isParam;
 };
 
 struct nodeType* newNode(int type);

@@ -78,6 +78,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "float %s", node->string);
       printparam(fptr, node->child);
       fprintf(fptr, "{\nfloat _res;\n");
+      dumpTable(fptr, node->child);
       //fprintf(fptr, "struct TypeTuple tmp;\n");
       sqcodegen(fptr,node->child->rsibling->rsibling);
       DECREF(fptr,refTable.size);
@@ -90,6 +91,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       //sqcodegen(fptr,node->child);
       printparam(fptr, node->child);
       fprintf(fptr, "{\nstruct Sequence _res;\n");
+      dumpTable(fptr, node->child);
 //      fprintf(fptr, "struct Sequence tmp;\n");
 
       sqcodegen(fptr, node->child->rsibling->rsibling);
@@ -102,6 +104,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       sqcodegen(fptr,node->child);
       fprintf(fptr, "{\n");
       fprintf(fptr, "{\nstruct TypeTuple _res;\n");
+      dumpTable(fptr, node->child);
       //fprintf(fptr, "struct TypeTuple tmp;\n");
       sqcodegen(fptr,node->child->rsibling->rsibling);
       fprintf(fptr, "\n}\n");
@@ -132,12 +135,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     sqcodegen(fptr,elstmt);
     break;
   }
-
-  case NODE_IFSTMT:
-    fprintf(fptr, "if");
-    sqcodegen(fptr, node->child);
+  
+  case NODE_IFSTMT:{
+    struct nodeType * condition = node->child;
+    while(condition->nodeType == NODE_PAIR) condition = condition->child;
+    sqcodegen(fptr, condition); 
+    fprintf(fptr, "if(%s)",condition->string);
     break;
-
+  }
   case NODE_THENSTMT:
     fprintf(fptr, "{\n");
     if(node->isEndofFunction)
@@ -197,9 +202,99 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   case NODE_OP:{
     switch(node->op){
     case OP_LT:
+      if(node->infilter){
       sqcodegen(fptr, node->child);
       fprintf(fptr, " < ");
       sqcodegen(fptr, node->child->rsibling);
+      }else{
+      struct nodeType *op1 = node->child;
+      struct nodeType *op2 = op1->rsibling;
+      
+      /* remove pairs */
+      while(op1->nodeType == NODE_PAIR) op1=op1->child;
+      while(op2->nodeType == NODE_PAIR) op2=op2->child;
+      
+      /*open new scope*/ 
+      fprintf(fptr,"{\n");
+      
+      /*declare op1*/
+      switch(op1->valueType){
+      case TypeInt:
+      fprintf(fptr, "int op1;\n");
+      break;
+      case TypeChar:
+      fprintf(fptr, "char op1;\n");
+      break;
+      case TypeFloat:
+      fprintf(fptr, "float op1;\n");
+      break;
+      default:
+      assert(0);
+      }
+      
+      /* declare op2*/
+      switch(op2->valueType){
+      case TypeInt:
+      fprintf(fptr, "int op2;\n");
+      break;
+      case TypeChar:
+      fprintf(fptr, "char op2;\n");
+      break;
+      case TypeFloat:
+      fprintf(fptr, "float op2;\n");
+      break;
+      default:
+      assert(0);
+      }
+    
+      /*assign op1*/
+      switch(op1->nodeType){
+      case NODE_TOKEN:
+      fprintf(fptr, "op1 = %s;\n",op1->string);
+      break;
+      case NODE_INT:
+      fprintf(fptr, "op1 = %d;\n", op1->iValue);
+      break;
+      case NODE_FLOAT:
+      fprintf(fptr, "op1 = %f;\n", op1->rValue);
+      break;
+      case NODE_CHAR:
+      fprintf(fptr, "op1 = %s;\n", op1->string);
+      break;
+      default:
+      assert(op1->string);
+      sqcodegen(fptr, op1);
+      fprintf(fptr, "op1 = %s;\n",op1->string);
+      break;  
+      }
+      
+      /*assign op2*/
+      switch(op2->nodeType){
+      case NODE_TOKEN:
+      fprintf(fptr, "op2 = %s;\n",op2->string);
+      break;
+      case NODE_INT:
+      fprintf(fptr, "op2 = %d;\n", op2->iValue);
+      break;
+      case NODE_FLOAT:
+      fprintf(fptr, "op2 = %f;\n", op2->rValue);
+      break;
+      case NODE_CHAR:
+      fprintf(fptr, "op2 = %s;\n", op2->string);
+      break;
+      default:
+      assert(op2->string);
+      sqcodegen(fptr,op2);
+      fprintf(fptr, "op2 = %s;\n",op2->string);
+      break;  
+      }
+
+      fprintf(fptr, "%s = op1 < op2;\n",node->string);
+
+      /*close scope*/
+      fprintf(fptr,"}\n"); 
+      }
+
       break;
     case OP_GT:
       sqcodegen(fptr, node->child);
@@ -477,12 +572,28 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
        } 
       }
       break;}    
-    case OP_SHARP:
-      if(node->child->valueType >= TypeSEQ_I){
-      sqcodegen(fptr, node->child);fprintf(fptr, ".len");}
-      else assert(0); // not implement yet
+    case OP_SHARP:{
+      struct nodeType *op1 = node->child;
+      while(op1->nodeType == NODE_PAIR) op1=op1->child;
+      fprintf(fptr,"{\n");
+      assert(op1->valueType>=TypeSEQ_I); 
+      switch(op1->nodeType){
+      case NODE_TOKEN:
+          assert(op1->string);
+          fprintf(fptr, "%s=%s.len;\n",node->string,op1->string);
       break;
-
+      default:
+          assert(op1->string);
+          sqcodegen(fptr, op1);
+          fprintf(fptr, "%s=%s.len;\n",node->string,op1->string);
+      break;
+      }
+      
+      fprintf(fptr,"}\n");
+      if(node->parent->nodeType == NODE_NESL)
+        fprintf(fptr, "print_I(%s);\n", node->string);
+      break;
+    }
     case OP_BIND:{
       struct nodeType *LHS = node->child;
       struct nodeType *RHS = node->child->rsibling;
@@ -536,11 +647,20 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           fprintf(fptr,"pair\n");
         break;}
         default :
+        while(LHS->nodeType == NODE_PATTERN) LHS=LHS->child;
+        if(RHS->string){
+          sqcodegen(fptr, RHS);
+          //sqcodegen(fptr, LHS);
+          fprintf(fptr, "%s = %s",LHS->string,RHS->string);
+          fprintf(fptr, ";\n");
+        }
+        else{
           sqcodegen(fptr, LHS);
           fprintf(fptr, " = ");
           sqcodegen(fptr, RHS);
           fprintf(fptr, ";\n");
-      }
+        }
+      }// end of RHS->nodeType;
       //switch(LHS->nodeType){
       //case NODE_TOKEN:
       //  if(LHS->string)
@@ -599,19 +719,36 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
     }// end of NODE_OP
   case NODE_SEQ_REF:{
-    switch(node->valueType){
-      case TypeInt:
-        fprintf(fptr, "GET_ELEM_I(%s,%s,",node->string, node->child->string);
-        sqcodegen(fptr, node->child->rsibling); // print index.
-        fprintf(fptr, ");\n");
-        break;
-      case TypeSEQ_I:
-        fprintf(fptr, "GET_ELEM_SEQ_I(%s,%s,",node->string, node->child->string);
-        sqcodegen(fptr, node->child->rsibling); // print index.
-        fprintf(fptr, ");\n");
-        break;
-      default:
-        assert(0);
+    struct nodeType *LHS = node->child;
+    struct nodeType *RHS = node->child->rsibling;
+
+    if(RHS->nodeType == NODE_INT){
+      switch(node->valueType){
+        case TypeInt:
+          fprintf(fptr, "GET_ELEM_I(%s,%s,%d",node->string, LHS->string,RHS->iValue);
+          fprintf(fptr, ");\n");
+          break;
+        case TypeSEQ_I:
+          fprintf(fptr, "GET_ELEM_SEQ_I(%s,%s,%d",node->string, LHS->string,RHS->iValue);
+          fprintf(fptr, ");\n");
+          break;
+        default:
+          assert(0);
+      }
+    }else{
+    sqcodegen(fptr, RHS); // print index.
+      switch(node->valueType){
+        case TypeInt:
+          fprintf(fptr, "GET_ELEM_I(%s,%s,%s",node->string, LHS->string,RHS->string);
+          fprintf(fptr, ");\n");
+          break;
+        case TypeSEQ_I:
+          fprintf(fptr, "GET_ELEM_SEQ_I(%s,%s,%s",node->string, LHS->string,RHS->string);
+          fprintf(fptr, ");\n");
+          break;
+        default:
+          assert(0);
+      }
     }
     break;
   }
