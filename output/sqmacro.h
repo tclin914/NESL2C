@@ -3,21 +3,6 @@
 #include <assert.h>
 #include <time.h>
 
-struct Pair_I {
-  int   a;
-  int   b;
-};
-
-struct Pair_F {
-  float   a;
-  float   b;
-};
-
-struct tupleIF {
-  int   a;
-  float   b;
-};
-
 /* Reference count should stored with the array */
 struct Sequence {
   int     len;    // Length
@@ -25,6 +10,48 @@ struct Sequence {
   void   *ptr;
 };
 
+
+struct Pair_I {
+  int   a;
+  int   b;
+};
+
+struct Pair_F {
+  float a;
+  float b;
+};
+
+struct tupleFI {
+  float a;
+  int   b;
+};
+
+struct tupleIF {
+  int   a;
+  float b;
+};
+
+
+struct tupleSF {
+  struct Sequence   a;
+  float      b;
+};
+struct tupleFS {
+  float      a;
+  struct Sequence   b;
+};
+struct tupleSI {
+  struct Sequence   a;
+  int        b;
+};
+struct tupleIS {
+  int        a;
+  struct Sequence   b;
+};
+struct tuple{
+  void *a;
+  void *b;
+};
 // cpu speed. compute result in ms
 #define CLOCKSPEED CLOCKS_PER_SEC*1000.0 
 
