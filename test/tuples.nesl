@@ -1,0 +1,12 @@
+function cross_product(o,line):
+((float,float),((float,float),(float,(float,float)) )) -> float =
+let (xo,yo) = o; 
+    ((x1,y1),(x2,(y2,y3))) = line;
+in (x1-xo)*(y2-yo) - (y1-yo)*(x2-xo);
+
+%
+    xo = o.a;
+    yo = o.b;
+    tmp1 = 
+
+%

@@ -1,0 +1,227 @@
+NumNodes=100;
+AdjList=
+[( 923056388, 170691697, 358396156,       415),
+ ( 498119168, 306744714, 826327297,       695),
+ ( 420448337, 328723629, 323391943,       631),
+ ( 464074416, 125299322, 789295948,       106),
+ ( 416486124, 633128903, 971395020,       395),
+ ( 738334168, 737536491, 924818607,       854),
+ ( 146798516, 768028337, 225009583,       740),
+ ( 361244024, 328257157, 439626882,       680),
+ ( 987967713,  75950894, 126464594,      1018),
+ ( 114058330, 569552319, 412296773,       895),
+ ( 348744424, 785974326,  84664999,        11),
+ (1043469317, 626549653, 738142369,       603),
+ ( 667625851, 873840351, 388720126,         1),
+ (1068816331, 109827195, 306088859,        85),
+ ( 438380096, 373540517, 238687301,       656),
+ ( 544088135, 896119181, 663162890,       424),
+ ( 605705564, 606900728, 583611280,       439),
+ ( 681941364, 520081037, 495338769,       104),
+ ( 558539333, 506115507, 372448063,       363),
+ (1068865228,1039846677, 301641993,       271),
+ ( 128526418, 591908397, 480067498,       133),
+ ( 215673162, 759232160, 167311516,       962),
+ (  52729616, 306009669, 321352418,       134),
+ ( 674904026, 644006676, 365975039,       704),
+ (   6041743, 256840404, 474389359,       187),
+ ( 207125257, 780044285, 835023929,       500),
+ (  37306019,1073447127, 660192344,       756),
+ ( 581593470, 124752071, 314558011,       489),
+ ( 537423263, 705441755, 421269504,       859),
+ ( 412072225, 316100629, 567479030,        65),
+ (1046412021,  37491136, 171341684,        39),
+ ( 470038330, 846321544, 188122268,       198),
+ ( 802873236, 250897888,1043825941,       618),
+ ( 303280942, 392515330, 549743384,       630),
+ ( 932003401, 858554784, 699142534,       132),
+ (  37054317, 230416660, 980077854,       228),
+ ( 524365881, 783886853, 396953375,       197),
+ ( 522705654, 897856535, 413573338,       965),
+ ( 311266098, 220021311, 428929774,       172),
+ ( 334649816, 143289674, 512273943,       778),
+ ( 310277847, 880073358,  82816000,       442),
+ ( 270144495, 981038664, 928232643,       734),
+ ( 694530048, 234900611, 976739454,       176),
+ ( 270834540, 397773540, 583693572,       626),
+ ( 553281980, 313990958, 765613603,       734),
+ ( 247460799, 952640562,1027710937,       737),
+ ( 760411244, 456812906, 720004189,       325),
+ ( 798909260, 209273376, 984669713,       558),
+ ( 995299709, 735077789, 202047499,       327),
+ ( 525315091, 571706225,1055161123,       237),
+ ( 642391740, 816803175, 714351243,       571),
+ ( 248480313, 320040063, 680636336,       898),
+ ( 800771690, 696683534, 949081331,       663),
+ ( 604645364, 424993508, 181881791,       929),
+ ( 221809404, 686105016, 478840183,       265),
+ (1071015087,   2979935, 734964869,       368),
+ ( 263191896, 805451244, 798200166,       964),
+ ( 388891745, 566729572,   8192538,       834),
+ ( 609144966,  78769306, 176957745,       638),
+ ( 381263472, 224169170, 303960347,       120),
+ ( 193883750, 870304324, 493307434,       104),
+ ( 701806052, 769416176,  56338497,       250),
+ ( 564418173, 125907831, 769413152,       689),
+ ( 264024185, 680890858, 680219489,       590),
+ ( 782708993, 971215599,1053025728,       177),
+ ( 735321185, 367546625, 123380941,       778),
+ ( 633361181,  88185217,  99775674,       754),
+ ( 552680693,  49318290, 366973808,       452),
+ (  27209822, 900243581, 513607832,       649),
+ ( 693446488, 146457417, 809269385,       541),
+ ( 244470512,  56884839, 384628849,       123),
+ ( 624175344, 313169448, 206640898,       936),
+ ( 402506093, 608893201, 825396940,       738),
+ ( 108601225, 305737609,  12797554,       111),
+ ( 182588498,  13332777, 897984093,       578),
+ ( 220734767, 123903910, 491918514,       806),
+ ( 777363304, 216308804, 451160475,       550),
+ ( 693042748, 663059623, 814543099,       766),
+ ( 458401973, 983045279, 748373893,       130),
+ ( 473529705, 990193264, 658900910,        48),
+ (1018981025, 754063623, 862231526,       945),
+ ( 141326544, 134960375, 412161601,       101),
+ ( 665389143, 176794664, 379170039,       414),
+ ( 716933904, 402352088, 711419356,       499),
+ ( 921345407, 100714834, 169398503,       199),
+ ( 205912492, 916142695, 299435314,       242),
+ (  93771113,  84725316, 944557557,       518),
+ ( 288508632, 402641847,  94734621,       350),
+ ( 467546807, 558537700, 645126033,       701),
+ ( 637634618, 108787772, 345920028,       285),
+ ( 958217751,  31293633, 833627924,       580),
+ ( 292359999, 410414607, 264762474,       420),
+ ( 106504807, 340740603,1029939848,        91),
+ ( 420384665, 823807748, 943861547,       644),
+ ( 385968935, 844135432, 987366998,       836),
+ ( 252150734, 848999725, 314293335,       130),
+ (1051077484,1041098990, 195196107,       789),
+ ( 267502035,  82370034, 332798422,       554),
+ ( 439190321, 262473344, 684755104,       594),
+ ( 346049510, 485681804, 336845676,       473)];
+
+function not120(v):(bool,bool,bool,bool)->(bool,bool,bool,bool) = 
+  let (x, y, z, w) = v;
+  in (NOT x, NOT y, NOT z, NOT w) $
+
+function and120(v1, v2) :((bool,bool,bool,bool),bool,bool,bool)->(bool,bool,bool,bool)= 
+  let (x1, y1, z1, w1) = v1;
+      (x2, y2, z2, w2) = v2;
+  in (x1 AND x2, y1 AND y2, z1 AND z2, w1 AND w2) $
+
+function or120(v1, v2) :((bool,bool,bool,bool),bool,bool,bool)->(bool,bool,bool,bool)= 
+  let (x1, y1, z1, w1) = v1;
+      (x2, y2, z2, w2) = v2;
+  in (x1 OR x2, y1 OR y2, z1 OR z2, w1 OR w2) $
+
+function xor120(v1, v2) :((bool,bool,bool,bool),bool,bool,bool)->(bool,bool,bool,bool)= 
+  let (x1, y1, z1, w1) = v1;
+      (x2, y2, z2, w2) = v2;
+  in (x1 XOR x2, y1 XOR y2, z1 XOR z2, w1 XOR w2) $
+
+function findFirstBit30Aux(nodeMask, min, max): (int, int, int) -> int =
+  if min == max then min
+  else
+    let mid  = (min+max)/2;
+        mask = lshift(1, mid);
+    in if mask == nodeMask then     mid
+       else if mask < nodeMask then findFirstBit30Aux(nodeMask, mid+1, max)
+       else                         findFirstBit30Aux(nodeMask, min, mid-1) $
+
+function findFirstBit30(val):int ->int = 
+  let temp     = (val AND (val-1));
+      nodeMask = (val XOR temp);
+  in findFirstBit30Aux(nodeMask, 0, 29) $
+
+function findFirstBit120(tuple):(int, int, int, int) -> int =
+  let (x, y, z, w) = tuple;
+  in if (x > 0) then      findFirstBit30(x)
+     else if (y > 0) then findFirstBit30(y)+30
+     else if (z > 0) then findFirstBit30(z)+60
+     else                 findFirstBit30(w)+90 $
+
+function numBit30(val):int->int = 
+  if val == 0 then 0
+  else numBit30(val AND (val-1))+1 $
+
+function numBit120(tuple):(int, int, int, int) -> int =
+  let (x, y, z, w) = tuple;
+  in numBit30(x)+numBit30(y)+numBit30(z)+numBit30(w) $
+
+function setBit120(tuple, pos): ((int, int, int, int), int) -> (int, int, int, int) = 
+  let (x, y, z, w) = tuple;
+  in if (pos < 30) then      (x OR lshift(1, pos), y, z, w)
+     else if (pos < 60) then (x, y OR lshift(1, pos-30), z, w)
+     else if (pos < 90) then (x, y, z OR lshift(1, pos-60), w)
+     else                    (x, y, z, w OR lshift(1, pos-90)) $
+
+function leaveBitBefore120(tuple, pos): ((int, int, int, int), int) -> (int, int, int, int) = 
+  let (x, y, z, w) = tuple;
+  in if (pos < 30) then      (x AND (lshift(1, pos+1)-1), 0, 0, 0)
+     else if (pos < 60) then (x, y AND (lshift(1, pos-30+1)-1), 0, 0)
+     else if (pos < 90) then (x, y, z AND (lshift(1, pos-60+1)-1), 0)
+     else                    (x, y, z, w AND (lshift(1, pos-90+1)-1)) $
+
+function listBitPos30(val, offset): (int, int) -> [int] = 
+  if val == 0 then [] int 
+  else 
+    let nextVal = (val AND (val-1));
+        mask    = (val XOR nextVal);
+    in [findFirstBit30Aux(mask, 0, 29)+offset]++listBitPos30(nextVal, offset) $
+
+function listBitPos120(tuple): (int, int, int, int) -> [int] = 
+  let (x, y, z, w) = tuple;
+  in listBitPos30(x, 0)++listBitPos30(y, 30)++listBitPos30(z, 60)++listBitPos30(w, 90) $
+
+function getFullMask(nb): int -> (int, int, int, int) = 
+  let m = (lshift(1, 30)-1);
+  in if (nb <= 30) then      (lshift(1, nb)-1, 0, 0, 0)
+     else if (nb <= 60) then (m, lshift(1, nb-30)-1, 0, 0)
+     else if (nb <= 90) then (m, m, lshift(1, nb-60)-1, 0)
+     else                    (m, m, m, lshift(1, nb-90)-1) $
+
+function isZero120(tuple): (int, int, int, int) -> bool = 
+  let (x, y, z, w) = tuple;
+  in x==0 AND y==0 AND z==0 AND w==0 $
+
+function sumL(arr) =
+  {sum({a[i]: a in arr}): i in iseq(0, 1, #arr[0])};
+
+function combineResultAux(res1, res2) = 
+  if #res1 == 0 then        res2
+  else if #res2 == 0 then   res1
+  else
+    let ((s1, n1), r1) = head_rest(res1);
+        ((s2, n2), r2) = head_rest(res2);
+    in if s1 == s2 then     [(s1, n1+n2)]++combineResultAux(r1, r2)
+       else if s1 < s2 then [(s1, n1)]++combineResultAux(r1, res2)
+       else                 [(s2, n2)]++combineResultAux(res1, r2) $
+
+function combineResult(res) = 
+  if #res == 0 then      [] (int, int)
+  else if #res == 1 then res[0]
+  else                   combineResultAux(res[0], combineResult(drop(res, 1))) $
+
+function choosePivot(c, p) = 
+  let cands   = listBitPos120(c);
+      fanouts = {numBit120(and120(p, not120(AdjList[pivot]))) : pivot in cands};
+      index   = min_index(fanouts);
+  in cands[index] $
+
+function mce(r, p, x, size) = 
+  if isZero120(p) then
+    if isZero120(x) then [(size, 1)] else [] (int, int)
+  else
+    let pivot     = choosePivot(or120(p, x), p);
+        filteredP = and120(p, not120(AdjList[pivot]));
+        cands     = listBitPos120(filteredP);
+    in combineResult({let nextR     = setBit120(r, selected);
+                          processed = leaveBitBefore120(filteredP, selected);
+                          nextP     = and120(xor120(p, processed), AdjList[selected]);
+                          nextX     = and120(or120(x, processed), AdjList[selected]);
+                      in mce(nextR, nextP, nextX, size+1) : selected in cands}) $
+
+% To run the benchmark, just call mce_demo(0); %
+function mce_demo(s) = time(mce((0,0,0,0), getFullMask(NumNodes), (0,0,0,0), s)) $
+
