@@ -602,8 +602,16 @@ void typeAnalysis( struct nodeType *node){
           }
         }
         else if(LHS->nodeType==NODE_TOKEN){
+          if(node->parent->nodeType==NODE_NESL) {
+            LHS->isParam = 0;
+          }
+
           LHS->valueType = RHS->valueType;
-          addVariable(LHS->string, RHS->valueType, LHS);
+            struct SymTableEntry *entry = findSymbol(node->table, LHS->string);
+            if(!entry)  
+              addVariable(LHS->string, RHS->valueType, LHS);
+                    //else
+          //addVariable(LHS->string, RHS->valueType, LHS);
         }else{
           assert(0); // not implement
         }
@@ -1177,18 +1185,6 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
 
-    //case ELEM_TUPLE:{
-    //  struct nodeType* LHS = node->child;
-    //  struct nodeType* RHS = node->child->rsibling;
-
-    //  //LHS and RHS should be simple types
-    //  // at most TypeSEQ_I (like sth in quicksort: [lesser, greater]);
-    //  typeAnalysis(LHS);
-    //  typeAnalysis(RHS);
-    //  switch(
-
-    //break;
-    //}
     case NODE_SEQ_TUPLE:{
       struct nodeType* LHS = node->child;
       struct nodeType* RHS = node->child->rsibling;

@@ -60,18 +60,18 @@ int globalmalloc=0;
 int globalfree=0;
 int atomicAdd(int * a, int b){
   int cnt = *a;
-  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
+//  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
   globalrefcount++;
   *a +=b;
-  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt;
 }
 int atomicSub(int * a, int b){
   int cnt = *a;
-  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
+//  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
   globalrefcount--;
   *a -=b;
-  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt ;
 }
 //#define atomicAdd(a,n) (*a +n )
@@ -304,6 +304,11 @@ int atomicSub(int * a, int b){
   srand(time(0));\
   RAND_##typer(res, src);\
 }while(0)
+
+#define MALLOC_HEAP_SIZE 1000000
+#define SET_HEAP_SIZE(size) do { \
+}while(0)
+
 int isContiguousList(int start, int len, struct Sequence list){
   int elm;
   int noerror=1;
@@ -380,5 +385,3 @@ int loopNext(int lb, int ub, int *idx) {
 }
 
 #define PARALLEL_LOOP(lb, ub, idx)  for(idx=loopStart(lb, ub, &idx); idx!=loopEnd(lb, ub, &idx); idx=loopNext(lb, ub, &idx))
-
-

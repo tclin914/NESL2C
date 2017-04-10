@@ -390,6 +390,7 @@ void dumpTable(FILE *fptr, struct nodeType* node){
   for(int i = 0; i<table->size ; i++){
     if(table->entries[i].link->nodeType!=NODE_FUNC 
       && table->entries[i].isParam!=1){
+      table->entries[i].isParam=1;// ensure every symbol printed onetime.
       switch(table->entries[i].type){
         case TypeInt :
           fprintf(fptr, "int %s;\n",table->entries[i].name);
@@ -614,10 +615,10 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
       
       if(node1->valueType == TypeTuple){
         fprintf(fptr, "%s = *(",child1->string);
-        printtype(fptr,child1);
+        printtype(fptr,child1->valueType);
         fprintf(fptr, "*)%s.a;\n",node1->string);
         fprintf(fptr, "%s = *(",child2->string);
-        printtype(fptr,child2);
+        printtype(fptr,child2->valueType);
         fprintf(fptr, "*)%s.b;\n",node1->string);
       }else{
         fprintf(fptr, "%s = %s.a;\n",child1->string, node1->string);
@@ -636,8 +637,8 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
   }// end of switch node1->nodeType
 }// end of printBindTuple
 
-void printtype(FILE *fptr, struct nodeType *node){
-  switch(node->valueType){
+void printtype(FILE *fptr, enum StdType type){
+  switch(type){
   case TypeInt:
     fprintf(fptr,"int");
     break;

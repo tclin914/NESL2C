@@ -20,6 +20,7 @@ int bolindex[MAX];
 int letindex[MAX];
 int _ppindex[MAX];
 int iftindex[MAX];
+int fclindex[MAX];
 char elm[MAX][6] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10",
         "elm11","elm12","elm13","elm14","elm15","elm16","elm17","elm18","elm19","elm20",
         "elm21","elm22","elm23","elm24","elm25","elm26","elm27","elm28","elm29","elm30"};
@@ -52,6 +53,9 @@ char _pp[MAX][6] = {"_pp1","_pp2","_pp3","_pp4","_pp5","_pp6","_pp7","_pp8","_pp
         "_pp21","_pp22","_pp23","_pp24","_pp25","_pp26","_pp27","_pp28","_pp29","_pp30"};
 char ift[MAX][6] = {"ift1","ift2","ift3","ift4","ift5","ift6","ift7","ift8","ift9","ift10",
         "ift11","ift12","ift13","ift14","ift15","ift16","ift17","ift18","ift19","ift20",
+        "_pp21","_pp22","_pp23","_pp24","_pp25","_pp26","_pp27","_pp28","_pp29","_pp30"};
+char fcl[MAX][6] = {"fcl1","fcl2","fcl3","fcl4","fcl5","fcl6","fcl7","fcl8","fcl9","fcl10",
+        "fcl11","fcl12","fcl13","fcl14","fcl15","fcl16","fcl17","fcl18","fcl19","fcl20",
         "_pp21","_pp22","_pp23","_pp24","_pp25","_pp26","_pp27","_pp28","_pp29","_pp30"};
 
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
@@ -179,6 +183,15 @@ int insertlet(struct nodeType* node){
     if(letindex[i] ==0){
       addVariable(let[i], node->valueType, node);
       letindex[i]=1;
+      return i;
+    }else if(i==MAX) return -1;
+  }
+}
+int insertfcl(struct nodeType* node){
+  for(int i =0; i<MAX; i++){
+    if(fclindex[i] ==0){
+      addVariable(fcl[i], node->valueType, node);
+      fclindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
   }
@@ -578,18 +591,21 @@ void pfcheck(struct nodeType* node){
       node->needcounter = node->child->needcounter;
       node->isparallel_rr = node->child->isparallel_rr;
 
-      //struct nodeType * returnchild = newNode(NODE_APPRET);
-      //returnchild->valueType = node->child->rsibling->child->valueType;
-      //returnchild->typeNode = node->child->rsibling->child->typeNode;
-      //node->typeNode = node->child->rsibling->child->typeNode;
-      //returnchild->string = malloc(sizeof(char)*100);
-      //strcpy(returnchild->string, "tmp");
-      //addChild(node, returnchild);
       break;
     }
     case NODE_FUNC_CALL:{
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = LHS->rsibling;
+
+      int index= insertfcl(node);
+      assert(index!=-1);
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, fcl[index]);
+      assert(node->string);
+    
       node->isEndofFunction = node->parent->isEndofFunction;
-      if(!strcmp(node->child->string,"dist")||
+
+      if(!strcmp(LHS->string,"dist")||
         node->parent->nodeType == NODE_NESL){
         int index = inserttmp(node);
         node->string = malloc(sizeof(char)*100);
@@ -597,12 +613,21 @@ void pfcheck(struct nodeType* node){
         node->inserttmp = 1;
         issrand = 1;
       }
-        pfcheck(node->child);
-        pfcheck(node->child->rsibling);
+      while (RHS->nodeType ==NODE_PAIR) RHS= RHS->child;
+      while (RHS->nodeType ==NODE_TUPLE) RHS->nodeType = PARAM_TUPLE;
+      pfcheck(LHS);
+      pfcheck(RHS);
+      if(LHS->isparallel_rr || RHS->isparallel_rr ) node->isparallel_rr;
 
     break;
     }
-
+    case PARAM_TUPLE:{
+      struct nodeType *LHS = node->child;
+      struct nodeType *RHS = LHS->rsibling;
+      if(RHS->nodeType == NODE_TUPLE) RHS->nodeType = PARAM_TUPLE;
+      pfcheck(LHS);
+      pfcheck(RHS);
+    break;}
     case NODE_TUPLE:{
       int index = inserttmp(node);
       node->string = malloc(sizeof(char)*100);

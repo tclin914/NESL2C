@@ -26,6 +26,7 @@ struct nodeType {
     int declarecount;
 
     /* Tuple */
+    int isvisited;
     int tuplecount;
     int childcount;
     struct nodeType * tuplenode;
