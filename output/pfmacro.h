@@ -339,6 +339,7 @@ __device__ struct Sequence genShuffledList(int start, int len){
     SET_ELEM_I(tmp2,res,rn1);
     SET_ELEM_I(tmp1,res,rn2);
     i++;
+  printf("rn2:%d, start:%d\n", rn2, start);
   }
   return(res);
 }

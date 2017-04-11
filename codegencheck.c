@@ -491,21 +491,18 @@ void pfcheck(struct nodeType* node){
             case NODE_APPLYBODY4:
               // not implemented
               break;
-            case NODE_SEQ_REF:
-              //  node->nodeType
-              // TODO what if a single exp with SEQ_REF
-              //      which means to print the element? 
-              //      
-              // Ans. won't be here. cause'
-              node->string = malloc(sizeof(char)*100);
-              strcpy(node->string, node->child->child->string);
-              //node->nodeType = GEN_SEQ_REF;
-              pfcheck(RHS);
-              pfcheck(LHS);
-              break;
-            case NODE_FUNC_CALL:
-            
-            break;
+            //case NODE_SEQ_REF:
+            //  //  node->nodeType
+            //  // TODO what if a single exp with SEQ_REF
+            //  //      which means to print the element? 
+            //  //      
+            //  // Ans. won't be here. cause'
+            //  node->string = malloc(sizeof(char)*100);
+            //  strcpy(node->string, node->child->child->string);
+            //  //node->nodeType = GEN_SEQ_REF;
+            //  pfcheck(RHS);
+            //  pfcheck(LHS);
+            //  break;
             default:
               pfcheck(LHS);
               pfcheck(RHS);
@@ -605,12 +602,7 @@ void pfcheck(struct nodeType* node){
     
       node->isEndofFunction = node->parent->isEndofFunction;
 
-      if(!strcmp(LHS->string,"dist")||
-        node->parent->nodeType == NODE_NESL){
-        int index = inserttmp(node);
-        node->string = malloc(sizeof(char)*100);
-        strcpy(node->string, tmp[index]);
-        node->inserttmp = 1;
+      if(!strcmp(LHS->string,"dist")||node->parent->nodeType == NODE_NESL){
         issrand = 1;
       }
       while (RHS->nodeType ==NODE_PAIR) RHS= RHS->child;
@@ -698,6 +690,18 @@ void pfcheck(struct nodeType* node){
       strcpy(node->string, RHS->string);
       break;
     }
+    case NODE_BIND:{
+      struct nodeType *child = node->child;
+      int counts=0;
+      if(child!=0){
+        do{
+          counts++;
+          pfcheck(child);
+          child = child->rsibling;
+        }while(child!=node->child);
+      }
+      break;
+    }
     case NODE_LETRET:{
       pfcheck(node->child);
       node->isparallel_rr = node->child->isparallel_rr;
@@ -713,6 +717,8 @@ void pfcheck(struct nodeType* node){
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, elm[index]);
       assert(node->string);
+      pfcheck(node->child);
+      assert(node->child->string);
       pfcheck(node->child->rsibling);
       break;
     }

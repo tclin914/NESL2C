@@ -987,17 +987,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
         case NODE_FUNC_CALL:
           
-          if(!strcmp(RHS->child->string, "time")){
-            fprintf(fptr, "{\nclock_t _t1,_t2;\nfloat diff;\n");
-            fprintf(fptr, "_t1 = clock();\n");
-            fprintf(fptr, "%s = ", LHS->child->child->child->string);
-            sqcodegen(fptr, RHS->child->rsibling->child);
-            fprintf(fptr, ";\n");
-            fprintf(fptr, "_t2 = clock();\n");
-            fprintf(fptr, "diff = ((float)(_t2 - _t1) / CLOCKSPEED);\n");
-            fprintf(fptr, "tm = diff;\n");
-            fprintf(fptr, "}\n");
-          }
+          
+          sqcodegen (fptr,RHS);
         break;
         case NODE_TUPLE:
           assert(0); // not likely happened.
@@ -1024,19 +1015,21 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           RHS= LHS->rsibling;
         break;}
         default :
-          while(LHS->nodeType == NODE_PATTERN) LHS=LHS->child;
-          if(RHS->string){
-            sqcodegen(fptr, RHS);
-            //sqcodegen(fptr, LHS);
-            fprintf(fptr, "%s = %s",LHS->string,RHS->string);
-            fprintf(fptr, ";\n");
-          }
-          else{
-            sqcodegen(fptr, LHS);
-            fprintf(fptr, " = ");
-            sqcodegen(fptr, RHS);
-            fprintf(fptr, ";\n");
-          }
+          sqcodegen(fptr, RHS);
+          assert(RHS->string);
+          //while(LHS->nodeType == NODE_PATTERN) LHS=LHS->child;
+          //if(RHS->string){
+          //  sqcodegen(fptr, RHS);
+          //  //sqcodegen(fptr, LHS);
+          //  fprintf(fptr, "%s = %s",LHS->string,RHS->string);
+          //  fprintf(fptr, ";\n");
+          //}
+          //else{
+          //  sqcodegen(fptr, LHS);
+          //  fprintf(fptr, " = ");
+          //  sqcodegen(fptr, RHS);
+          //  fprintf(fptr, ";\n");
+          //}
         break;
       }// end of RHS->nodeType;
       //switch(LHS->nodeType){
@@ -1078,14 +1071,17 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         case NODE_BOOL:
           sqcodegen(fptr, RHS);
           break;
-        case NODE_PAIR:{
+        //case NODE_PAIR:{
+        //  while(RHS->nodeType == NODE_PAIR) RHS = RHS->child;
+        //  assert(RHS->string);
+        //  fprintf(fptr, "%s",RHS->string);
+        //  RHS= LHS->rsibling;
+        //break;}
+        default:
           while(RHS->nodeType == NODE_PAIR) RHS = RHS->child;
           assert(RHS->string);
           fprintf(fptr, "%s",RHS->string);
           RHS= LHS->rsibling;
-        break;}
-        default:
-        assert(0);
       }
       fprintf(fptr, ";\n");
       break;
@@ -1138,11 +1134,31 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }// end of switch(node->op)
     break;
     }// end of NODE_OP
+  
   case NODE_SEQ_REF:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = node->child->rsibling;
-
-    if(RHS->nodeType == NODE_INT){
+    // To support nested indexing, we need to recursively generate the RHS.
+    
+    switch (RHS->nodeType ){
+    case NODE_INT:
+    case NODE_FLOAT:
+    case NODE_CHAR:
+    case NODE_BOOL:
+    case NODE_TOKEN:
+      break;
+    case NODE_PAIR:
+      while(RHS->nodeType == NODE_PAIR) RHS = RHS->child;
+      sqcodegen(fptr, RHS);
+      RHS= LHS->rsibling;
+      break;
+    default:
+      sqcodegen(fptr, RHS);
+      assert(RHS->string);
+      break;
+    }
+    
+    if(RHS->nodeType == NODE_INT){ // if RHS is simply a number
       switch(node->valueType){
         case TypeInt:
           fprintf(fptr, "GET_ELEM_I(%s,%s,%d",node->string, LHS->string,RHS->iValue);
@@ -1155,8 +1171,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         default:
           assert(0);
       }
-    }else{
-    sqcodegen(fptr, RHS); // print index.
+    }else{  // if RHS is not simply a number.
+    //sqcodegen(fptr, RHS); // print index.
       switch(node->valueType){
         case TypeInt:
           fprintf(fptr, "GET_ELEM_I(%s,%s,%s",node->string, LHS->string,RHS->string);
@@ -1653,8 +1669,114 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
     if(strcmp(node->child->string, "isContiguousList")==0){
     }else if(strcmp(node->child->string, "dist")==0){
+      struct nodeType* param1 = RHS->child->child;
+      struct nodeType* param2 = RHS->child->child->rsibling;
+
+      //first time it will prepare the parameters
+      switch(param1->nodeType){
+      case NODE_INT:
+      case NODE_FLOAT:
+      case NODE_CHAR:
+      case NODE_BOOL:
+      case NODE_TOKEN:
+        break;
+      default:
+        while(param1->nodeType == NODE_PAIR) param1=param1->child;
+        sqcodegen(fptr,param1);
+        param1 = param2->rsibling;
+      }
+      switch(param2->nodeType){
+      case NODE_INT:
+      case NODE_FLOAT:
+      case NODE_CHAR:
+      case NODE_BOOL:
+      case NODE_TOKEN:
+        break;
+      default:
+        while(param2->nodeType == NODE_PAIR) param2=param2->child;
+        sqcodegen(fptr,param2);
+        param2 = param1->rsibling;
+      }
+ 
+      fprintf(fptr, "NESLDIST(%s,",node->string);
+      switch(param1->nodeType){
+      case NODE_TOKEN:
+        fprintf(fptr,"%s,",param1->string);
+        break;
+      case NODE_INT:
+        fprintf(fptr,"%d,",param1->iValue);
+        break;
+      default:
+        assert(0);
+      }
+      switch(param2->nodeType){
+      case NODE_TOKEN:
+        fprintf(fptr,"%s);\n",param2->string);
+        break;
+      case NODE_INT:
+        fprintf(fptr,"%d);\n",param2->iValue);
+        break;
+      default:
+        assert(0);
+      }
+      printAddREF(fptr, node->string, TypeSEQ_I, node);
+      //end of "rand" 
     }else if(strcmp(node->child->string, "time")==0){
+      fprintf(fptr, "{\nclock_t _t1,_t2;\nfloat diff;\n");
+      printtype(fptr, node->valueType);
+      fprintf(fptr, " %s;\n", RHS->child->string);
+      fprintf(fptr, "_t1 = clock();\n");
+      sqcodegen(fptr, RHS->child);
+      //FIXME might be single number or a function name without parameter.
+      // too many possibilies.
+      fprintf(fptr, "_t2 = clock();\n");
+
+      fprintf(fptr, "diff = ((float)(_t2 - _t1) / CLOCKSPEED);\n");
+      fprintf(fptr, "tm = diff;\n");
+      int count =0;
+      while(!RHS->string && count<10) {RHS=RHS->child; count++;}
+      fprintf(fptr, "%s.a = %s;\n", node->string, RHS->string);
+      RHS=LHS->rsibling;
+      fprintf(fptr, "%s.b = tm;\n", node->string);
+      fprintf(fptr, "}\n");
+
     }else if(strcmp(node->child->string, "rand")==0){
+      struct nodeType *RHS = node->child->rsibling;
+      switch(RHS->nodeType){
+      case NODE_INT:
+      case NODE_FLOAT:
+      case NODE_CHAR:
+      case NODE_BOOL:
+      case NODE_TOKEN:
+        break;
+      default:
+        while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
+        sqcodegen(fptr,RHS);
+        RHS = node->child->rsibling;
+      }
+
+      if(node->valueType ==TypeInt)
+        fprintf(fptr, "RAND_I("); 
+      else 
+        fprintf(fptr, "RAND_F(");
+      switch(RHS->nodeType){
+      case NODE_INT:
+      case NODE_FLOAT:
+      case NODE_CHAR:
+      case NODE_BOOL:
+      case NODE_TOKEN:
+        sqcodegen(fptr, RHS);
+        break;
+      default:{
+        int count =0;
+        while(!RHS->string && count<10) {RHS=RHS->child; count++;}
+        fprintf(fptr,"%s",RHS->string);
+        RHS= node->child->rsibling;
+        break;
+      }
+      fprintf(fptr,");\n");
+      }
+      sqcodegen(fptr, RHS);
     }else if(strcmp(node->child->string, "plusp") ==0){
     }else if(strcmp(node->child->string, "flatten") == 0){
     }else if(strcmp(LHS->string, "max_index") == 0){
@@ -1666,7 +1788,19 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }else {
       // user define function.
       while(RHS->nodeType == NODE_PAIR) RHS= RHS->child;
-      sqcodegen(fptr,RHS);//first time it will prepare the parameters
+      //first time it will prepare the parameters
+      switch(RHS->nodeType){
+      case NODE_INT:
+      case NODE_FLOAT:
+      case NODE_CHAR:
+      case NODE_BOOL:
+      case NODE_TOKEN:
+        break;
+      default:
+        while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
+        sqcodegen(fptr,RHS);
+        RHS = LHS->rsibling;
+      }
       fprintf(fptr, "%s = %s",node->string, LHS->string);
       fprintf(fptr,"(");
       sqcodegen(fptr, RHS); //second time it will print all the parameter names.
