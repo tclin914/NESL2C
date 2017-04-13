@@ -244,12 +244,15 @@ int inserttmp(struct nodeType* node){
 }
 
 int insertapp(struct nodeType* node){
+  struct SymTable *tmp = node->table;
   for(int i =0; i<=MAX; i++){
     if(appindex[i] ==0){
       if(node->nodeType==NODE_APPLYBODY2)
         node->table = node->table->parent;
       addVariable(app[i], node->valueType, node);
       appindex[i]=1;
+      if(node->nodeType==NODE_APPLYBODY2)
+        node->table = tmp;
       return i;
     }else if(i==MAX) return -1;
   }
@@ -283,6 +286,12 @@ void pfcheck(struct nodeType* node){
       node->isEndofFunction = 1;
       pfcheck(node->child->rsibling->rsibling);
       node->isparallel_rr = node->child->rsibling->rsibling->isparallel_rr;
+      if(node->isparallel_rr){
+        struct SymTableEntry *entry = findSymbol(node->table,node->string);
+        assert(entry);
+        entry->link->isparallel_rr = 1;
+      }
+
       break;
     }
     
@@ -545,13 +554,11 @@ void pfcheck(struct nodeType* node){
     }
     case NODE_APPLYBODY2:{
       node->isEndofFunction = node->parent->isEndofFunction;
-      
+       
       if(node->child->nodeType == NODE_TUPLE)
         node->child->nodeType = NODE_ACTION_TUPLE;
       pfcheck(node->child);
       pfcheck(node->child->rsibling);
-      //node->needcounter = node->child->rsibling->needcounter;
-      //node->isparallel_rr = node->child->rsibling->isparallel_rr;
       
       node->needcounter = 1;
       node->isparallel_rr = 1;
@@ -641,7 +648,14 @@ void pfcheck(struct nodeType* node){
       }
     
     break;
-    } 
+    }
+    case NODE_SEQ:{
+      pfcheck(node->child); 
+      int idx = inserttmp(node);
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, tmp[idx]);
+      node->counts = 1; // only one child;
+    }
     case NODE_NEW_SEQ:{
       struct nodeType *LHS = node->child;
       struct nodeType *RHS = node->child->rsibling;
@@ -697,6 +711,8 @@ void pfcheck(struct nodeType* node){
         do{
           counts++;
           pfcheck(child);
+          if(child->isparallel_rr)
+            node->isparallel_rr = 1;
           child = child->rsibling;
         }while(child!=node->child);
       }
@@ -704,8 +720,13 @@ void pfcheck(struct nodeType* node){
     }
     case NODE_LETRET:{
       pfcheck(node->child);
-      node->isparallel_rr = node->child->isparallel_rr;
+          if(node->child->isparallel_rr)
+            node->isparallel_rr = 1;
+      struct SymTable *table = node->table;
+      if(table->parent);
+      node->table = table->parent;
       int index= insertlet(node);
+      node->table = table;
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, let[index]);

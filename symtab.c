@@ -61,26 +61,68 @@ struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* l
 
 void setTable(struct nodeType *node){
   switch(node->nodeType){
-    case NODE_NESL:
-      break;
-    case NODE_APPLYBODY1:
-    case NODE_APPLYBODY2:
-    case NODE_APPLYBODY3:
-    case NODE_APPLYBODY4:
-    case NODE_FUNC:
-    case NODE_LET:{
-      //printf("nodetype:%d create scope oh yeah~\n",node->nodeType);
-      struct SymTable * newScope = newSymTable(node->table);
-      node->table = newScope;
-      node->table->parent = node->parent->table;
-      break;
+  case NODE_NESL:
+    break;
+  //case NODE_RBINDS:
+  //  //assign the actionbody's table to rbind subtree for for loop region.
+  //  if(node->parent->nodeType == NODE_APPLYBODY2){
+  //    assert(node->lsibling->table);
+  //    assert(node->lsibling->table != node->parent->table);
+  //    node->table = node->lsibling->table ;
+
+  //  }else {
+  //    assert(node->parent);
+  //    node->table = node->parent->table;
+
+  //  }
+  //  break;
+  //case NODE_IN:{
+  //  if(node->nodeType == NODE_IN){
+  //    if(node->parent->parent->nodeType == NODE_APPLYBODY2){
+  //      node->child->table = node->parent->lsibling->table ;      
+  //      node->child->rsibling->table = node->parent->parent->parent ->table ;
+  //    }
+  //    else{
+  //      
+  //    }
+  //  }   
+  //  break;
+  //} 
+  case NODE_APPLYBODY2:
+    node->child->counts = node->child->nodeType;
+    node->child->nodeType = NODE_BODY;
+  case NODE_APPLYBODY1:
+  case NODE_APPLYBODY3:
+  case NODE_APPLYBODY4:
+  case NODE_BODY:
+  case NODE_FUNC:
+
+  case NODE_LET:{
+    //printf("nodetype:%d create scope oh yeah~\n",node->nodeType);
+    struct SymTable * newScope = newSymTable(node->table);
+    node->table = newScope;
+    node->table->parent = node->parent->table;
+    break;
+  }
+  default:
+    assert(node->parent);
+    if(node->parent->nodeType == NODE_IN){
+      if(node->parent ->child == node){
+        if(node->parent ->parent ->parent ->nodeType ==NODE_APPLYBODY2){
+          assert(node->parent->parent->lsibling->nodeType == NODE_BODY);
+          node->table = node->parent ->parent ->lsibling->table;
+          break;
+        }
+      }
     }
-    default:
-      assert(node->parent);
-      node->table = node->parent->table;
-      break;
+   
+    node->table = node->parent->table;
+    break;
   }
 
+   
+  
+  // recursive
   struct nodeType * child = node->child;
   if(child!=0){
     do{
@@ -89,7 +131,12 @@ void setTable(struct nodeType *node){
       child = child->rsibling;
     }while(child!=node->child);
   }
-  
+  if(node->nodeType == NODE_APPLYBODY2){
+    node->child->nodeType =node->child->counts;
+    assert(node->child->table!=node->child->rsibling->table );
+    assert(node->child->rsibling->child->child->table !=
+           node->child->rsibling->child->child->rsibling->table );
+  }
 }
 struct nodeType* nthChild(int n, struct nodeType *node) {
     struct nodeType *child = node->child;
@@ -769,6 +816,10 @@ void typeAnalysis( struct nodeType *node){
         node->valueType = TypeBool;
         assert(RHS->valueType == TypeSEQ_C);
         return;
+      }else if(strcmp(LHS->string, "genReverseList") == 0){
+        node->valueType = TypeSEQ_I;
+        assert(RHS->valueType == TypeInt);
+        return;
       }else if(strcmp(LHS->string, "sum") == 0){
         switch(RHS->valueType){
         case TypeSEQ_I:
@@ -964,9 +1015,7 @@ void typeAnalysis( struct nodeType *node){
             addVariable(node->child->string, 
                          node->child->valueType,
                          node->child);
-          
         }
-        
       break;
       }
       default:

@@ -429,7 +429,7 @@ void dumpTable(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "struct Pair_F %s;\n", table->entries[i].name);
           break;
         case TypeTuple_SF:
-          fprintf(fptr, "struct Tuple_SF %s;\n", table->entries[i].name);
+          fprintf(fptr, "struct tupleSF %s;\n", table->entries[i].name);
           break;
         case TypeTuple:
           fprintf(fptr, "struct tuple %s;\n", table->entries[i].name);
