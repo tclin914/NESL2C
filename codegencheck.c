@@ -453,19 +453,19 @@ void pfcheck(struct nodeType* node){
             case NODE_APPLYBODY2:
               // {action: RBINDS}
               pfcheck(RHS);
-              switch(LHS->nodeType){
-              case NODE_PATTERN:
-                if(LHS->child->string)
-                  strcpy(RHS->string,LHS->child->string);
-              break;
-              case NODE_TOKEN:
-                if(LHS->string)
-                  strcpy(RHS->string,LHS->string);
-              break;
-              default:
-                assert(0);//not implement.
-              break;
-              }
+              //switch(LHS->nodeType){
+              //case NODE_PATTERN:
+              //  if(LHS->child->string)
+              //    strcpy(RHS->string,LHS->child->string);
+              //break;
+              //case NODE_TOKEN:
+              //  if(LHS->string)
+              //    strcpy(RHS->string,LHS->string);
+              //break;
+              //default:
+              //  assert(0);//not implement.
+              //break;
+              //}
               node->isparallel_rr = RHS->isparallel_rr;
               
               break;

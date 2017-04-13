@@ -262,7 +262,7 @@ int atomicSub(int * a, int b){
 } while(0)
 
 #define print_I(a) do{ \
-  printf("%d ",a);   \
+  printf("%d",a);   \
 }while(0) \
 
 #define print_F(a) do{ \
@@ -283,6 +283,7 @@ int atomicSub(int * a, int b){
   for(i=0; i<_len; i++) { \
     GET_ELEM_I(e, src, i); \
     print_I(e);\
+    printf(", ");\
   }\
   printf("\n"); \
 }while(0)
@@ -375,6 +376,7 @@ struct Sequence genShuffledList(int start, int len){
   for (i =0 ;i<len;i++){
     SET_ELEM_I(len+start-i-1,res,idx++);
   }
+  seed = 123456789;
   for (i =0 ;i<len;i++){
     rn1 = myrand()%len;
     rn2 = myrand()%len;

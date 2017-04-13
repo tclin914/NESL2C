@@ -699,3 +699,22 @@ void printtype(FILE *fptr, enum StdType type){
     assert(0); // new type?
   }
 }
+
+void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node2){
+  assert(node1->nodeType==NODE_TUPLE);
+  assert(node2->string);
+  struct nodeType *L1 = node1->child; 
+  struct nodeType *R1 = L1->rsibling; 
+  //struct nodeType *L2 = node2->child; 
+  //struct nodeType *R2 = R1->rsibling; 
+  if(L1->nodeType==NODE_TOKEN){
+  fprintf(fptr,"%s",L1->string); 
+  }else{ assert(0);}
+  fprintf(fptr,"=%s.a;\n",node1->string);
+   if(R1->nodeType==NODE_TOKEN){
+  fprintf(fptr,"%s",R1->string); 
+  }else{ assert(0);}
+  fprintf(fptr,"=%s.b;\n",node1->string);
+  
+
+}

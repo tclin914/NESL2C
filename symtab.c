@@ -816,6 +816,10 @@ void typeAnalysis( struct nodeType *node){
         node->valueType = TypeBool;
         assert(RHS->valueType == TypeSEQ_C);
         return;
+      }else if(strcmp(LHS->string, "genShuffledList") == 0){
+        node->valueType = TypeSEQ_I;
+        assert(RHS->valueType == TypeTuple_I);
+        return;
       }else if(strcmp(LHS->string, "genReverseList") == 0){
         node->valueType = TypeSEQ_I;
         assert(RHS->valueType == TypeInt);

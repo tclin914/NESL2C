@@ -375,6 +375,7 @@ struct Sequence genShuffledList(int start, int len){
   for (i =0 ;i<len;i++){
     SET_ELEM_I(len+start-i-1,res,idx++);
   }
+  seed = 123456789;
   for (i =0 ;i<len;i++){
     rn1 = myrand()%len;
     rn2 = myrand()%len;
@@ -385,6 +386,23 @@ struct Sequence genShuffledList(int start, int len){
   }
   return(res);
 }
+
+
+/* below for testing usage. */
+int isthesame(struct Sequence a, struct Sequence b){
+  int len = a.len;
+  int elm1, elm2;
+  int i =0 ;
+  for( i =0; i <len; i++){
+    GET_ELEM_I(elm1,a,i); 
+    GET_ELEM_I(elm2,b,i); 
+    if(elm1!=elm2) {printf("[ERROR] Sequence a and b are not the same.\n"); return 0;}
+  }
+  printf("Sequence a and b are identical.\n");
+  return 1;
+}
+
+/* below for checking if parallel loop is parallelizable. */ 
 int getSeed(int *ptr) {
   unsigned long long seed = (unsigned long long)ptr;
   srand(seed);
