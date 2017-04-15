@@ -51,6 +51,7 @@ struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* l
     strcpy(SymbolTable->entries[index].name, s);
     SymbolTable->entries[index].type = type;
     SymbolTable->entries[index].link = link;
+    SymbolTable->entries[index].isParam = link->isParam;
     //printf("dump entry:%d, name:%s, type:%d, link:%x\n", index, 
     //    SymbolTable->entries[index].type,
     //    SymbolTable->entries[index].link);
@@ -60,26 +61,68 @@ struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* l
 
 void setTable(struct nodeType *node){
   switch(node->nodeType){
-    case NODE_NESL:
-      break;
-    case NODE_APPLYBODY1:
-    case NODE_APPLYBODY2:
-    case NODE_APPLYBODY3:
-    case NODE_APPLYBODY4:
-    case NODE_FUNC:
-    case NODE_LET:{
-      //printf("nodetype:%d create scope oh yeah~\n",node->nodeType);
-      struct SymTable * newScope = newSymTable(node->table);
-      node->table = newScope;
-      node->table->parent = node->parent->table;
-      break;
+  case NODE_NESL:
+    break;
+  //case NODE_RBINDS:
+  //  //assign the actionbody's table to rbind subtree for for loop region.
+  //  if(node->parent->nodeType == NODE_APPLYBODY2){
+  //    assert(node->lsibling->table);
+  //    assert(node->lsibling->table != node->parent->table);
+  //    node->table = node->lsibling->table ;
+
+  //  }else {
+  //    assert(node->parent);
+  //    node->table = node->parent->table;
+
+  //  }
+  //  break;
+  //case NODE_IN:{
+  //  if(node->nodeType == NODE_IN){
+  //    if(node->parent->parent->nodeType == NODE_APPLYBODY2){
+  //      node->child->table = node->parent->lsibling->table ;      
+  //      node->child->rsibling->table = node->parent->parent->parent ->table ;
+  //    }
+  //    else{
+  //      
+  //    }
+  //  }   
+  //  break;
+  //} 
+  case NODE_APPLYBODY2:
+    node->child->counts = node->child->nodeType;
+    node->child->nodeType = NODE_BODY;
+  case NODE_APPLYBODY1:
+  case NODE_APPLYBODY3:
+  case NODE_APPLYBODY4:
+  case NODE_BODY:
+  case NODE_FUNC:
+
+  case NODE_LET:{
+    //printf("nodetype:%d create scope oh yeah~\n",node->nodeType);
+    struct SymTable * newScope = newSymTable(node->table);
+    node->table = newScope;
+    node->table->parent = node->parent->table;
+    break;
+  }
+  default:
+    assert(node->parent);
+    if(node->parent->nodeType == NODE_IN){
+      if(node->parent ->child == node){
+        if(node->parent ->parent ->parent ->nodeType ==NODE_APPLYBODY2){
+          assert(node->parent->parent->lsibling->nodeType == NODE_BODY);
+          node->table = node->parent ->parent ->lsibling->table;
+          break;
+        }
+      }
     }
-    default:
-      assert(node->parent);
-      node->table = node->parent->table;
-      break;
+   
+    node->table = node->parent->table;
+    break;
   }
 
+   
+  
+  // recursive
   struct nodeType * child = node->child;
   if(child!=0){
     do{
@@ -88,7 +131,12 @@ void setTable(struct nodeType *node){
       child = child->rsibling;
     }while(child!=node->child);
   }
-  
+  if(node->nodeType == NODE_APPLYBODY2){
+    node->child->nodeType =node->child->counts;
+    assert(node->child->table!=node->child->rsibling->table );
+    assert(node->child->rsibling->child->child->table !=
+           node->child->rsibling->child->child->rsibling->table );
+  }
 }
 struct nodeType* nthChild(int n, struct nodeType *node) {
     struct nodeType *child = node->child;
@@ -164,6 +212,7 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
     case NODE_PATTERN:
     case NODE_PAIR:
       node1= node1->child;
+      node1->isParam = node1->parent->isParam;
       typeBinding(node1, node2);
       return;
     case RB_TUPLE:{
@@ -176,11 +225,13 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
       assert(node2->nodeType == NODE_TUPLE);
       struct nodeType * child1,*child2;
       child1 = node1->child;
+      child1->isParam = node1->isParam;
       child2 = node2->child;
-      if(node1->child!=0 && node2->child!=0){
+      if(child1 && child2){
         do{
           typeBinding(child1, child2);
           child1 = child1->rsibling;
+          child1->isParam = node1->isParam;
           child2 = child2->rsibling;
         }while((child1!=node1->child) && (child2!=node2->child));
       }
@@ -370,12 +421,14 @@ void typeAnalysis( struct nodeType *node){
       
       if(typeDef->op == OP_RARROW){
         // Bind the inputParameter with TypeDeclaration
+        inputParam->isParam=1;
         typeBinding(inputParam, typeDef->child);
         typeAnalysis(typeDef->child);
 
         // Analyse the returnType of the function, RHS of op_rarrow.
         typeAnalysis(typeDef->child->rsibling);
         node->table = node->parent->table;
+        node->isParam = 1;
         addVariable(node->string, typeDef->child->rsibling->valueType, node);  
         
         // Assign the returnType to the functionNode
@@ -546,7 +599,8 @@ void typeAnalysis( struct nodeType *node){
       case OP_BIND:{
         assert(RHS->valueType);
         LHS->valueType = RHS->valueType;
-
+        if(node->parent->nodeType == NODE_NESL)
+          LHS->isParam = 1;
         if(LHS->nodeType == NODE_PATTERN){
           // might have pattern->pair->tuple-id&id,
           // can't directly addVariable.
@@ -595,8 +649,16 @@ void typeAnalysis( struct nodeType *node){
           }
         }
         else if(LHS->nodeType==NODE_TOKEN){
+          if(node->parent->nodeType==NODE_NESL) {
+            LHS->isParam = 0;
+          }
+
           LHS->valueType = RHS->valueType;
-          addVariable(LHS->string, RHS->valueType, LHS);
+            struct SymTableEntry *entry = findSymbol(node->table, LHS->string);
+            if(!entry)  
+              addVariable(LHS->string, RHS->valueType, LHS);
+                    //else
+          //addVariable(LHS->string, RHS->valueType, LHS);
         }else{
           assert(0); // not implement
         }
@@ -605,6 +667,7 @@ void typeAnalysis( struct nodeType *node){
         case OP_ADD:
           assert(LHS->valueType == RHS->valueType);
           node->valueType = RHS->valueType;
+          assert(node->valueType<=TypeFloat);
           break;
         case OP_SUB:
           assert(LHS->valueType == RHS->valueType);
@@ -752,6 +815,14 @@ void typeAnalysis( struct nodeType *node){
       }else if(strcmp(LHS->string, "print_string") == 0){
         node->valueType = TypeBool;
         assert(RHS->valueType == TypeSEQ_C);
+        return;
+      }else if(strcmp(LHS->string, "genShuffledList") == 0){
+        node->valueType = TypeSEQ_I;
+        assert(RHS->valueType == TypeTuple_I);
+        return;
+      }else if(strcmp(LHS->string, "genReverseList") == 0){
+        node->valueType = TypeSEQ_I;
+        assert(RHS->valueType == TypeInt);
         return;
       }else if(strcmp(LHS->string, "sum") == 0){
         switch(RHS->valueType){
@@ -948,9 +1019,7 @@ void typeAnalysis( struct nodeType *node){
             addVariable(node->child->string, 
                          node->child->valueType,
                          node->child);
-          
         }
-        
       break;
       }
       default:
@@ -1169,18 +1238,6 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
 
-    //case ELEM_TUPLE:{
-    //  struct nodeType* LHS = node->child;
-    //  struct nodeType* RHS = node->child->rsibling;
-
-    //  //LHS and RHS should be simple types
-    //  // at most TypeSEQ_I (like sth in quicksort: [lesser, greater]);
-    //  typeAnalysis(LHS);
-    //  typeAnalysis(RHS);
-    //  switch(
-
-    //break;
-    //}
     case NODE_SEQ_TUPLE:{
       struct nodeType* LHS = node->child;
       struct nodeType* RHS = node->child->rsibling;

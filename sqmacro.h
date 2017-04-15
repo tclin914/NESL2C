@@ -1,22 +1,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <time.h>
-#include <cuda.h>
-struct Pair_I {
-  int   a;
-  int   b;
-};
-
-
-struct Pair_F {
-  float   a;
-  float   b;
-};
-
-struct tupleIF {
-  int   a;
-  float   b;
-};
 
 /* Reference count should stored with the array */
 struct Sequence {
@@ -25,8 +10,73 @@ struct Sequence {
   void   *ptr;
 };
 
-// shader speed. compute result in ms
-#define CLOCKSPEED 1110500 
+
+struct Pair_I {
+  int   a;
+  int   b;
+};
+
+struct Pair_F {
+  float a;
+  float b;
+};
+
+struct tupleFI {
+  float a;
+  int   b;
+};
+
+struct tupleIF {
+  int   a;
+  float b;
+};
+
+
+struct tupleSF {
+  struct Sequence   a;
+  float      b;
+};
+struct tupleFS {
+  float      a;
+  struct Sequence   b;
+};
+struct tupleSI {
+  struct Sequence   a;
+  int        b;
+};
+struct tupleIS {
+  int        a;
+  struct Sequence   b;
+};
+struct tuple{
+  void *a;
+  void *b;
+};
+// cpu speed. compute result in ms
+#define CLOCKSPEED CLOCKS_PER_SEC*1000.0 
+unsigned int seed = 123456789; 
+int globalrefcount=0;
+int globalmalloc=0;
+int globalfree=0;
+int atomicAdd(int * a, int b){
+  int cnt = *a;
+//  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
+  globalrefcount++;
+  *a +=b;
+//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  return cnt;
+}
+int atomicSub(int * a, int b){
+  int cnt = *a;
+//  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
+  globalrefcount--;
+  *a -=b;
+//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  return cnt ;
+}
+//#define atomicAdd(a,n) (*a +n )
+//#define atomicSub(a,n) (*a -n )
+
 /* Macros to access sequences of various type
  * These should be generated automatically */
 #define REFCNT(seq, type) ((int*)(((uint8_t*)seq.ptr)+seq.cap*sizeof(type)))
@@ -36,6 +86,10 @@ struct Sequence {
 
 #define GET_ELEM_F(res, arr, idx) do { \
   res = ((float*)arr.ptr)[idx]; } while(0)
+
+#define GET_ELEM_PAIR_IF(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
 
 #define GET_ELEM_PAIR_F(res, arr, idx) do { \
   res.a = ((float*)arr.ptr)[idx]; \
@@ -63,14 +117,14 @@ struct Sequence {
 
 #define SET_ELEM_SEQ_I(elm, arr, idx) do { \
   int _refcnt = atomicAdd(REFCNT(elm, int), 1); \
-  /*assert(_refcnt > 0); */\
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
 /* We need the element type of the sub sequence so that we can increase the reference count */
 #define SET_ELEM_SEQ_PAIR_F(elm, arr, idx) do { \
   int _refcnt = atomicAdd(REFCNT(elm, struct Pair_F), 1); \
-  /*assert(_refcnt > 0); */\
+  assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
 
@@ -79,12 +133,15 @@ struct Sequence {
   res.len = numElem; \
   res.cap = numElem; \
   res.ptr = malloc(res.cap*sizeof(type)+sizeof(int)); \
-  /*assert(res.ptr != 0);*/ \
+  assert(res.ptr != 0); \
   *REFCNT(res, type) = 0; \
+  globalmalloc++;\
 } while(0)
 
 #define FREE(res) do { \
-  free(res.ptr); } while(0)
+  free(res.ptr); \
+  globalfree++;\
+} while(0)
 
 #define MAKE_SEQ_2(res, type, typeMacro, e1, e2) do { \
   MALLOC(res, 2, type); \
@@ -94,28 +151,28 @@ struct Sequence {
 
 #define DECREF_SEQ_I(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, int), 1);\
-  /*assert(_refcnt < 100);*/ \
+  assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_F(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, float), 1);\
-  /*assert(_refcnt < 100); */\
+  assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_PAIR_F(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, struct Pair_F), 1);\
-  /*assert(_refcnt < 100); */\
+  assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
   }} while(0)
 
 #define DECREF_SEQ_SEQ_I(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
-  /*assert(_refcnt < 100); */\
+  assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
     int _i = 0; \
@@ -128,7 +185,7 @@ struct Sequence {
 
 #define DECREF_SEQ_SEQ_PAIR_F(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
-  /*assert(_refcnt < 100); */\
+  assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
     int _i = 0; \
@@ -142,8 +199,7 @@ struct Sequence {
 #define CONCAT(s1, s2, res, type, typeMacro) { \
   int _i, _len; \
   MALLOC(res, s1.len+s2.len, type); \
-  _len = res.len; _NEWLINE_  \
-  _SHARP_ pragma pf parallel_mc _NEWLINE_  \
+  _len = res.len; \
   for(_i=0; _i<_len; _i++) { \
     type _elem; \
     if(_i < s1.len) \
@@ -160,7 +216,8 @@ struct Sequence {
   SET_ELEM_ ## typeMacro(elem, res, 0); \
   while(_i < s.len) { \
     type _e; \
-    GET_ELEM_ ## typeMacro(_e, s, _i); \  SET_ELEM_ ## typeMacro(_e, res, _i+1); \
+    GET_ELEM_ ## typeMacro(_e, s, _i); \
+    SET_ELEM_ ## typeMacro(_e, res, _i+1); \
     _i++; \
   }} while(0)
 
@@ -175,8 +232,7 @@ struct Sequence {
   _i = 0; \
   while(_i < seq.len) { \
     struct Sequence _s = _subseq[_i]; \
-    int _len=_s.len, _j;  _NEWLINE_ \
-    _SHARP_ pragma pf parallel_mc   _NEWLINE_\
+    int _len=_s.len, _j; \
     for(_j=0; _j<_len; _j++) { \
       type _elem; \
       GET_ELEM_ ## typeMacro(_elem, _s, _j); \
@@ -186,56 +242,23 @@ struct Sequence {
     _i++; \
   }} while(0)
 
-/* The filtering macros
- * Problem: This approach may distrub the original order of elements */
+/* sequential version FILTER_1*/
 #define FILTER_1(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, predExpr) do { \
-  int _filteredLen=0, _len=s1.len, _i; \
-  MALLOC(res, _len, typer);  _NEWLINE_ \
-  _SHARP_ pragma pf parallel_mc  _NEWLINE_ \
+  int  _len=s1.len, _i, _j; \
+  MALLOC(res, _len, typer); \
+  _j =0; \
   for(_i=0; _i<_len; _i++) { \
     type1 e1; \
-    uint32_t _mask, _offset; \
     bool _p; \
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     _p = predExpr; \
-    _mask = __ballot(_p); \
-    if(laneID() == 0) { \
-      _offset = atomicAdd(&_filteredLen, __popc(_mask)); \
-    } \
-    _offset = __shfl(_offset, 0); \
     if(_p) { \
       typer _r = resExpr; \
-      _offset += __popc(_mask & __lanemask_lt()); \
-      SET_ELEM_ ## typeMacror(_r, res, _offset); \
+      SET_ELEM_ ## typeMacror(_r, res, _j); \
+      _j++; \
     } \
   } \
-  res.len = _filteredLen; \
-} while(0)
-
-#define FILTER_2(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, s2, e2, type2, typeMacro2, predExpr) do { \
-  int _filteredLen=0, _len=s1.len, _i; \
-  MALLOC(res, _len, typer);   \
-  _SHARP_ pragma pf parallel_mc  _NEWLINE_ \
-  for(_i=0; _i<_len; _i++) { \
-    type1 e1; \
-    type2 e2; \
-    uint32_t _mask, _offset; \
-    bool _p; \
-    GET_ELEM_ ## typeMacro1(e1, s1, _i); \
-    GET_ELEM_ ## typeMacro2(e2, s2, _i); \
-    _p = predExpr; \
-    _mask = __ballot(_p); \
-    if(laneID() == 1) { \
-      _offset = atomicAdd(&_filteredLen, __popc(_mask)); \
-    } \
-    _offset = __shfl(_offset, 0); \
-    if(_p) { \
-      typer _r = resExpr; \
-      _offset += __popc(_mask & __lanemask_lt()); \
-      SET_ELEM_ ## typeMacror(_r, res, _offset); \
-    } \
-  } \
-  res.len = _filteredLen; \
+  res.len = _j; \
 } while(0)
 
 #define print_I(a) do{ \
@@ -253,69 +276,58 @@ struct Sequence {
   printf("\n"); \
 }while(0) \
 
+#define print_SEQ_I(src) do{ \
+  int i,e,_len; \
+  printf("printSEQ %s, len=%d: \n",#src,src.len); \
+  _len = src.len;\
+  for(i=0; i<_len; i++) { \
+    GET_ELEM_I(e, src, i); \
+    print_I(e);\
+  }\
+  printf("\n"); \
+}while(0)
+
 #define NESLDIST(res, p1, p2)  do{\
-  int i =0;\
+  int i;\
   MALLOC(res, p2, struct Sequence);\
-  while(i<p2){\
+  for(i=0; i<p2; i++) { \
     int elem = p1;\
     SET_ELEM_I(elem, res, i);\
-    i++;\
   }\
 }while(0)
 
-#define CUDA_ERROR_CHECK() do{\
-printf("%s\n", cudaGetErrorString(cudaPeekAtLastError()));\
+#define DECT1T2 clock_t _t1, _t2;
+#define CLOCK() (clock())
+#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
+
+#define NESLRAND_SEQ(res, len, src, p1, typer) do{\
+  MALLOC(res, len, struct Sequence);\
+  srand(time(0));\
+  RAND_##typer(res, src);\
 }while(0)
 
-#if __PF_COMPILER__ == 1 
-#pragma pf device 
-int RAND_I(int range);
-void print_SEQ_I(struct Sequence src);
-int isContiguousList(int start, int len, struct Sequence list);
-struct Sequence genShuffledList(int start, int len);
-#else
-#include <curand_kernel.h>
-#include <cuda.h>
-__device__ int RAND_I(int range){
-curandState state;
-  int tmp;
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  //printf("hello ");
-  curand_init(1337, idx, 0, &state);
-  tmp =  (curand_uniform(&state)*10000);
-  tmp %= range;
-  //printf("idx:%d, tmp:%d\n",idx,tmp);
-  return tmp;
-}
-__device__ void print_SEQ_I(struct Sequence src){
-  int i,tmp;
-  int len = src.len;
-  //int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  //if(idx ==0){
-  i=0;
-  while(i<len){
-    GET_ELEM_I(tmp,src,i);
-    printf("%d, ",tmp);
+#define MALLOC_HEAP_SIZE 1000000
+#define SET_HEAP_SIZE(size) do { \
+}while(0)
 
-    //printf("i:%d,elem:%d\n",i,((int*)src.ptr)[i]);
-    i++;
-  }
-  printf("\n");
-  //}
-  //printf("idx:%d, tmp:%d\n",idx,tmp);
-  return ;
+unsigned int myrand(){
+  seed=(1103515245 *seed+12345)%4294967296;
+  return seed;
 }
-__device__ int isContiguousList(int start, int len, struct Sequence list){
+
+unsigned int RAND_I(int range) {
+  return myrand()%range; 
+}
+
+int isContiguousList(int start, int len, struct Sequence list){
   int elm;
   int noerror=1;
-  int i =0;
-  while(i<len){// for(int i=0;i<len;i++){
+  for(int i=0;i<len;i++){
     GET_ELEM_I(elm , list, i);
     if(elm!=start+i){
-      printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
+      //printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
       noerror= 0;
       }
-    i++;
   }
   if(noerror){
     printf("this is a Contiguous list.!\n");
@@ -323,31 +335,112 @@ __device__ int isContiguousList(int start, int len, struct Sequence list){
   return noerror;
 }
 
-__device__ struct Sequence genShuffledList(int start, int len){
+struct Sequence genReverseList(int len){
   struct Sequence res;
-  int i=0,idx=0;
-  int rn1,rn2,tmp2,tmp1;
-  MALLOC(res, len, struct Sequence);
+  int i=0;
+  MALLOC(res, len, int); 
   while(i<len){
-    SET_ELEM_I(len+start-i-1,res,idx++);
+   SET_ELEM_I(len-i-1,res,i);
     i++;
   }
-  i=0;
-  while(i<len){
-    rn1 = RAND_I(start);
+  return res;
+}
+struct Sequence genRandomArray(int len){
+  struct Sequence res;
+  int i,idx=0;
+  int tmp1,tmp2,elm,base;
+  int rn1,rn2;
+  base = myrand()%1000;
+  MALLOC(res, len, int);
+  for (i =0 ;i<len;i++){
+    elm = len-i-1+base;
+    SET_ELEM_I(elm,res,idx++);
+  }
+  for (i =0 ;i<len;i++){
+    rn1 = myrand()%len;
+    rn2 = myrand()%len;
     GET_ELEM_I(tmp1,res,rn1); 
-    rn2 = RAND_I(start);
     GET_ELEM_I(tmp2,res,rn2);
     SET_ELEM_I(tmp2,res,rn1);
     SET_ELEM_I(tmp1,res,rn2);
-    i++;
-  printf("rn2:%d, start:%d\n", rn2, start);
+  }
+  return(res);
+}
+struct Sequence genShuffledList(int start, int len){
+  struct Sequence res;
+  int i,idx=0;
+  int tmp1,tmp2;
+  int rn1,rn2;
+  MALLOC(res, len, int);
+  for (i =0 ;i<len;i++){
+    SET_ELEM_I(len+start-i-1,res,idx++);
+  }
+  seed = 123456789;
+  for (i =0 ;i<len;i++){
+    rn1 = myrand()%len;
+    rn2 = myrand()%len;
+    GET_ELEM_I(tmp1,res,rn1); 
+    GET_ELEM_I(tmp2,res,rn2);
+    SET_ELEM_I(tmp2,res,rn1);
+    SET_ELEM_I(tmp1,res,rn2);
   }
   return(res);
 }
 
 
-#endif
+/* below for testing usage. */
+int isthesame(struct Sequence a, struct Sequence b){
+  int len = a.len;
+  int elm1, elm2;
+  int i =0 ;
+  for( i =0; i <len; i++){
+    GET_ELEM_I(elm1,a,i); 
+    GET_ELEM_I(elm2,b,i); 
+    if(elm1!=elm2) {printf("[ERROR] Sequence a and b are not the same.\n"); return 0;}
+  }
+  printf("Sequence a and b are identical.\n");
+  return 1;
+}
 
-#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
+/* below for checking if parallel loop is parallelizable. */ 
+int getSeed(int *ptr) {
+  unsigned long long seed = (unsigned long long)ptr;
+  srand(seed);
 
+  return rand();
+}
+
+int loopStart(int lb, int ub, int *idx) {
+  int seed = getSeed(idx);
+
+  if(seed%2 == 0) {
+    return lb;
+  }
+  else {
+    return ub-1;
+  }
+}
+
+int loopEnd(int lb, int ub, int *idx) {
+  int seed = getSeed(idx);
+
+  if(seed%2 == 0) {
+    return ub;
+  }
+  else {
+    return lb-1;
+  }
+}
+
+int loopNext(int lb, int ub, int *idx) {
+  int seed = getSeed(idx);
+
+  if(seed%2 == 0) {
+    return *idx+1;
+  }
+  else {
+    return *idx-1;
+  }
+}
+
+#define PARALLEL_LOOP(lb, ub, idx)  for(idx=loopStart(lb, ub, &idx); idx!=loopEnd(lb, ub, &idx); idx=loopNext(lb, ub, &idx))

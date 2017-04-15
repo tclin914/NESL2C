@@ -8,7 +8,7 @@ void pfcheck(struct nodeType* node);
 void deleteREF(int start, int end);
 void DECREF(FILE* fptr, int n);
 void insertREF(char *s, enum StdType type, struct nodeType *link);
-void phase1(FILE *fptr, struct nodeType* node);
+void printGlobalVar(FILE *fptr, struct nodeType* node);
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node);
 
 struct RefTableEntry {

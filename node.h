@@ -26,6 +26,7 @@ struct nodeType {
     int declarecount;
 
     /* Tuple */
+    int isvisited;
     int tuplecount;
     int childcount;
     struct nodeType * tuplenode;
@@ -48,6 +49,8 @@ struct nodeType {
     int needcounter;
     int isparallel_rr;
     int inserttmp;
+    int infilter;
+    int isParam;
 };
 
 struct nodeType* newNode(int type);

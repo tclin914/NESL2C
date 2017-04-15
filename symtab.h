@@ -15,6 +15,7 @@ struct SymTableEntry {
     char name[100];
     enum StdType type;
     struct nodeType *link;
+    int isParam;
 };
 
 struct SymTable {

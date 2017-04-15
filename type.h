@@ -64,6 +64,8 @@
 #define NODE_PAIR           42
 #define NODE_NEW_SEQ        43
 
+#define PARAM_TUPLE         44
+
 
 
 
@@ -133,7 +135,8 @@
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
               TypeSEQ_I,TypeSEQ_F,TypeSEQ_C,TypeSEQ_B,TypeSEQ,
               TypeTuple_I,TypeTuple_F,TypeTuple_C,TypeTuple_B,
-              TypeTuple_IF, TypeTuple_FI, TypeTuple_SF, TypeTuple};
+              TypeTuple_IF, TypeTuple_FI, TypeTuple_SF,TypeTuple_FS,
+              TypeTuple_SI,TypeTuple_IS,TypeTuple};
 
 
 

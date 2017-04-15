@@ -388,7 +388,9 @@ void printNESL(struct nodeType *node, FILE* yyout){
 void dumpTable(FILE *fptr, struct nodeType* node){
   struct SymTable * table = node->table;
   for(int i = 0; i<table->size ; i++){
-    if(table->entries[i].link->nodeType!=NODE_FUNC){
+    if(table->entries[i].link->nodeType!=NODE_FUNC 
+      && table->entries[i].isParam!=1){
+      table->entries[i].isParam=1;// ensure every symbol printed onetime.
       switch(table->entries[i].type){
         case TypeInt :
           fprintf(fptr, "int %s;\n",table->entries[i].name);
@@ -427,10 +429,10 @@ void dumpTable(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "struct Pair_F %s;\n", table->entries[i].name);
           break;
         case TypeTuple_SF:
-          fprintf(fptr, "struct Tuple_SF %s;\n", table->entries[i].name);
+          fprintf(fptr, "struct tupleSF %s;\n", table->entries[i].name);
           break;
         case TypeTuple:
-          fprintf(fptr, "struct Tuple %s;\n", table->entries[i].name);
+          fprintf(fptr, "struct tuple %s;\n", table->entries[i].name);
           break;
         default:
           fclose(fptr);
@@ -444,13 +446,13 @@ void dumpTable(FILE *fptr, struct nodeType* node){
 }// end of dumpTable.
 
 
-void printTupleParam(FILE *fptr, struct nodeType* node){
+void printtupleparam(FILE *fptr, struct nodeType* node){
   if(node->nodeType == NODE_TUPLE){
-    printTupleParam(fptr, node->child);
-    printTupleParam(fptr, node->child->rsibling);
+    printtupleparam(fptr, node->child);
+    printtupleparam(fptr, node->child->rsibling);
     
   }else if(node->nodeType == NODE_PAIR){
-    printTupleParam(fptr, node->child);
+    printtupleparam(fptr, node->child);
     return;
   }
   else {
@@ -480,9 +482,9 @@ void printTupleParam(FILE *fptr, struct nodeType* node){
   fprintf(fptr, "%s = %s.a;\n", LHS->string, node->string);
   fprintf(fptr, "%s = %s.b;\n", RHS->string, node->string);
   if(LHS->nodeType == NODE_TUPLE)
-    printTupleParam(fptr,LHS);
+    printtupleparam(fptr,LHS);
   if(RHS->nodeType == NODE_TUPLE)
-    printTupleParam(fptr,RHS);
+    printtupleparam(fptr,RHS);
 
 }
 
@@ -519,8 +521,11 @@ void printparam(FILE *fptr, struct nodeType* node){
       case TypeBool:
         fprintf(fptr, "bool ");
       break;
+      case TypeTuple_I:
+        fprintf(fptr, "struct Pair_I");
+      break;
       case TypeTuple_F:
-        fprintf(fptr, "struct PAIR_F");
+        fprintf(fptr, "struct Pair_F");
       break;
       case TypeTuple_IF:
         fprintf(fptr, "struct tupleIF ");
@@ -607,8 +612,18 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
         child1=child1->child;
       while(child2->nodeType==NODE_PAIR)
         child2=child2->child;
-      fprintf(fptr, "%s = %s.a;\n",child1->string, node1->string);
-      fprintf(fptr, "%s = %s.b;\n",child2->string, node1->string);
+      
+      if(node1->valueType == TypeTuple){
+        fprintf(fptr, "%s = *(",child1->string);
+        printtype(fptr,child1->valueType);
+        fprintf(fptr, "*)%s.a;\n",node1->string);
+        fprintf(fptr, "%s = *(",child2->string);
+        printtype(fptr,child2->valueType);
+        fprintf(fptr, "*)%s.b;\n",node1->string);
+      }else{
+        fprintf(fptr, "%s = %s.a;\n",child1->string, node1->string);
+        fprintf(fptr, "%s = %s.b;\n",child2->string, node1->string);
+      }
       if(child1->valueType >= TypeTuple_I){ 
         printBindTuple(fptr, child1, refnode);
       }
@@ -617,8 +632,89 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
       }
       free(refnode);
     break;}
-    }
+    }// end of switch node2->nodeType
   break;
+  }// end of switch node1->nodeType
+}// end of printBindTuple
+
+void printtype(FILE *fptr, enum StdType type){
+  switch(type){
+  case TypeInt:
+    fprintf(fptr,"int");
+    break;
+  case TypeFloat:
+    fprintf(fptr,"float");
+    break;
+  case TypeBool:
+    fprintf(fptr,"bool");
+    break;
+  case TypeChar:
+    fprintf(fptr,"char");
+    break;
+    
+  case TypeSEQ_I:
+  case TypeSEQ_F:
+  case TypeSEQ_C:
+  case TypeSEQ_B:
+  case TypeSEQ:
+    fprintf(fptr,"struct Sequence");
+    break;
+
+  case TypeTuple_I:
+    fprintf(fptr,"struct Pair_I");
+    break;
+  case TypeTuple_F:
+    fprintf(fptr,"struct Pair_F");
+    break;
+  case TypeTuple_C:
+    fprintf(fptr,"struct Pair_C");
+    break;
+  case TypeTuple_B:
+    fprintf(fptr,"struct Pair_B");
+    break;
+
+  case TypeTuple_IF:
+    fprintf(fptr,"struct tupleIF");
+    break;
+  case TypeTuple_FI:
+    fprintf(fptr,"struct tupleFI");
+    break;
+  case TypeTuple_SF:
+    fprintf(fptr,"struct tupleSF");
+    break;
+  case TypeTuple_FS:
+    fprintf(fptr,"struct tupleFS");
+    break;
+  case TypeTuple_SI:
+    fprintf(fptr,"struct tupleSI");
+    break;
+  case TypeTuple_IS:
+    fprintf(fptr,"struct tupleIS");
+    break;
+
+  case TypeTuple:
+    fprintf(fptr,"struct tuple");
+    break;
+  default:
+    assert(0); // new type?
   }
+}
+
+void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node2){
+  assert(node1->nodeType==NODE_TUPLE);
+  assert(node2->string);
+  struct nodeType *L1 = node1->child; 
+  struct nodeType *R1 = L1->rsibling; 
+  //struct nodeType *L2 = node2->child; 
+  //struct nodeType *R2 = R1->rsibling; 
+  if(L1->nodeType==NODE_TOKEN){
+  fprintf(fptr,"%s",L1->string); 
+  }else{ assert(0);}
+  fprintf(fptr,"=%s.a;\n",node1->string);
+   if(R1->nodeType==NODE_TOKEN){
+  fprintf(fptr,"%s",R1->string); 
+  }else{ assert(0);}
+  fprintf(fptr,"=%s.b;\n",node1->string);
   
+
 }

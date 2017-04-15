@@ -3,21 +3,6 @@
 #include <assert.h>
 #include <time.h>
 
-struct Pair_I {
-  int   a;
-  int   b;
-};
-
-struct Pair_F {
-  float   a;
-  float   b;
-};
-
-struct tupleIF {
-  int   a;
-  float   b;
-};
-
 /* Reference count should stored with the array */
 struct Sequence {
   int     len;    // Length
@@ -25,26 +10,68 @@ struct Sequence {
   void   *ptr;
 };
 
+
+struct Pair_I {
+  int   a;
+  int   b;
+};
+
+struct Pair_F {
+  float a;
+  float b;
+};
+
+struct tupleFI {
+  float a;
+  int   b;
+};
+
+struct tupleIF {
+  int   a;
+  float b;
+};
+
+
+struct tupleSF {
+  struct Sequence   a;
+  float      b;
+};
+struct tupleFS {
+  float      a;
+  struct Sequence   b;
+};
+struct tupleSI {
+  struct Sequence   a;
+  int        b;
+};
+struct tupleIS {
+  int        a;
+  struct Sequence   b;
+};
+struct tuple{
+  void *a;
+  void *b;
+};
 // cpu speed. compute result in ms
 #define CLOCKSPEED CLOCKS_PER_SEC*1000.0 
-
+unsigned int seed = 123456789; 
 int globalrefcount=0;
 int globalmalloc=0;
 int globalfree=0;
 int atomicAdd(int * a, int b){
   int cnt = *a;
-  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
+//  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
   globalrefcount++;
   *a +=b;
-  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt;
 }
 int atomicSub(int * a, int b){
   int cnt = *a;
-  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
+//  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
   globalrefcount--;
   *a -=b;
-  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt ;
 }
 //#define atomicAdd(a,n) (*a +n )
@@ -235,7 +262,7 @@ int atomicSub(int * a, int b){
 } while(0)
 
 #define print_I(a) do{ \
-  printf("%d ",a);   \
+  printf("%d",a);   \
 }while(0) \
 
 #define print_F(a) do{ \
@@ -253,9 +280,10 @@ int atomicSub(int * a, int b){
   int i,e,_len; \
   printf("printSEQ %s, len=%d: \n",#src,src.len); \
   _len = src.len;\
-  for(i=0;i<_len;i++){  \
+  for(i=0; i<_len; i++) { \
     GET_ELEM_I(e, src, i); \
     print_I(e);\
+    printf(", ");\
   }\
   printf("\n"); \
 }while(0)
@@ -263,13 +291,14 @@ int atomicSub(int * a, int b){
 #define NESLDIST(res, p1, p2)  do{\
   int i;\
   MALLOC(res, p2, struct Sequence);\
-  for(i = 0; i<p2;i++){\
+  for(i=0; i<p2; i++) { \
     int elem = p1;\
     SET_ELEM_I(elem, res, i);\
   }\
 }while(0)
 
-#define RAND_I(range) (rand()%range)
+#define DECT1T2 clock_t _t1, _t2;
+#define CLOCK() (clock())
 #define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
 
 #define NESLRAND_SEQ(res, len, src, p1, typer) do{\
@@ -277,13 +306,30 @@ int atomicSub(int * a, int b){
   srand(time(0));\
   RAND_##typer(res, src);\
 }while(0)
+
+#define MALLOC_HEAP_SIZE 1000000
+#define SET_HEAP_SIZE(size) do { \
+}while(0)
+#define CUDA_ERROR_CHECK() do{\
+}while(0)
+
+
+unsigned int myrand(){
+  seed=(1103515245 *seed+12345)%4294967296;
+  return seed;
+}
+
+unsigned int RAND_I(int range) {
+  return myrand()%range; 
+}
+
 int isContiguousList(int start, int len, struct Sequence list){
   int elm;
   int noerror=1;
   for(int i=0;i<len;i++){
     GET_ELEM_I(elm , list, i);
     if(elm!=start+i){
-      printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
+      //printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
       noerror= 0;
       }
   }
@@ -292,19 +338,52 @@ int isContiguousList(int start, int len, struct Sequence list){
   }
   return noerror;
 }
+
+struct Sequence genReverseList(int len){
+  struct Sequence res;
+  int i=0;
+  MALLOC(res, len, int); 
+  while(i<len){
+   SET_ELEM_I(len-i-1,res,i);
+    i++;
+  }
+  return res;
+}
+struct Sequence genRandomArray(int len){
+  struct Sequence res;
+  int i,idx=0;
+  int tmp1,tmp2,elm,base;
+  int rn1,rn2;
+  base = myrand()%1000;
+  MALLOC(res, len, int);
+  for (i =0 ;i<len;i++){
+    elm = len-i-1+base;
+    SET_ELEM_I(elm,res,idx++);
+  }
+  for (i =0 ;i<len;i++){
+    rn1 = myrand()%len;
+    rn2 = myrand()%len;
+    GET_ELEM_I(tmp1,res,rn1); 
+    GET_ELEM_I(tmp2,res,rn2);
+    SET_ELEM_I(tmp2,res,rn1);
+    SET_ELEM_I(tmp1,res,rn2);
+  }
+  return(res);
+}
 struct Sequence genShuffledList(int start, int len){
   struct Sequence res;
   int i,idx=0;
   int tmp1,tmp2;
   int rn1,rn2;
-  MALLOC(res, len, struct Sequence);
+  MALLOC(res, len, int);
   for (i =0 ;i<len;i++){
     SET_ELEM_I(len+start-i-1,res,idx++);
   }
+  seed = 123456789;
   for (i =0 ;i<len;i++){
-    rn1 = rand()%len;
+    rn1 = myrand()%len;
+    rn2 = myrand()%len;
     GET_ELEM_I(tmp1,res,rn1); 
-    rn2 = rand()%len;
     GET_ELEM_I(tmp2,res,rn2);
     SET_ELEM_I(tmp2,res,rn1);
     SET_ELEM_I(tmp1,res,rn2);
@@ -312,6 +391,22 @@ struct Sequence genShuffledList(int start, int len){
   return(res);
 }
 
+
+/* below for testing usage. */
+int isthesame(struct Sequence a, struct Sequence b){
+  int len = a.len;
+  int elm1, elm2;
+  int i =0 ;
+  for( i =0; i <len; i++){
+    GET_ELEM_I(elm1,a,i); 
+    GET_ELEM_I(elm2,b,i); 
+    if(elm1!=elm2) {printf("[ERROR] Sequence a and b are not the same.\n"); return 0;}
+  }
+  printf("Sequence a and b are identical.\n");
+  return 1;
+}
+
+/* below for checking if parallel loop is parallelizable. */ 
 int getSeed(int *ptr) {
   unsigned long long seed = (unsigned long long)ptr;
   srand(seed);
@@ -353,5 +448,3 @@ int loopNext(int lb, int ub, int *idx) {
 }
 
 #define PARALLEL_LOOP(lb, ub, idx)  for(idx=loopStart(lb, ub, &idx); idx!=loopEnd(lb, ub, &idx); idx=loopNext(lb, ub, &idx))
-
-

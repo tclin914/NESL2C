@@ -138,6 +138,19 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sTYPE_SEQ\n", blank);
             ident++;
             break;
+
+        case GEN_APP3:
+            printf("%sGEN_APP3\n", blank);
+            ident++;
+            break;
+        case GEN_APP2:
+            printf("%sGEN_APP2\n", blank);
+            ident++;
+            break;
+        case GEN_SEQ_REF:
+            printf("%sGEN_SEQ_REF\n", blank);
+            ident++;
+            break;
         case NODE_SEQ_REF:
             printf("%sSEQ_REF\n", blank);
             ident++;
