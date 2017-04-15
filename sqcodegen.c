@@ -52,7 +52,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     if(issrand)
       fprintf(fptr, "srand(time(0));\n");
     fprintf(fptr, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
-    fprintf(fptr,"myFunc1();\nreturn 1;\n}\n");
+    fprintf(fptr,"myFunc1();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
     
     break;
   }

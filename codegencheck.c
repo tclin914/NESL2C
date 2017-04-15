@@ -515,6 +515,7 @@ void pfcheck(struct nodeType* node){
             default:
               pfcheck(LHS);
               pfcheck(RHS);
+              if(LHS->isparallel_rr || RHS->isparallel_rr)node->isparallel_rr=1;
               if(LHS->nodeType == NODE_TOKEN){
                 assert(LHS->string);
                 if(!findSymbol(node->table, LHS->string)){
@@ -600,6 +601,7 @@ void pfcheck(struct nodeType* node){
     case NODE_FUNC_CALL:{
       struct nodeType *LHS = node->child;
       struct nodeType *RHS = LHS->rsibling;
+      struct SymTableEntry *entry;
 
       int index= insertfcl(node);
       assert(index!=-1);
@@ -612,12 +614,16 @@ void pfcheck(struct nodeType* node){
       if(!strcmp(LHS->string,"dist")||node->parent->nodeType == NODE_NESL){
         issrand = 1;
       }
+
       while (RHS->nodeType ==NODE_PAIR) RHS= RHS->child;
       while (RHS->nodeType ==NODE_TUPLE) RHS->nodeType = PARAM_TUPLE;
       pfcheck(LHS);
       pfcheck(RHS);
-      if(LHS->isparallel_rr || RHS->isparallel_rr ) node->isparallel_rr;
-
+      if(LHS->isparallel_rr || RHS->isparallel_rr ) node->isparallel_rr=1;
+      
+      entry = findSymbol(node->table, LHS->string);
+      if(entry){ if(entry->link->isparallel_rr) node->isparallel_rr=1; }
+    
     break;
     }
     case PARAM_TUPLE:{

@@ -310,6 +310,9 @@ int atomicSub(int * a, int b){
 #define MALLOC_HEAP_SIZE 1000000
 #define SET_HEAP_SIZE(size) do { \
 }while(0)
+#define CUDA_ERROR_CHECK() do{\
+}while(0)
+
 
 unsigned int myrand(){
   seed=(1103515245 *seed+12345)%4294967296;

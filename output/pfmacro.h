@@ -263,7 +263,9 @@ struct Sequence {
   }\
 }while(0)
 
-
+#define CUDA_ERROR_CHECK() do{\
+printf("%s\n", cudaGetErrorString(cudaPeekAtLastError()));\
+}while(0)
 
 #if __PF_COMPILER__ == 1 
 #pragma pf device 
