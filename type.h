@@ -54,7 +54,6 @@
 #define NODE_EMPSEQ         31
 #define NODE_FILTER         32  
 #define NODE_IN             33
-#define NODE_TUPLE_HEAD     35
 #define NODE_DEL            36
 #define NODE_RBINDS         37
 #define NODE_APPLYBODY2     38
@@ -86,7 +85,7 @@
 #define NODE_SEQ_TUPLE      59
 #define RB_TUPLE            60
 #define ELEM_TUPLE          61
-#define NODE_SRCARR         62
+
 #define NODE_FreeVars       63
 #define NODE_APPRET         64
 #define NODE_ACTION_TUPLE   65

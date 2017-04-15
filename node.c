@@ -100,20 +100,10 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sNODE_FreeVars\n", blank);
             ident++;
             break;
-        case NODE_SRCARR:
-            printf("%sNODE_SRCARR\n", blank);
-            ident++;
-            break;
-            
         case NODE_DEL:
             printf("%sNODE_DEL\n", blank);
             ident++;
             break;
-        case NODE_TUPLE_HEAD:
-            printf("%sNODE_TUPLE_HEAD\n", blank);
-            ident++;
-            break;
-
         case NODE_FUNC_TYPE:
             printf("%sTYPE_DEFS:\n", blank);
             ident++;

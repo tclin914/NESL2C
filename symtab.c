@@ -63,31 +63,7 @@ void setTable(struct nodeType *node){
   switch(node->nodeType){
   case NODE_NESL:
     break;
-  //case NODE_RBINDS:
-  //  //assign the actionbody's table to rbind subtree for for loop region.
-  //  if(node->parent->nodeType == NODE_APPLYBODY2){
-  //    assert(node->lsibling->table);
-  //    assert(node->lsibling->table != node->parent->table);
-  //    node->table = node->lsibling->table ;
 
-  //  }else {
-  //    assert(node->parent);
-  //    node->table = node->parent->table;
-
-  //  }
-  //  break;
-  //case NODE_IN:{
-  //  if(node->nodeType == NODE_IN){
-  //    if(node->parent->parent->nodeType == NODE_APPLYBODY2){
-  //      node->child->table = node->parent->lsibling->table ;      
-  //      node->child->rsibling->table = node->parent->parent->parent ->table ;
-  //    }
-  //    else{
-  //      
-  //    }
-  //  }   
-  //  break;
-  //} 
   case NODE_APPLYBODY2:
     node->child->counts = node->child->nodeType;
     node->child->nodeType = NODE_BODY;
@@ -285,9 +261,6 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
             }
           break;
         }
-        //node1->valueType = TypeSEQ;
-        //node1->typeNode = node2;  
-        //addVariable(node1->string, node1->valueType, node1); 
         break;
       case NODE_APPLYBODY2:{
         addVariable(node1->string, node2->valueType, node1);
