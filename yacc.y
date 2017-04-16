@@ -623,7 +623,7 @@ int main(int argc, char** argv){
     
     char *classname;
     classname = (char*)malloc(sizeof(char)*100);
-    
+    int usename=0; 
     // extract the filename option from arguments.
     // file.nesl -PF -
     // 0th argument is ./NESL2C itself
@@ -652,14 +652,18 @@ int main(int argc, char** argv){
                     isomp = 1;
                     printf("%d set omp\n",i);
                 }
+                if(!strcmp(argv[i], "-o")){
+                    usename = 1;
+                    //printf("setfilename :%s\n", argv[i+1]);
+                    strcpy(classname,argv[i+1]);
+                    printf("setfilename :%s\n", classname);
+                    i++;
+                }
             }
             else{
                 printf("%d: %s\n",argc,argv[1]);
                 yyin = fopen(argv[i], "r");
-                
-                /**
-                * Extract filename from argument.
-                */
+                /* Extract filename from argument.*/
                 classname = strtok(argv[1],"/.");
                 classname = strtok(NULL,"/.");
             }
@@ -691,10 +695,15 @@ int main(int argc, char** argv){
     char *reveseNESL ;
     reveseNESL = (char*)malloc(sizeof(char)*100);
     if(isrev){
+        if(!usename){
         strcpy(reveseNESL,"reverseoutput/");
         strcat(reveseNESL, classname);
         strcat(reveseNESL, ".nesl");
         printf("%s\n",reveseNESL);
+        }
+        else{
+        sprintf(reveseNESL,"%s.nesl",classname);
+        }
         yyout = fopen(reveseNESL,"w+");
         printNESL(ASTRoot, yyout); 
         fclose(yyout);
@@ -720,11 +729,11 @@ int main(int argc, char** argv){
     char *translatedC = (char*)malloc(sizeof(char)*100);
     if(ispfc||issqc||isomp){
       if(issqc){
-        strcpy(translatedC, "output/");
-        strcat(translatedC, classname);
-        strcat(translatedC, "_sqc");
-        strcat(translatedC,".c");
-        
+        if(!usename){
+        sprintf(translatedC, "output/%s_sqc.c",classname);
+        }else{
+        strcpy(translatedC, classname);
+        }
         yyout = fopen(translatedC,"w+");
         
         // print Time information.
@@ -734,7 +743,6 @@ int main(int argc, char** argv){
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
         fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n");
-        //fprintf(yyout, "struct Sequence{\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
         //sqcheck(ASTRoot);
         pfcheck(ASTRoot);
         
@@ -747,10 +755,11 @@ int main(int argc, char** argv){
         fclose(yyout);    
       }
       if(ispfc){
-        strcpy(translatedC, "output/");
-        strcat(translatedC, classname);
-        strcat(translatedC, "_pfc");
-        strcat(translatedC,".c");
+        if(!usename){
+        sprintf(translatedC, "output/%s_pfc.c",classname);
+        }else{
+        strcpy(translatedC, classname);
+        }
         yyout = fopen(translatedC,"w+");
         
         // print Time information.
@@ -789,26 +798,6 @@ int main(int argc, char** argv){
       }
     }
     free(translatedC);
-    //free(classname);
-    
-    //FILE* fptr;
-    //fptr = fopen("output/NESL2C_test.c","w");
-    //if(!fptr){
-    //    printf("failed create output file! exit\n");
-    //    exit(1);
-    //}
-    // fprintf(fptr, "This is a test\n");
-    //fprintf(fptr, "#include<stdio.h>\n#include<stdlib.h>\n\nint main(){\n\t");
-
-    //codegen(fptr, ASTRoot);
-
-    //fprintf(fptr, "\n}");
-    //printf("************************\n");
-    //printf("***** CODEGEN DONE *****\n");
-    //printf("************************\n");
-    //if(fptr==NULL)
-    //    fclose(fptr);
-    
     printf("************************\n");
     printf("***  END OF NESL2C  ****\n");
     printf("************************\n");
