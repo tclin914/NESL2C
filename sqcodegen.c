@@ -1161,6 +1161,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, "GET_ELEM_SEQ_I(%s,%s,%s",node->string, LHS->string,RHS->string);
         fprintf(fptr, ");\n");
         break;
+      case TypeTuple_F:
+        fprintf(fptr, "GET_ELEM_PAIR_F(%s,%s,%s",node->string, LHS->string, RHS->string);
+        fprintf(fptr, ");\n");
+      break;
       default:
         assert(0);
       }
@@ -1517,7 +1521,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr, "(");
     sqcodegen(fptr,FILTER->child);
     fprintf(fptr, "));\n");
-
+    
+    node->typeNode = FREVAR;
+    assert(node->typeNode); 
     printAddREF(fptr, node->string, node->valueType, node);
 
     break;

@@ -110,6 +110,9 @@ void DECREF(FILE* fptr,int n){
   for(int i =refTable.size-n;i<end;i++){
     if(strcmp("",refTable.entries[i].name)){
       switch(refTable.entries[i].type){
+      case TypeSEQ_F:
+        fprintf(fptr, "DECREF_SEQ_F(%s);\n",refTable.entries[i].name);
+        break;
       case TypeSEQ_I:
         fprintf(fptr, "DECREF_SEQ_I(%s);\n",refTable.entries[i].name);
         break;
