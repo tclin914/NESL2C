@@ -594,6 +594,7 @@ void pfcheck(struct nodeType* node){
     pfcheck(LHS);
     pfcheck(RHS);
     break;}
+  
   case NODE_TUPLE:{
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
