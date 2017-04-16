@@ -443,6 +443,8 @@ void pfcheck(struct nodeType* node){
       break;
     }  
     case OP_BIND:{
+      while(RHS->nodeType == NODE_PAIR) RHS= RHS->child;
+      while(LHS->nodeType == NODE_PAIR) LHS= LHS->child;
       switch(RHS->nodeType){
       case NODE_APPLYBODY1:
         abort();
@@ -464,6 +466,7 @@ void pfcheck(struct nodeType* node){
             addVariable("_i", TypeInt, node->parent->parent);
         node->nodeType = GEN_APP3;
         node->string = malloc(sizeof(char)*100);
+
         switch(LHS->nodeType){
         case NODE_PATTERN:{
           struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string);
@@ -480,9 +483,14 @@ void pfcheck(struct nodeType* node){
           LHS->typeNode = RHS;
           break;
         }
-        break;  
+        return;  
       case NODE_APPLYBODY4:
         abort();// not implemented
+        break;
+      case NODE_TUPLE: //RHS->tuple
+        RHS->nodeType = RHS_TUPLE;
+        pfcheck(RHS);
+        assert(RHS->string);
         break;
       default:
         pfcheck(LHS);
@@ -495,9 +503,24 @@ void pfcheck(struct nodeType* node){
           }
         }
         break;
-      }
-      break;
-    }
+      }// end of RHS->nodeType
+      switch(LHS->nodeType){
+        case NODE_TUPLE:  
+          LHS->nodeType = LHS_TUPLE;
+          pfcheck(LHS);
+          assert(LHS->string);
+          break;
+        default:
+        pfcheck(LHS);
+        break;
+        }
+
+      LHS=node->child;
+      RHS=node->child->rsibling;
+      
+    
+    break;
+    } // end of OP_BIND
     default:
       pfcheck(LHS);
       if(LHS->rsibling != LHS)
@@ -594,7 +617,39 @@ void pfcheck(struct nodeType* node){
     pfcheck(LHS);
     pfcheck(RHS);
     break;}
-  
+
+  case LHS_TUPLE:{
+    struct nodeType *LHS= node->child;
+    struct nodeType *RHS= LHS->rsibling;
+
+    int index = inserttmp(node);
+    node->string = malloc(sizeof(char)*100);
+    strcpy(node->string, tmp[index]);
+    
+    while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
+    while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
+    if(LHS->nodeType==NODE_TUPLE) LHS->nodeType = LHS_TUPLE;
+    if(RHS->nodeType==NODE_TUPLE) RHS->nodeType = LHS_TUPLE;
+    pfcheck(node->child);
+    pfcheck(node->child->rsibling);
+    break;
+  }
+  case RHS_TUPLE:{
+    struct nodeType *LHS= node->child;
+    struct nodeType *RHS= LHS->rsibling;
+
+    int index = inserttmp(node);
+    node->string = malloc(sizeof(char)*100);
+    strcpy(node->string, tmp[index]);
+    
+    while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
+    while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
+    if(LHS->nodeType==NODE_TUPLE) LHS->nodeType = RHS_TUPLE;
+    if(RHS->nodeType==NODE_TUPLE) RHS->nodeType = RHS_TUPLE;
+    pfcheck(node->child);
+    pfcheck(node->child->rsibling);
+    break;
+  }
   case NODE_TUPLE:{
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);

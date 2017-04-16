@@ -198,10 +198,9 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
     break;
   }
   case NODE_TUPLE:{
-    if(node2->nodeType!=NODE_TUPLE){
-   //   node2 = node2->typeNode;
-    }
-    assert(node2->nodeType == NODE_TUPLE);
+    switch(node2->nodeType){
+    case NODE_TUPLE:
+    if(node2->nodeType == NODE_TUPLE){
     struct nodeType * child1,*child2;
     child1 = node1->child;
     child1->isParam = node1->isParam;
@@ -218,6 +217,21 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
       }while((child1!=node1->child) && (child2!=node2->child));
     }
     node1->valueType = node2->valueType;
+    }
+    break;
+    case NODE_TOKEN:
+      typeAnalysis(node2);
+      node1->valueType= node2->valueType;
+      node1->typeNode = node2->typeNode;
+      assert(node2->valueType>=TypeTuple_I);
+      assert(node2->typeNode->nodeType ==NODE_TUPLE);
+      typeBinding(node1->child, node2->typeNode->child);
+      typeBinding(node1->child->rsibling, node2->typeNode->child->rsibling);
+      assert(node1->valueType == node2->valueType);
+    break;
+    default:
+    assert(0); //not implement
+    }
     break;
   }
   case NODE_TOKEN:{
@@ -580,12 +594,39 @@ void typeAnalysis( struct nodeType *node){
     case NODE_OP:{
       struct nodeType* LHS = node->child;
       struct nodeType* RHS = node->child->rsibling;
-      typeAnalysis(LHS);
-      if(RHS!=LHS)
-        typeAnalysis(RHS);
-      
+      if(node->op!=OP_BIND){
+        typeAnalysis(LHS);
+        if(RHS!=LHS)
+          typeAnalysis(RHS);
+      }
       switch(node->op){
       case OP_BIND:{
+        //while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
+        //while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
+        //switch(RHS->nodeType){
+        //  case NODE_INT:
+        //  case NODE_FLOAT:
+        //  case NODE_BOOL:
+        //  case NODE_CHAR:
+        //  break;
+        //  default:
+        //    typeAnalysis(RHS);
+        //    break;
+        //}
+        //switch(LHS->nodeType){
+        //  case NODE_INT:
+        //  case NODE_FLOAT:
+        //  case NODE_BOOL:
+        //  case NODE_CHAR:
+        //  break;
+        //  default:
+        //    typeAnalysis(LHS);
+        //    break;
+        //}
+        
+        
+        typeAnalysis(LHS);
+        typeAnalysis(RHS);
         assert(RHS->valueType);
         LHS->valueType = RHS->valueType;
         if(node->parent->nodeType == NODE_NESL)
@@ -648,10 +689,14 @@ void typeAnalysis( struct nodeType *node){
 
           LHS->valueType = RHS->valueType;
             struct SymTableEntry *entry = findSymbol(node->table, LHS->string);
-            if(!entry)  
+            if(!entry){  
+              if(LHS->valueType >= TypeSEQ_I){
+                while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
+                LHS->typeNode = RHS;
+              }
               addVariable(LHS->string, RHS->valueType, LHS);
-                    //else
-          //addVariable(LHS->string, RHS->valueType, LHS);
+              RHS= LHS->rsibling;
+            }
         }else{
           assert(0); // not implement
         }
@@ -1065,7 +1110,7 @@ void typeAnalysis( struct nodeType *node){
             if(entry)
               node->valueType = entry->type; 
             //else //FIXME
-              if(node->valueType==TypeSEQ || node->valueType == TypeTuple){
+              if(node->valueType >= TypeSEQ_I){
                 node->typeNode = entry->link->typeNode;
               }
               //addVariable(node->string, TypeInt, node);
