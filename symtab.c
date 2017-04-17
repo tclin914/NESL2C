@@ -932,7 +932,7 @@ void typeAnalysis( struct nodeType *node){
       assert(node->child->rsibling->valueType == TypeBool);
       assert(node->child->valueType);
       node->valueType = node->child->valueType;
-      node->typeNode = node->child->child;
+      node->typeNode = node->child->child->child;
       break;
     }
     case NODE_APPLYBODY4:{
@@ -971,6 +971,7 @@ void typeAnalysis( struct nodeType *node){
             struct SymTableEntry *entry = findSymbol(node->table,RHS->string);
             assert(entry); 
             struct nodeType* refNode = entry->link->typeNode;
+            assert(refNode);
             LHS->valueType = refNode->valueType;
             LHS->typeNode = refNode;
             node->typeNode = refNode;
@@ -978,6 +979,7 @@ void typeAnalysis( struct nodeType *node){
           assert(node->child->rsibling->child->valueType);
           node->child->valueType = node->child->rsibling->child->valueType;
           node->typeNode = node->child->rsibling;
+          assert(node->typeNode);
           }
           break;
         default:

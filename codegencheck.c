@@ -469,7 +469,8 @@ void pfcheck(struct nodeType* node){
             addVariable("_i", TypeInt, node->parent->parent);
         node->nodeType = GEN_APP3;
         node->string = malloc(sizeof(char)*100);
-
+        node->valueType = RHS->valueType;
+        node->typeNode = RHS->typeNode;
         switch(LHS->nodeType){
         case NODE_PATTERN:{
           struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string);
