@@ -421,6 +421,16 @@ void pfcheck(struct nodeType* node){
       pfcheck(LHS);
 
       break;}
+    case OP_UPT:{
+      int index= inserttmp(node);
+      assert(index!=-1);
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, tmp[index]);
+      assert(node->string);
+      pfcheck(LHS);
+      pfcheck(RHS);     
+      break;
+    }
     case OP_PP:{
       //node->isEndofFunction = node->parent->isEndofFunction;
 
@@ -583,7 +593,11 @@ void pfcheck(struct nodeType* node){
     pfcheck(node->child->rsibling);
     node->needcounter = node->child->needcounter;
     node->isparallel_rr = node->child->isparallel_rr;
-
+    if(node->parent->op!=OP_BIND){
+      int idx = insertapp(node); 
+      node->string = malloc(sizeof(char)*100);
+      strcpy(node->string, app[idx]);
+    }
     break;
   }
   case NODE_FUNC_CALL:{

@@ -432,6 +432,9 @@ void typeAnalysis( struct nodeType *node){
         typeAnalysis(typeDef->child->rsibling);
         node->table = node->parent->table;
         node->isParam = 1;
+        node->valueType = typeDef->child->rsibling->valueType;
+        node->typeNode = typeDef->child->rsibling->typeNode;
+        if(node->valueType==TypeSEQ) assert(node->typeNode);
         addVariable(node->string, typeDef->child->rsibling->valueType, node);  
         
         // Assign the returnType to the functionNode
@@ -475,6 +478,7 @@ void typeAnalysis( struct nodeType *node){
           node->valueType = TypeSEQ_C;
           break;
         default:
+          node->typeNode = node->child;
           node->valueType = TypeSEQ;
           break;
         }
@@ -769,6 +773,8 @@ void typeAnalysis( struct nodeType *node){
           assert(LHS->valueType == RHS->valueType);
           //assert(LHS->valueType == TypeSEQ);
           node->valueType = LHS->valueType;
+          assert(LHS->typeNode);
+          node->typeNode = LHS->typeNode;
           //FIXME not only TypeSEQ.
         break;
         default:
@@ -884,7 +890,7 @@ void typeAnalysis( struct nodeType *node){
       assert(entry);
       assert(entry->type);
       node->valueType = entry->type;
-      
+      node->typeNode = entry->link->typeNode; 
       }
       // 1. search the node->child->string in built-in list
       //    if found then use the signature to check and 

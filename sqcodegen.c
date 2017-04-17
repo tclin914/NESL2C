@@ -1393,7 +1393,62 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
   }
   case NODE_ACTION_TUPLE:{
-    assert(0); //not implement;
+    // FIXME support no nested situation.
+    struct nodeType *LHS = node->child;
+    struct nodeType *RHS = node->child->rsibling;
+    struct nodeType *tmp = LHS;
+    if(!node->isvisited){
+      do{
+        tmp = LHS;
+        while(LHS->nodeType ==NODE_PAIR) LHS=LHS->child;
+        switch(LHS->nodeType){
+        case NODE_INT:
+        case NODE_FLOAT:
+        case NODE_BOOL:
+        case NODE_CHAR:
+        case NODE_TOKEN:
+          break;
+        default:
+          sqcodegen(fptr, LHS);
+          break;
+        }
+        LHS=tmp;
+        LHS= LHS->rsibling;
+      }while(LHS!=node->child);
+      node->isvisited =1;
+    }else{
+      while(LHS->nodeType ==NODE_PAIR) LHS=LHS->child;
+      switch(LHS->nodeType){
+      case NODE_INT:
+      case NODE_FLOAT:
+      case NODE_BOOL:
+      case NODE_CHAR:
+      case NODE_TOKEN:
+        break;
+      default:
+        sqcodegen(fptr, LHS);
+        break;
+      }
+      LHS=tmp;
+      LHS= LHS->rsibling;
+      fprintf(fptr,", "); 
+      while(RHS->nodeType ==NODE_PAIR) RHS=RHS->child;
+      switch(RHS->nodeType){
+      case NODE_INT:
+      case NODE_FLOAT:
+      case NODE_BOOL:
+      case NODE_CHAR:
+      case NODE_TOKEN:
+        break;
+      default:
+        sqcodegen(fptr, RHS);
+        break;
+      }
+      RHS=tmp;
+      RHS= RHS->rsibling;
+      
+    }
+    //assert(0); //not implement;
     break;
   }
   case NODE_APPLYBODY2:{
@@ -1437,6 +1492,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case TypeInt:
         fprintf(fptr, "GET_ELEM_I");
         break;
+      case TypeFloat:
+        fprintf(fptr, "GET_ELEM_F");
+        break;
       case TypeSEQ_I:
         fprintf(fptr, "GET_ELEM_SEQ_I");
         break;
@@ -1468,7 +1526,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeSEQ_I:
       fprintf(fptr, "SET_ELEM_SEQ_I");
-
+      break;
+    case TypeTuple_F:
+      fprintf(fptr, "SET_ELEM_PAIR_F");
       break;
     default:
       assert(0);
@@ -1954,6 +2014,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       case NODE_INT:
         fprintf(fptr,"%d,",param1->iValue);
+        break;
+      case NODE_FLOAT:
+        fprintf(fptr, "%f,",param1->rValue);
         break;
       default:
         assert(0);
