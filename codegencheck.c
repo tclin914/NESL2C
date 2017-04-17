@@ -347,7 +347,9 @@ void pfcheck(struct nodeType* node){
     struct nodeType* LHS;
     struct nodeType* RHS;
     LHS = node->child;
+    LHS->infilter = node->infilter;
     RHS = LHS->rsibling;
+    RHS->infilter = node->infilter;
     if(node->parent->isEndofFunction){
       node->isEndofFunction = node->parent->isEndofFunction;
       LHS->isEndofFunction = node->isEndofFunction;
@@ -372,61 +374,73 @@ void pfcheck(struct nodeType* node){
       break;}
     case OP_ADD:{
 
+      if(!node->infilter){
       int index= insertadd(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, add[index]);
       assert(node->string);
+      }
       pfcheck(LHS);
       pfcheck(RHS);
       break;
     }case OP_SUB:{
 
+      if(!node->infilter){
       int index= insertsub(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, sub[index]);
       assert(node->string);
+      }
       pfcheck(LHS);
       pfcheck(RHS);
       break;
     }case OP_MUL:{
 
+      if(!node->infilter){
       int index= insertmul(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, mul[index]);
       assert(node->string);
+      }
       pfcheck(LHS);
       pfcheck(RHS);
       break;
     }case OP_DIV:{
 
+      if(!node->infilter){
       int index= insertdiv(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, ddiv[index]);
       assert(node->string);
+      }
       pfcheck(LHS);
       pfcheck(RHS);
       break;
     }
     case OP_SHARP:{
 
+      if(!node->infilter){
       int index= inserttmp(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, tmp[index]);
       assert(node->string);
+      }
       pfcheck(LHS);
 
       break;}
     case OP_UPT:{
+      if(!node->infilter){
       int index= inserttmp(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
       strcpy(node->string, tmp[index]);
       assert(node->string);
+      }
       pfcheck(LHS);
       pfcheck(RHS);     
       break;
@@ -518,22 +532,25 @@ void pfcheck(struct nodeType* node){
         }
         break;
       }// end of RHS->nodeType
+      
+      while(LHS->nodeType == NODE_PATTERN) LHS= LHS->child;
+      while(LHS->nodeType == NODE_PAIR) LHS= LHS->child;
       switch(LHS->nodeType){
-        case NODE_TUPLE:  
-          LHS->nodeType = LHS_TUPLE;
-          pfcheck(LHS);
-          assert(LHS->string);
-          break;
-        default:
+      case NODE_TUPLE:  
+        LHS->nodeType = LHS_TUPLE;
+        pfcheck(LHS);
+        assert(LHS->string);
+        break;
+      default:
         pfcheck(LHS);
         break;
-        }
+      }
 
       LHS=node->child;
       RHS=node->child->rsibling;
-      
-    
-    break;
+
+
+      break;
     } // end of OP_BIND
     default:
       pfcheck(LHS);
