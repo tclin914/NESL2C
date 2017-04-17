@@ -653,6 +653,7 @@ void pfcheck(struct nodeType* node){
     pfcheck(RHS);
     break;}
 
+  case RB_TUPLE:
   case LHS_TUPLE:{
     struct nodeType *LHS= node->child;
     struct nodeType *RHS= LHS->rsibling;

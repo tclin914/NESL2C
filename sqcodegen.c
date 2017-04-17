@@ -1594,6 +1594,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     do{
       varchild = rbchild->child;
       arrchild = rbchild->child->rsibling;
+      while(varchild->nodeType == NODE_PAIR) varchild = varchild->child;
       switch(varchild->valueType){
       case TypeInt:
         fprintf(fptr, "GET_ELEM_I");
@@ -1611,13 +1612,24 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         assert(0);
         break;
       }
+      assert(varchild->string);
       fprintf(fptr, "(%s,%s,_i);\n",varchild->string,arrchild->string);
+      if(varchild->nodeType == RB_TUPLE){
+        sqcodegen(fptr,varchild);
+      }
       rbchild= rbchild->rsibling;
     }while(rbchild!=RBINDS->child);
 
-    //fprintf(fptr, "%s = ", LHS->string);
+    switch(LHS->nodeType){
+    case NODE_INT:
+    case NODE_FLOAT:
+    case NODE_BOOL:
+    case NODE_CHAR:
+    case NODE_TOKEN:
+    break;
+    default:
     sqcodegen(fptr, LHS);
-
+    }
     if(LHS->valueType >=TypeSEQ_I&&LHS->valueType<=TypeSEQ){
       LHS->typeNode = node;
       printAddREF(fptr, LHS->string, LHS->valueType, LHS);
@@ -1856,7 +1868,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     sqcodegen(fptr, node->child->rsibling);
     //    node->string
     break;
-  
+  case RB_TUPLE:
   case LHS_TUPLE:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = LHS->rsibling;
