@@ -261,8 +261,28 @@ int atomicSub(int * a, int b){
   res.len = _j; \
 } while(0)
 
+#define FILTER_2(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, s2, e2, type2, typeMacro2, predExpr) do { \
+  int _filteredLen=0, _len=s1.len, _i,_j; \
+  MALLOC(res, _len, typer);   \
+  _j=0;\
+  for(_i=0; _i<_len; _i++) { \
+    type1 e1; \
+    type2 e2; \
+    bool _p; \
+    GET_ELEM_ ## typeMacro1(e1, s1, _i); \
+    GET_ELEM_ ## typeMacro2(e2, s2, _i); \
+    _p = predExpr; \
+    if(_p) { \
+      typer _r = resExpr; \
+      SET_ELEM_ ## typeMacror(_r, res, _j); \
+      _j++;\
+    } \
+  } \
+  res.len = _j; \
+} while(0)
+
 #define print_I(a) do{ \
-  printf("%d ",a);   \
+  printf("%d",a);   \
 }while(0) \
 
 #define print_F(a) do{ \
@@ -283,6 +303,7 @@ int atomicSub(int * a, int b){
   for(i=0; i<_len; i++) { \
     GET_ELEM_I(e, src, i); \
     print_I(e);\
+    printf(", ");\
   }\
   printf("\n"); \
 }while(0)
@@ -309,6 +330,9 @@ int atomicSub(int * a, int b){
 #define MALLOC_HEAP_SIZE 1000000
 #define SET_HEAP_SIZE(size) do { \
 }while(0)
+#define CUDA_ERROR_CHECK() do{\
+}while(0)
+
 
 unsigned int myrand(){
   seed=(1103515245 *seed+12345)%4294967296;

@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <time.h>
-
+#include <math.h>
 /* Reference count should stored with the array */
 struct Sequence {
   int     len;    // Length
@@ -31,6 +31,10 @@ struct tupleIF {
   float b;
 };
 
+typedef struct {
+  int     index;
+  float   value;
+} IFPair;
 
 struct tupleSF {
   struct Sequence   a;
@@ -58,20 +62,25 @@ unsigned int seed = 123456789;
 int globalrefcount=0;
 int globalmalloc=0;
 int globalfree=0;
+
+#define checkglobal() do{\
+  printf("global:%d\n",globalrefcount);\
+}while(0)
+
 int atomicAdd(int * a, int b){
   int cnt = *a;
-//  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
+  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
   globalrefcount++;
   *a +=b;
-//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt;
 }
 int atomicSub(int * a, int b){
   int cnt = *a;
-//  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
+  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
   globalrefcount--;
   *a -=b;
-//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt ;
 }
 //#define atomicAdd(a,n) (*a +n )
@@ -261,6 +270,50 @@ int atomicSub(int * a, int b){
   res.len = _j; \
 } while(0)
 
+#define FILTER_TUPLE_1( res,resExpr, child1, child2, ctype1, ctype2,\
+                        typer, typeMacror, \
+                        s1, e1, type1, typeMacro1,\
+                        predExpr) do { \
+  int  _len=s1.len, _i, _j; \
+  MALLOC(res, _len, typer); \
+  _j =0; \
+  for(_i=0; _i<_len; _i++) { \
+    type1 e1; \
+    ctype1 child1;\
+    ctype2 child2;\
+    bool _p; \
+    GET_ELEM_ ## typeMacro1(e1, s1, _i); \
+    child1 = e1.a;\
+    child2 = e1.b;\
+    _p = predExpr; \
+    if(_p) { \
+      typer _r = resExpr; \
+      SET_ELEM_ ## typeMacror(_r, res, _j); \
+      _j++; \
+    } \
+  } \
+  res.len = _j; \
+} while(0)
+#define FILTER_2(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, s2, e2, type2, typeMacro2, predExpr) do { \
+  int _filteredLen=0, _len=s1.len, _i,_j; \
+  MALLOC(res, _len, typer);   \
+  _j=0;\
+  for(_i=0; _i<_len; _i++) { \
+    type1 e1; \
+    type2 e2; \
+    bool _p; \
+    GET_ELEM_ ## typeMacro1(e1, s1, _i); \
+    GET_ELEM_ ## typeMacro2(e2, s2, _i); \
+    _p = predExpr; \
+    if(_p) { \
+      typer _r = resExpr; \
+      SET_ELEM_ ## typeMacror(_r, res, _j); \
+      _j++;\
+    } \
+  } \
+  res.len = _j; \
+} while(0)
+
 #define print_I(a) do{ \
   printf("%d",a);   \
 }while(0) \
@@ -269,12 +322,25 @@ int atomicSub(int * a, int b){
   printf("%f ",a);   \
 }while(0) \
 
-#define print_Tuple(res1, type1, type2) do{ \
-  print_##type1(res1.a); \
+
+#define print_PAIR_F(src) do{\
+  print_F(src.a);\
+  printf(", ");\
+  print_F(src.b);\
+}while(0)
+
+#define print_SEQ_PAIR_F(src)do{\
+  int _i,_len;\
+  struct Pair_F e;\
+  _len = src.len;\
+  for(_i=0; _i<_len; _i++) { \
+    GET_ELEM_PAIR_F(e, src, _i); \
+    printf("[ ");\
+    print_PAIR_F(e);\
+    printf("], ");\
+  }\
   printf("\n"); \
-  print_##type2(res1.b); \
-  printf("\n"); \
-}while(0) \
+}while(0)
 
 #define print_SEQ_I(src) do{ \
   int i,e,_len; \
@@ -288,9 +354,26 @@ int atomicSub(int * a, int b){
   printf("\n"); \
 }while(0)
 
+#define print_Tuple(res1, type1, type2) do{ \
+  print_##type1(res1.a); \
+  printf("\n"); \
+  print_##type2(res1.b); \
+  printf("\n"); \
+}while(0) 
+
+#define NESLDIST_F(res, p1, p2)  do{\
+  int i;\
+  MALLOC(res, p2, float);\
+  for(i=0; i<p2; i++) { \
+    float elem = p1;\
+    SET_ELEM_F(elem, res, i);\
+  }\
+}while(0)
+
+
 #define NESLDIST(res, p1, p2)  do{\
   int i;\
-  MALLOC(res, p2, struct Sequence);\
+  MALLOC(res, p2, int);\
   for(i=0; i<p2; i++) { \
     int elem = p1;\
     SET_ELEM_I(elem, res, i);\
@@ -299,7 +382,8 @@ int atomicSub(int * a, int b){
 
 #define DECT1T2 clock_t _t1, _t2;
 #define CLOCK() (clock())
-#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
+//#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * range)
+
 
 #define NESLRAND_SEQ(res, len, src, p1, typer) do{\
   MALLOC(res, len, struct Sequence);\
@@ -313,12 +397,69 @@ int atomicSub(int * a, int b){
 #define CUDA_ERROR_CHECK() do{\
 }while(0)
 
+bool plusp(float x) { return x>0;}
+
+IFPair max(IFPair a, IFPair b) {
+  return a.value>b.value ? a : b;
+}
+
+IFPair min(IFPair a, IFPair b) {
+  return a.value<b.value ? a : b;
+}
+
+
+int max_index_f(struct Sequence s) {
+  int i, len=s.len, res;
+  IFPair maxIFP = {0, -INFINITY};
+
+  for(i=0; i<len; i++) {
+    float val;
+    IFPair currentIFP;
+
+    GET_ELEM_F(val, s, i);
+
+    currentIFP.index = i;
+    currentIFP.value = val;
+
+    maxIFP = max(maxIFP, currentIFP);
+  }
+
+  res = maxIFP.index;
+
+  return res;
+}
+
+int min_index_f(struct Sequence s) {
+  int i, len=s.len, res;
+  IFPair minIFP = {0, INFINITY};
+
+  for(i=0; i<len; i++) {
+    float val;
+    IFPair currentIFP;
+
+    GET_ELEM_F(val, s, i);
+
+    currentIFP.index = i;
+    currentIFP.value = val;
+
+    minIFP = min(minIFP, currentIFP);
+  }
+
+  res = minIFP.index;
+
+  return res;
+}
 
 unsigned int myrand(){
   seed=(1103515245 *seed+12345)%4294967296;
   return seed;
 }
 
+float RAND_F(float range) {
+  float x = ((float)myrand()/(float)4294967296.0)*range ;
+  printf("rnf:%f\n",x);
+  return x; 
+}
 unsigned int RAND_I(int range) {
   return myrand()%range; 
 }

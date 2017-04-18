@@ -607,12 +607,25 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
         child2=child2->child;
 
       if(node1->valueType == TypeTuple){
-        fprintf(fptr, "%s = *(",child1->string);
-        printtype(fptr,child1->valueType);
-        fprintf(fptr, "*)%s.a;\n",node1->string);
-        fprintf(fptr, "%s = *(",child2->string);
-        printtype(fptr,child2->valueType);
-        fprintf(fptr, "*)%s.b;\n",node1->string);
+        if(child1->valueType<=TypeBool){
+          fprintf(fptr, "%s = (",child1->string);
+          printtype(fptr,child1->valueType);
+          fprintf(fptr, ")%s.a;\n",node1->string);
+        }else{
+          fprintf(fptr, "%s = *(",child1->string);
+          printtype(fptr,child1->valueType);
+          fprintf(fptr, "*)%s.a;\n",node1->string);
+        }
+        
+        if(child2->valueType<=TypeBool){
+          fprintf(fptr, "%s = (",child2->string);
+          printtype(fptr,child2->valueType);
+          fprintf(fptr, ")%s.b;\n",node1->string);
+        }else{
+          fprintf(fptr, "%s = *(",child2->string);
+          printtype(fptr,child2->valueType);
+          fprintf(fptr, "*)%s.b;\n",node1->string);
+        }
       }else{
         fprintf(fptr, "%s = %s.a;\n",child1->string, node1->string);
         fprintf(fptr, "%s = %s.b;\n",child2->string, node1->string);
@@ -697,17 +710,25 @@ void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node
   assert(node1->nodeType==NODE_TUPLE);
   assert(node2->string);
   struct nodeType *L1 = node1->child; 
+  while(L1->nodeType ==NODE_PAIR) L1=L1->child;
   struct nodeType *R1 = L1->rsibling; 
 
   // TODO make it more general.
-  if(L1->nodeType==NODE_TOKEN){
+  switch(L1->nodeType){
+  case NODE_TOKEN:
     fprintf(fptr,"%s",L1->string); 
-  }else{ assert(0);}
+  break;
+  default:
+  abort();
+  }
+  
   fprintf(fptr,"=%s.a;\n",node1->string);
-  if(R1->nodeType==NODE_TOKEN){
+  switch(R1->nodeType){
+  case NODE_TOKEN:
     fprintf(fptr,"%s",R1->string); 
-  }else{ assert(0);}
+  break;
+  default:
+  abort();
+  }
   fprintf(fptr,"=%s.b;\n",node1->string);
-
-
 }
