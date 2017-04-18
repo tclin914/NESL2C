@@ -61,10 +61,34 @@ char fcl[MAX][6] = {"fcl1","fcl2","fcl3","fcl4","fcl5","fcl6","fcl7","fcl8","fcl
 
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
   insertREF(string, type, node);
-  if(type == TypeSEQ_I)
+  switch(type){
+  case TypeSEQ_I:
     fprintf(fptr, "atomicAdd(REFCNT(%s, int),1);\n",string);
-  else
-    fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
+    break;
+  case TypeSEQ_F:
+    fprintf(fptr, "atomicAdd(REFCNT(%s, float),1);\n",string);
+    break;
+  case TypeSEQ:
+    switch(node->typeNode->valueType){
+    case TypeTuple_F:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, struct Pair_F),1);\n",string);
+      break;
+    case TypeTuple_I:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, struct Pair_I),1);\n",string);
+      break;
+    case TypeSEQ:
+    case TypeSEQ_F:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
+      break;
+    
+    default:
+      assert(0);
+    }
+    break;
+  default:
+    assert(0);
+    break;
+  }
 }
 
 void insertREF(char *s, enum StdType type, struct nodeType *link){
@@ -120,9 +144,9 @@ void DECREF(FILE* fptr,int n){
         // has different situation.
         struct nodeType *loopme;
         int types;
-        if(refTable.entries[i].link->typeNode->child)
-          loopme = refTable.entries[i].link->typeNode->child;
-        else 
+        //if(refTable.entries[i].link->typeNode->child)
+        //  loopme = refTable.entries[i].link->typeNode->child;
+        //else 
           loopme = refTable.entries[i].link->typeNode;
         
         fprintf(fptr, "DECREF_SEQ");

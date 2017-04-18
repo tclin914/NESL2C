@@ -69,18 +69,18 @@ int globalfree=0;
 
 int atomicAdd(int * a, int b){
   int cnt = *a;
-//  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
+  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
   globalrefcount++;
   *a +=b;
-//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt;
 }
 int atomicSub(int * a, int b){
   int cnt = *a;
-//  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
+  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
   globalrefcount--;
   *a -=b;
-//  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt ;
 }
 //#define atomicAdd(a,n) (*a +n )
@@ -322,12 +322,25 @@ int atomicSub(int * a, int b){
   printf("%f ",a);   \
 }while(0) \
 
-#define print_Tuple(res1, type1, type2) do{ \
-  print_##type1(res1.a); \
+
+#define print_PAIR_F(src) do{\
+  print_F(src.a);\
+  printf(", ");\
+  print_F(src.b);\
+}while(0)
+
+#define print_SEQ_PAIR_F(src)do{\
+  int _i,_len;\
+  struct Pair_F e;\
+  _len = src.len;\
+  for(_i=0; _i<_len; _i++) { \
+    GET_ELEM_PAIR_F(e, src, _i); \
+    printf("[ ");\
+    print_PAIR_F(e);\
+    printf("], ");\
+  }\
   printf("\n"); \
-  print_##type2(res1.b); \
-  printf("\n"); \
-}while(0) \
+}while(0)
 
 #define print_SEQ_I(src) do{ \
   int i,e,_len; \
@@ -341,9 +354,26 @@ int atomicSub(int * a, int b){
   printf("\n"); \
 }while(0)
 
+#define print_Tuple(res1, type1, type2) do{ \
+  print_##type1(res1.a); \
+  printf("\n"); \
+  print_##type2(res1.b); \
+  printf("\n"); \
+}while(0) 
+
+#define NESLDIST_F(res, p1, p2)  do{\
+  int i;\
+  MALLOC(res, p2, float);\
+  for(i=0; i<p2; i++) { \
+    float elem = p1;\
+    SET_ELEM_F(elem, res, i);\
+  }\
+}while(0)
+
+
 #define NESLDIST(res, p1, p2)  do{\
   int i;\
-  MALLOC(res, p2, struct Sequence);\
+  MALLOC(res, p2, int);\
   for(i=0; i<p2; i++) { \
     int elem = p1;\
     SET_ELEM_I(elem, res, i);\
@@ -352,7 +382,8 @@ int atomicSub(int * a, int b){
 
 #define DECT1T2 clock_t _t1, _t2;
 #define CLOCK() (clock())
-#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * range)
+//#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * range)
+
 
 #define NESLRAND_SEQ(res, len, src, p1, typer) do{\
   MALLOC(res, len, struct Sequence);\
@@ -424,6 +455,11 @@ unsigned int myrand(){
   return seed;
 }
 
+float RAND_F(float range) {
+  float x = ((float)myrand()/(float)4294967296.0)*range ;
+  printf("rnf:%f\n",x);
+  return x; 
+}
 unsigned int RAND_I(int range) {
   return myrand()%range; 
 }
