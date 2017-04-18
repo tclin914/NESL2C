@@ -118,20 +118,41 @@ void DECREF(FILE* fptr,int n){
         break;
       case TypeSEQ:{
         // has different situation.
+        struct nodeType *loopme;
         int types;
         if(refTable.entries[i].link->typeNode->child)
-          types = refTable.entries[i].link->typeNode->child->valueType;
+          loopme = refTable.entries[i].link->typeNode->child;
         else 
-          types = refTable.entries[i].link->typeNode->valueType;
-        switch(types){
+          loopme = refTable.entries[i].link->typeNode;
+        
+        fprintf(fptr, "DECREF_SEQ");
+        int x=0;
+        while(loopme->valueType ==TypeSEQ){
+          fprintf(fptr, "_SEQ");
+          loopme = loopme->typeNode;
+          assert(loopme);
+          if(x++==10) abort();//error;
+        }
+        switch(loopme->valueType){
         case TypeSEQ_I:
-          fprintf(fptr, "DECREF_SEQ_SEQ_I(%s);\n",refTable.entries[i].name);
+          fprintf(fptr, "_SEQ_I");
           break;
-
-        case TypeSEQ:
+        case TypeSEQ_F:
+          fprintf(fptr, "_SEQ_F");
+          break;
+        case TypeSEQ:  
           assert(0);//not implement;
           break;
+        case TypeFloat:
+          fprintf(fptr, "_F");
+        break;
+        case TypeTuple_F:
+          fprintf(fptr, "_PAIR_F");
+        break;
+        default:
+        assert(0); //not implement
         }
+        fprintf(fptr, "(%s);\n", refTable.entries[i].name);
         break;}
       default:
         assert(0); // not implement;
@@ -251,11 +272,11 @@ int insertapp(struct nodeType* node){
   struct SymTable *tmp = node->table;
   for(int i =0; i<=MAX; i++){
     if(appindex[i] ==0){
-      if(node->nodeType==NODE_APPLYBODY2)
+      if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = node->table->parent;
       addVariable(app[i], node->valueType, node);
       appindex[i]=1;
-      if(node->nodeType==NODE_APPLYBODY2)
+      if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = tmp;
       return i;
     }else if(i==MAX) return -1;

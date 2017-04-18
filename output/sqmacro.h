@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <time.h>
-
+#include <math.h>
 /* Reference count should stored with the array */
 struct Sequence {
   int     len;    // Length
@@ -31,6 +31,10 @@ struct tupleIF {
   float b;
 };
 
+typedef struct {
+  int     index;
+  float   value;
+} IFPair;
 
 struct tupleSF {
   struct Sequence   a;
@@ -58,6 +62,11 @@ unsigned int seed = 123456789;
 int globalrefcount=0;
 int globalmalloc=0;
 int globalfree=0;
+
+#define checkglobal() do{\
+  printf("global:%d\n",globalrefcount);\
+}while(0)
+
 int atomicAdd(int * a, int b){
   int cnt = *a;
 //  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
@@ -261,6 +270,30 @@ int atomicSub(int * a, int b){
   res.len = _j; \
 } while(0)
 
+#define FILTER_TUPLE_1( res,resExpr, child1, child2, ctype1, ctype2,\
+                        typer, typeMacror, \
+                        s1, e1, type1, typeMacro1,\
+                        predExpr) do { \
+  int  _len=s1.len, _i, _j; \
+  MALLOC(res, _len, typer); \
+  _j =0; \
+  for(_i=0; _i<_len; _i++) { \
+    type1 e1; \
+    ctype1 child1;\
+    ctype2 child2;\
+    bool _p; \
+    GET_ELEM_ ## typeMacro1(e1, s1, _i); \
+    child1 = e1.a;\
+    child2 = e1.b;\
+    _p = predExpr; \
+    if(_p) { \
+      typer _r = resExpr; \
+      SET_ELEM_ ## typeMacror(_r, res, _j); \
+      _j++; \
+    } \
+  } \
+  res.len = _j; \
+} while(0)
 #define FILTER_2(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, s2, e2, type2, typeMacro2, predExpr) do { \
   int _filteredLen=0, _len=s1.len, _i,_j; \
   MALLOC(res, _len, typer);   \
@@ -319,7 +352,7 @@ int atomicSub(int * a, int b){
 
 #define DECT1T2 clock_t _t1, _t2;
 #define CLOCK() (clock())
-#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * a)
+#define RAND_F(range) (((float)rand()/(float)(RAND_MAX)) * range)
 
 #define NESLRAND_SEQ(res, len, src, p1, typer) do{\
   MALLOC(res, len, struct Sequence);\
@@ -335,11 +368,55 @@ int atomicSub(int * a, int b){
 
 bool plusp(float x) { return x>0;}
 
-struct tupleIF max(struct tupleIF a, struct tupleIF b) {
-  return a.b>b.b ? a : b;
+IFPair max(IFPair a, IFPair b) {
+  return a.value>b.value ? a : b;
 }
-struct tupleIF min( struct tupleIF a,  struct tupleIF b) {
-  return a.b<b.b ? a : b;
+
+IFPair min(IFPair a, IFPair b) {
+  return a.value<b.value ? a : b;
+}
+
+
+int max_index_f(struct Sequence s) {
+  int i, len=s.len, res;
+  IFPair maxIFP = {0, -INFINITY};
+
+  for(i=0; i<len; i++) {
+    float val;
+    IFPair currentIFP;
+
+    GET_ELEM_F(val, s, i);
+
+    currentIFP.index = i;
+    currentIFP.value = val;
+
+    maxIFP = max(maxIFP, currentIFP);
+  }
+
+  res = maxIFP.index;
+
+  return res;
+}
+
+int min_index_f(struct Sequence s) {
+  int i, len=s.len, res;
+  IFPair minIFP = {0, INFINITY};
+
+  for(i=0; i<len; i++) {
+    float val;
+    IFPair currentIFP;
+
+    GET_ELEM_F(val, s, i);
+
+    currentIFP.index = i;
+    currentIFP.value = val;
+
+    minIFP = min(minIFP, currentIFP);
+  }
+
+  res = minIFP.index;
+
+  return res;
 }
 
 unsigned int myrand(){

@@ -665,8 +665,7 @@ void typeAnalysis( struct nodeType *node){
             assert(RHS->typeNode);
             typeBinding(LHS,RHS->typeNode);
             break;
-          }else{
-            
+          }else{ 
             addVariable(LHS->child->string, RHS->valueType, LHS);
           }
           //typeBinding(LHS, RHS);
@@ -676,6 +675,10 @@ void typeAnalysis( struct nodeType *node){
           //        TOKEN_ID
           LHS->child->typeNode = RHS;
           LHS->typeNode = RHS;
+          if(RHS->valueType >= TypeSEQ_I){
+            LHS->typeNode = RHS->typeNode;
+            LHS->child->typeNode = RHS->typeNode;
+          }
           typeAnalysis(LHS);
           node->valueType = RHS->valueType;
         }// end of if LHS == PATTERN
@@ -844,7 +847,7 @@ void typeAnalysis( struct nodeType *node){
       }else if(strcmp(node->child->string, "flatten") == 0){
         assert(RHS->valueType==TypeSEQ);
         node->valueType = RHS->typeNode->valueType;
-        node->typeNode = RHS->typeNode;
+        node->typeNode = RHS->typeNode->typeNode;
         return;
       }else if(strcmp(LHS->string, "max_index") == 0){
         node->valueType = TypeInt;
@@ -903,7 +906,7 @@ void typeAnalysis( struct nodeType *node){
       
       //node->valueType = node->child->valueType;
       break;
-    }
+    }// end of NODE_FUNC_CALL
     case NODE_APPLYBODY1:{
       typeAnalysis(node->child);
       node->valueType = TypeSEQ;
