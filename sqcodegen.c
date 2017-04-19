@@ -93,6 +93,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeSEQ:
     case TypeSEQ_I:
+    case TypeSEQ_F:
       fprintf(fptr, "struct Sequence  %s", node->string);
       printparam(fptr, parameter);
       fprintf(fptr, "{\nstruct Sequence _res;\n");
@@ -221,9 +222,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
     default:
     
+    sqcodegen(fptr,LHS);
     break;
     }
-    sqcodegen(fptr,LHS);
     assert(LHS->string);
     fprintf(fptr, "%s = %s;\n", node->string,LHS->string);
 
@@ -1190,6 +1191,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         //printBindTuple(fptr,LHS,RHS);
         sqcodegen(fptr, LHS);
       }
+
+      //if(RHS->valueType>=TypeSEQ_I&&RHS->valueType<=TypeSEQ)
+      //  printAddREF(fptr,RHS->string,RHS->valueType,RHS);
       fprintf(fptr,"//end of OP_BIND\n");
       break;
     }// end of OP_BIND;
@@ -1833,6 +1837,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       case TypeSEQ_I:
         fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+        break;
+      default:
+      assert(0);
       }
     }
     DECREF(fptr,refaddcount);
@@ -2708,6 +2715,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, ");\n");
     }
 
+    if(node->valueType>=TypeSEQ_I&&node->valueType<=TypeSEQ)
+      printAddREF(fptr,node->string, node->valueType, node);
+
     if(node->parent->nodeType == NODE_NESL){
       switch(node->valueType){
         struct nodeType *loopme; int x;
@@ -2759,6 +2769,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       case TypeSEQ_I:
         fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+        break;
+      case TypeSEQ_F:
+        fprintf(fptr, "print_SEQ_F(%s);\n", node->string);
         break;
       default:
         assert(0);

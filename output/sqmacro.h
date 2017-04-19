@@ -69,18 +69,18 @@ int globalfree=0;
 
 int atomicAdd(int * a, int b){
   int cnt = *a;
-  printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
+  //printf("global:%d refcnt:%d Add:%d \t\t",globalrefcount,*a,b);
   globalrefcount++;
   *a +=b;
-  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  //printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt;
 }
 int atomicSub(int * a, int b){
   int cnt = *a;
-  printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
+  //printf("global:%d refcnt:%d Sub:%d \t\t",globalrefcount,*a,b);
   globalrefcount--;
   *a -=b;
-  printf("global:%d refcnt:%d\n",globalrefcount,*a);
+  //printf("global:%d refcnt:%d\n",globalrefcount,*a);
   return cnt ;
 }
 //#define atomicAdd(a,n) (*a +n )
@@ -285,6 +285,8 @@ int atomicSub(int * a, int b){
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     child1 = e1.a;\
     child2 = e1.b;\
+    if(e1.a>100.0||e1.b>100.0||e1.a<-100.0||e1.b<-100.0)\
+          printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
     _p = predExpr; \
     if(_p) { \
       typer _r = resExpr; \
@@ -294,6 +296,7 @@ int atomicSub(int * a, int b){
   } \
   res.len = _j; \
 } while(0)
+
 #define FILTER_2(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, s2, e2, type2, typeMacro2, predExpr) do { \
   int _filteredLen=0, _len=s1.len, _i,_j; \
   MALLOC(res, _len, typer);   \
@@ -304,6 +307,8 @@ int atomicSub(int * a, int b){
     bool _p; \
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     GET_ELEM_ ## typeMacro2(e2, s2, _i); \
+    if(e1.a>100.0||e1.b>100.0||e1.a<-100.0||e1.b<-100.0)\
+      printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
     _p = predExpr; \
     if(_p) { \
       typer _r = resExpr; \
@@ -319,14 +324,14 @@ int atomicSub(int * a, int b){
 }while(0) \
 
 #define print_F(a) do{ \
-  printf("%f ",a);   \
+  printf("%f ",(float)a);   \
 }while(0) \
 
 
 #define print_PAIR_F(src) do{\
-  print_F(src.a);\
+  print_F((float)src.a);\
   printf(", ");\
-  print_F(src.b);\
+  print_F((float)src.b);\
 }while(0)
 
 #define print_SEQ_PAIR_F(src)do{\
@@ -341,6 +346,19 @@ int atomicSub(int * a, int b){
   }\
   printf("\n"); \
 }while(0)
+
+#define print_SEQ_F(src) do{ \
+  int i,e,_len; \
+  printf( "len=%d: \n",src.len); \
+  _len = src.len;\
+  for(i=0; i<_len; i++) { \
+    GET_ELEM_F(e, src, i); \
+    print_F(e);\
+    printf(", ");\
+  }\
+  printf("\n"); \
+}while(0)
+
 
 #define print_SEQ_I(src) do{ \
   int i,e,_len; \
@@ -407,6 +425,14 @@ IFPair min(IFPair a, IFPair b) {
   return a.value<b.value ? a : b;
 }
 
+void printPairF(struct Sequence s){
+  int i=0; 
+  struct Pair_F p;
+  for(i=0;i<s.len;i++){
+    GET_ELEM_PAIR_F(p, s, i);
+    printf("p.a:%f, p.b:%f;\n",p.a,p.b);
+  }
+}
 
 int max_index_f(struct Sequence s) {
   int i, len=s.len, res;
@@ -457,9 +483,10 @@ unsigned int myrand(){
 
 float RAND_F(float range) {
   float x = ((float)myrand()/(float)4294967296.0)*range ;
-  printf("rnf:%f\n",x);
+  //printf("rnf:%f\n",x);
   return x; 
 }
+
 unsigned int RAND_I(int range) {
   return myrand()%range; 
 }
