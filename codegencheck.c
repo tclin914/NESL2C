@@ -100,6 +100,17 @@ void insertREF(char *s, enum StdType type, struct nodeType *link){
   //return &refTable.entries[index];
 
 }
+
+int findREF(char *s){
+  struct RefTableEntry *entry ;
+  for(int i=refTable.size;i>=0;i--){
+    entry = &refTable.entries[i];
+    if(strcmp(s,entry->name)==0)
+      return i;
+  }
+  return -1;
+}
+
 void deleteREF(int start, int end){
 
   for(int i =start;i<end ; i++){
@@ -132,7 +143,7 @@ void DECREF(FILE* fptr,int n){
   int end = refTable.size;
   assert(end>=n);
   for(int i =refTable.size-n;i<end;i++){
-    if(strcmp("",refTable.entries[i].name)){
+    if(strcmp("",refTable.entries[i].name)&&refTable.entries[i].link->isEndofFunction!=1){
       switch(refTable.entries[i].type){
       case TypeSEQ_F:
         fprintf(fptr, "DECREF_SEQ_F(%s);\n",refTable.entries[i].name);
@@ -182,6 +193,9 @@ void DECREF(FILE* fptr,int n){
         assert(0); // not implement;
         break;
       }
+    }
+    if(refTable.entries[i].link->isEndofFunction){
+      refTable.entries[i].link->isEndofFunction=0;
     }
   }
   deleteREF(end-n,refTable.size);
@@ -237,9 +251,11 @@ int insertlet(struct nodeType* node){
   }
 }
 int insertfcl(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(fclindex[i] ==0){
-      addVariable(fcl[i], node->valueType, node);
+      sprintf(varname, "fcl%d",i);
+      addVariable(varname, node->valueType, node);
       fclindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -371,7 +387,7 @@ void pfcheck(struct nodeType* node){
   }
   case NODE_IFSTMT:{
 
-    node->isEndofFunction = node->parent->isEndofFunction;
+    //node->isEndofFunction = node->parent->isEndofFunction;
     pfcheck(node->child);
     node->isparallel_rr = node->child->isparallel_rr;
 
@@ -492,8 +508,8 @@ void pfcheck(struct nodeType* node){
     }
     case OP_PP:{
       //node->isEndofFunction = node->parent->isEndofFunction;
-
-      pfcheck(LHS);
+      if(LHS->nodeType !=NODE_SEQ)
+        pfcheck(LHS);
       pfcheck(RHS);
 
       if(LHS->op == OP_PP){
@@ -666,11 +682,12 @@ void pfcheck(struct nodeType* node){
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = LHS->rsibling;
     struct SymTableEntry *entry;
-
+    node->isEndofFunction = node->parent->isEndofFunction; 
     int index= insertfcl(node);
     assert(index!=-1);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, fcl[index]);
+    sprintf(node->string, "fcl%d",index);
+//    strcpy(node->string, fcl[index]);
     assert(node->string);
 
     node->isEndofFunction = node->parent->isEndofFunction;
@@ -780,7 +797,7 @@ void pfcheck(struct nodeType* node){
     break;
   }
   case NODE_IN:{
-    node->isEndofFunction = node->parent->isEndofFunction;
+    //node->isEndofFunction = node->parent->isEndofFunction;
     pfcheck(node->child);
     pfcheck(node->child->rsibling);
 
@@ -823,6 +840,8 @@ void pfcheck(struct nodeType* node){
     break;
   }
   case NODE_LETRET:{
+    
+    node->isEndofFunction = node->parent->isEndofFunction;
     pfcheck(node->child);
     if(node->child->isparallel_rr)
       node->isparallel_rr = 1;

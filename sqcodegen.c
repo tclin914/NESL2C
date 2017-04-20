@@ -205,15 +205,21 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     assert(RHS->string);
     assert(refTable.size>=refaddcount);
     refaddcount = refTable.size-refaddcount;
+#ifdef DEBUG
+    fprintf(fptr,"//DEBUG LETrefaddcount:%d\n",refaddcount);
+#endif
     DECREF(fptr,refaddcount);
+    fprintf(fptr, "//end of LET\n");
     fprintf(fptr, "}\n");
 
     break;}//end of LET
   case NODE_LETRET:{
     struct nodeType *LHS = node->child;
+    struct RefTableEntry *entry;
+    int index;
+    int refaddcount=refTable.size;
     while (LHS->nodeType == NODE_PAIR) LHS = LHS->child;
     switch(LHS->nodeType){
-    DECREF(fptr,refTable.size);
     case NODE_INT:
     case NODE_FLOAT:
     case NODE_BOOL:
@@ -227,6 +233,18 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }
     assert(LHS->string);
     fprintf(fptr, "%s = %s;\n", node->string,LHS->string);
+    index = findREF(LHS->string);
+    if(index!=-1){
+      entry = &refTable.entries[index];
+      assert(LHS == entry->link);
+      deleteREF(index, index+1);
+    }
+    refaddcount = refTable.size - refaddcount;
+#ifdef DEBUG
+    fprintf(fptr,"//DEBUG LETRETrefaddcount:%d\n",refaddcount);
+#endif
+    DECREF(fptr,refaddcount);
+    fprintf(fptr, "//end of LETRET\n");
 
     break; }
   case NODE_BIND:{
@@ -1199,15 +1217,23 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }// end of OP_BIND;
     case OP_PP:
       // if child is a variable, it will be process here.
-      if(node->child->nodeType!=NODE_TOKEN)
+      if(node->child->nodeType!=NODE_TOKEN&&node->child->nodeType!=NODE_SEQ)
         sqcodegen(fptr, node->child);
       if(node->child->rsibling->nodeType!=NODE_TOKEN)
         sqcodegen(fptr, node->child->rsibling);
-
+      
+      if(node->child->nodeType == NODE_SEQ){
+        fprintf(fptr, "PREPEND(%s, %s, %s, ",
+              node->child->child->string,
+              node->child->rsibling->string,
+              node->string);
+        
+      }else{
       fprintf(fptr, "CONCAT(%s, %s, %s, ",
               node->child->string,
               node->child->rsibling->string,
               node->string);
+      }
       switch(node->valueType){
       case TypeSEQ_I:
         fprintf(fptr, "int, I);\n");
@@ -1730,6 +1756,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr,");\n");
 
     /* generate for loop */
+    forlooprefaddcount = refTable.size;
     fprintf(fptr, "_len = %s.len;\n",node->string);
     fprintf(fptr, "#pragma pf parallel_rr\n");
     fprintf(fptr, "for (_i =0; _i <_len;_i++){\n");
@@ -1774,11 +1801,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     default:
     sqcodegen(fptr, LHS);
     }
-    if(LHS->valueType >=TypeSEQ_I&&LHS->valueType<=TypeSEQ){
-      //LHS->typeNode = node->typeNode;
-      printAddREF(fptr, LHS->string, LHS->valueType, LHS);
-      forlooprefaddcount++;
-    }
+    //if(LHS->valueType >=TypeSEQ_I&&LHS->valueType<=TypeSEQ){
+    //  //LHS->typeNode = node->typeNode;
+    //  printAddREF(fptr, LHS->string, LHS->valueType, LHS);
+    //  forlooprefaddcount++;
+    //}
     switch(LHS->valueType){
     case TypeInt:
       fprintf(fptr, "SET_ELEM_I");
@@ -1820,7 +1847,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     }
     fprintf(fptr, "(%s,%s,_i);\n", LHS->string, node->string);
-
+    forlooprefaddcount = refTable.size - forlooprefaddcount;
+#ifdef DEBUG
+    fprintf(fptr,"//DEBUG forlooprefaddcount:%d\n",forlooprefaddcount);
+#endif
     DECREF(fptr,forlooprefaddcount);
     fprintf(fptr, "}\n");// close for
 
@@ -1842,6 +1872,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       assert(0);
       }
     }
+
+#if DEBUG
+    fprintf(fptr,"//DEBUG refaddcount:%d\n",refaddcount);
+#endif
     DECREF(fptr,refaddcount);
     node->typeNode = node->child;
     printAddREF(fptr, node->string, node->valueType, node);
@@ -2408,15 +2442,15 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       default:
         assert(0);
       }
-      if(param1->valueType == TypeInt)
-      printAddREF(fptr, node->string, TypeSEQ_I, node);
-      else if(param1->valueType == TypeFloat)
-      printAddREF(fptr, node->string, TypeSEQ_F, node);
-      //end of "rand" 
+     // if(param1->valueType == TypeInt)
+     // printAddREF(fptr, node->string, TypeSEQ_I, node);
+     // else if(param1->valueType == TypeFloat)
+     // printAddREF(fptr, node->string, TypeSEQ_F, node);
+      //end of "dist" 
     }else if(strcmp(node->child->string, "time")==0){
       fprintf(fptr, "{\nDECT1T2\nfloat diff;\n");
-      printtype(fptr, RHS->valueType);
-      fprintf(fptr, " %s;\n", RHS->child->string);
+      //printtype(fptr, RHS->valueType);
+      //fprintf(fptr, " %s;\n", RHS->child->string);
       fprintf(fptr, "_t1 = CLOCK();\n");
       sqcodegen(fptr, RHS->child);
       //FIXME might be single number or a function name without parameter.
@@ -2427,6 +2461,13 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "tm = diff;\n");
       int count =0;
       while(!RHS->string && count<10) {RHS=RHS->child; count++;}
+      //FIXME dirty
+      if(RHS->valueType >=TypeSEQ_I&&RHS->valueType<=TypeSEQ)
+        RHS->isEndofFunction = 1; 
+      #ifdef DEBUG
+      fprintf(fptr, "//DEBUG %s.isEndofFunction:%d\n",node->string, node->isEndofFunction);
+      fprintf(fptr, "//DEBUG %s.isEndofFunction:%d\n",RHS->string, RHS->isEndofFunction);
+      #endif
       fprintf(fptr, "%s.a = %s;\n", node->string, RHS->string);
       RHS=LHS->rsibling;
       fprintf(fptr, "%s.b = tm;\n", node->string);
