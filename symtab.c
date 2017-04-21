@@ -561,6 +561,10 @@ void typeAnalysis( struct nodeType *node){
               node->valueType=
               entry->link->typeNode->valueType;
               break;
+            case NODE_FUNC_CALL:
+              node->valueType=
+              entry->link->typeNode->valueType;
+              break;
             default:
               assert(0); //not implement;
           }
@@ -803,6 +807,14 @@ void typeAnalysis( struct nodeType *node){
           node->valueType = TypeInt;
           return;
           }
+      else if(strcmp(node->child->string, "verifyQHull")==0){
+          struct nodeType *param1 = RHS->child->child;
+          struct nodeType *param2 = param1->rsibling;
+          node->valueType= TypeBool;
+          assert(param1->valueType == TypeInt); 
+          assert(param2->valueType == TypeSEQ); 
+          return;
+        }
       else if(strcmp(node->child->string, "dist")==0){
           switch(RHS->child->child->valueType){
           case TypeInt:

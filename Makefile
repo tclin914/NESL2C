@@ -1,10 +1,10 @@
-CFLAGS = -g -DDEBUG
+CFLAGS = -g 
 objects = y.tab.o node.o symtab.o codegen.o pfcodegen.o sqcodegen.o codegencheck.o
 
 all: NESL2C
 
 debug : $(objects)
-	cc $(CFLAGS) -o NESL2C $(objects) 
+	cc -DDEBUG $(CFLAGS) -o NESL2C $(objects) 
 
 NESL2C : $(objects)
 	cc -o NESL2C $(objects)

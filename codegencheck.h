@@ -7,6 +7,7 @@ void pfcheck(struct nodeType* node);
 //void deleteREF(char *s, int num);
 void deleteREF(int start, int end);
 void DECREF(FILE* fptr, int n);
+int findREF(char *s);
 void insertREF(char *s, enum StdType type, struct nodeType *link);
 void printGlobalVar(FILE *fptr, struct nodeType* node);
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node);

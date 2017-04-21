@@ -616,3 +616,144 @@ int loopNext(int lb, int ub, int *idx) {
 }
 
 #define PARALLEL_LOOP(lb, ub, idx)  for(idx=loopStart(lb, ub, &idx); idx!=loopEnd(lb, ub, &idx); idx=loopNext(lb, ub, &idx))
+struct Sequence  random_points_seed(int  n){
+  seed = 123456789;
+  struct Sequence _res;
+  struct Sequence let5;
+  {
+    int m;
+    struct Sequence points;
+    int fcl9;
+    float div1;
+    float mul3;
+    float fcl10;
+    struct Sequence app4;
+    struct Sequence app5;
+    {
+      float op1,op2;
+      {
+        float op1,op2;
+        fcl10 = (float)n;
+        op1=fcl10;
+        op2= 4.000000 ;
+        mul3 = op1 * op2;
+      }
+      op1=mul3;
+      op2= 3.141593 ;
+      div1 = op1 / op2;
+    }
+    fcl9 = nearbyint(div1);
+    m = fcl9;
+    //end of OP_BIND
+    //BIND->APPBODY2
+    {
+      struct Sequence fcl13;
+      int _len;
+      int _i;
+      NESLDIST_F(fcl13,2.000000,m);
+      atomicAdd(REFCNT(fcl13, float),1);
+      MALLOC(app4,fcl13.len,struct Pair_F);
+      _len = app4.len;
+#pragma pf parallel_rr
+      for (_i =0; _i <_len;_i++){
+        float i;
+        struct Pair_F tmp14;
+        float sub6;
+        float fcl11;
+        float sub7;
+        float fcl12;
+        GET_ELEM_F(i,fcl13,_i);
+        {
+          float op1,op2;
+          fcl11 = RAND_F(i);
+          op1=fcl11;
+          op2= 1.000000 ;
+          sub6 = op1 - op2;
+        }
+        {
+          float op1,op2;
+          fcl12 = RAND_F(i);
+          op1=fcl12;
+          op2= 1.000000 ;
+          sub7 = op1 - op2;
+        }
+        tmp14.a = sub6;
+        tmp14.b = sub7;
+        SET_ELEM_PAIR_F(tmp14,app4,_i);
+        //DEBUG forlooprefaddcount:0
+      }
+      //DEBUG refaddcount:1
+      DECREF_SEQ_F(fcl13);
+      atomicAdd(REFCNT(app4, struct Pair_F),1);
+    }
+    //end of BIND->APPBODY2
+    points = app4;
+    //end of OP_BIND
+    {
+      float x;
+      float y;
+      struct Pair_F tmp15;
+      x=tmp15.a;
+      y=tmp15.b;
+      FILTER_TUPLE_1(app5, tmp15,x, y,float, float,
+                     struct Pair_F, PAIR_F,
+                     points, tmp15,  struct Pair_F, PAIR_F,
+                     ( pow( x ,  2  ) +  pow( y ,  2  ) <  1.000000 ));
+    }
+    let5 = app5;
+    //DEBUG LETRETrefaddcount:0
+    //end of LETRET
+    //DEBUG LETrefaddcount:1
+    DECREF_SEQ_PAIR_F(app4);
+    //end of LET
+  }
+  _res = let5;
+  return _res;
+
+}
+bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
+  bool allCorrect = true;
+  struct Sequence H_Points;
+  float *xs, *ys, *hullXs, *hullYs;
+  int numHullPoints;
+  seed=123456789;
+  H_Points = random_points_seed(numPoints);
+  numHullPoints = H_Hull.len;
+  hullXs = (float*)H_Hull.ptr;
+  hullYs = ((float*)H_Hull.ptr)+H_Hull.cap;
+  xs = (float*)H_Points.ptr;
+  ys = ((float*)H_Points.ptr)+H_Points.cap, H_Points.len;
+  int i;
+  for(i=0; i<numHullPoints; i++) {
+    struct Pair_F p = {hullXs[i], hullYs[i]};
+    struct Pair_F q = {hullXs[i+1<numHullPoints ? i+1 : 0], hullYs[i+1<numHullPoints ? i+1 : 0]};
+
+    int j;
+    if((p.a)*(p.a)+(p.b)*(p.b) > 1) {
+      printf("(%.2f,%.2f) is not in the input!\n", p.a, p.b);
+      allCorrect = false;
+    }
+
+    if((q.a)*(q.a)+(q.b)*(q.b) > 1) {
+      printf("(%.2f,%.2f) is not in the input!\n", q.a, q.b);
+      allCorrect = false;
+    }
+
+    for(j=0; j<numPoints; j++) {
+      struct Pair_F pt = {xs[j], ys[j]};
+      float dist = (p.a-pt.a)*(q.b-pt.b) - (p.b-pt.b)*(q.a-pt.a);
+      if(dist > 0) {
+        printf("Wrong result: (%f,%f) is outside (%f,%f), (%f,%f), dist: %f\n",
+               pt.a, pt.b, p.a, p.b, q.a, q.b, dist);
+        allCorrect = false;
+      }
+    }
+  }
+  if(allCorrect){
+  printf("Verify success!\n");
+  }else{
+    printf("###ERROR###\tVerify FAILED!\n");
+  }
+  DECREF_SEQ_PAIR_F(H_Points);
+  return allCorrect;
+}

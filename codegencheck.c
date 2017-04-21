@@ -77,6 +77,7 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
       fprintf(fptr, "atomicAdd(REFCNT(%s, struct Pair_I),1);\n",string);
       break;
     case TypeSEQ:
+    case TypeSEQ_I:
     case TypeSEQ_F:
       fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
       break;
@@ -841,7 +842,7 @@ void pfcheck(struct nodeType* node){
   }
   case NODE_LETRET:{
     
-    node->isEndofFunction = node->parent->isEndofFunction;
+    //node->isEndofFunction = node->parent->isEndofFunction;
     pfcheck(node->child);
     if(node->child->isparallel_rr)
       node->isparallel_rr = 1;

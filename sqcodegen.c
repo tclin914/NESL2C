@@ -151,7 +151,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     sqcodegen(fptr,ifstmt);
     sqcodegen(fptr,thstmt);
     sqcodegen(fptr,elstmt);
-    DECREF(fptr,refTable.size);
+    //DECREF(fptr,refTable.size);
     break;
   }
 
@@ -1249,16 +1249,20 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         assert(0);//not implemented.
         break;
       }
-      if(node->inserttmp){
-        switch(node->valueType){
-        case TypeSEQ_I:
-          break;
-        default:
-          assert(0);//not implemented.
-          break;
-        }
-        printAddREF(fptr, node->string, node->valueType, node);
-      }
+      //if(node->inserttmp){
+      //  switch(node->valueType){
+      //  case TypeSEQ_I:
+      //    break;
+      //  default:
+      //    assert(0);//not implemented.
+      //    break;
+      //  }
+      //  printAddREF(fptr, node->string, node->valueType, node);
+      //}
+      
+      //FIXME problem in quicksort?  
+      if(node->child->nodeType!=NODE_SEQ)
+      printAddREF(fptr, node->string, node->valueType, node);
       break; // end of OP_PP
     default:
       assert(0);// not implemented;
@@ -2050,9 +2054,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
     node->typeNode = FREVAR;
     assert(node->typeNode); 
+ 
+    //FIXME dirty4ni~~
+    if(node->parent->nodeType == NODE_LETRET){
+      printf("boom\n");
+    }else{
     printAddREF(fptr, node->string, node->valueType, node);
-
-
+    }
+    
     //fprintf(fptr, "FILTER_1(%s, %s,",node->string, FREVAR->string);
     //switch(node->valueType){
     //case TypeSEQ_I:
@@ -2355,6 +2364,49 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         if(i<1) fprintf(fptr,",");
       }
       fprintf(fptr,");\n");
+    }else if(strcmp(node->child->string, "verifyQHull")==0){
+      while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
+      struct nodeType *param1 = RHS->child;
+      struct nodeType *param2 = param1->rsibling;
+      assert(param1->valueType ==TypeInt);
+      assert(param2->valueType ==TypeSEQ);
+      switch(param1->nodeType){
+        case NODE_INT:
+        case NODE_TOKEN:
+        break;
+        default: 
+          sqcodegen(fptr, param1);
+          break;
+      }
+      switch(param2->nodeType){
+        case NODE_INT:
+        case NODE_TOKEN:
+        break;
+        default: 
+          sqcodegen(fptr, param2);
+          break;
+      }
+      fprintf(fptr, "%s = verifyQHull(",node->string);
+      switch(param1->nodeType){
+        case NODE_INT:
+        case NODE_TOKEN:
+          sqcodegen(fptr, param1);
+        break;
+        default: 
+          fprintf(fptr, "%s",param1->string);
+          break;
+      }
+      fprintf(fptr, ",");
+      switch(param2->nodeType){
+        case NODE_INT:
+        case NODE_TOKEN:
+          sqcodegen(fptr, param2);
+        break;
+        default: 
+          fprintf(fptr, "%s",param2->string);
+          break;
+      }
+      fprintf(fptr, ");\n");
     }else if(strcmp(node->child->string, "genReverseList")==0){
       struct nodeType* param1 = RHS->child;
       switch(param1->nodeType){
@@ -2462,8 +2514,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       int count =0;
       while(!RHS->string && count<10) {RHS=RHS->child; count++;}
       //FIXME dirty
-      if(RHS->valueType >=TypeSEQ_I&&RHS->valueType<=TypeSEQ)
-        RHS->isEndofFunction = 1; 
+      //if(RHS->valueType >=TypeSEQ_I&&RHS->valueType<=TypeSEQ)
+      //  RHS->isEndofFunction = 1; 
       #ifdef DEBUG
       fprintf(fptr, "//DEBUG %s.isEndofFunction:%d\n",node->string, node->isEndofFunction);
       fprintf(fptr, "//DEBUG %s.isEndofFunction:%d\n",RHS->string, RHS->isEndofFunction);
