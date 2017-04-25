@@ -1,0 +1,8 @@
+function go(n):int->int=
+let 
+    a= genShuffledList(0,n);
+    b= genShuffledList(0,n);
+in  isthesame(a,b);
+
+
+go(1000000);
