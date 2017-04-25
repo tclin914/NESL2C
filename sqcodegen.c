@@ -1973,10 +1973,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType *SRCARR = FREVAR->rsibling;
     struct nodeType *FILTER = RBINDS->rsibling; // TODO remove the pair in yacc.
     fprintf(fptr, "{\n");
-    dumpTable(fptr, node);
+    //dumpTable(fptr, node);
     switch(FREVAR->nodeType){
       case RB_TUPLE:
-        sqcodegen(fptr,FREVAR);
+        //sqcodegen(fptr,FREVAR);
         fprintf(fptr, "FILTER_TUPLE_%d(%s, %s,", 
                     RBINDS->counts,node->string, FREVAR->string);
         // FIXME dirtyway

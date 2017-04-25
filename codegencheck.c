@@ -203,9 +203,11 @@ void DECREF(FILE* fptr,int n){
 }
 
 int insertadd(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(addindex[i] ==0){
-      addVariable(add[i], node->valueType, node);
+      sprintf(varname, "add%d",i);
+      addVariable(varname, node->valueType, node);
       addindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -213,9 +215,11 @@ int insertadd(struct nodeType* node){
 }
 
 int insertsub(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(subindex[i] ==0){
-      addVariable(sub[i], node->valueType, node);
+      sprintf(varname, "sub%d",i);
+      addVariable(varname, node->valueType, node);
       subindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -223,9 +227,11 @@ int insertsub(struct nodeType* node){
 }
 
 int insertmul(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(mulindex[i] ==0){
-      addVariable(mul[i], node->valueType, node);
+      sprintf(varname, "mul%d",i);
+      addVariable(varname, node->valueType, node);
       mulindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -233,9 +239,11 @@ int insertmul(struct nodeType* node){
 }
 
 int insertdiv(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(divindex[i] ==0){
-      addVariable(ddiv[i], node->valueType, node);
+      sprintf(varname, "ddiv%d",i);
+      addVariable(varname, node->valueType, node);
       divindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -243,9 +251,11 @@ int insertdiv(struct nodeType* node){
 }
 
 int insertlet(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(letindex[i] ==0){
-      addVariable(let[i], node->valueType, node);
+      sprintf(varname, "let%d",i);
+      addVariable(varname, node->valueType, node);
       letindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -263,36 +273,44 @@ int insertfcl(struct nodeType* node){
   }
 }
 int insertift(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(iftindex[i] ==0){
-      addVariable(ift[i], node->valueType, node);
+      sprintf(varname, "ift%d",i);
+      addVariable(varname, node->valueType, node);
       iftindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
   }
 }
 int insert_pp(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(_ppindex[i] ==0){
-      addVariable(_pp[i], node->valueType, node);
+      sprintf(varname, "_pp%d",i);
+      addVariable(varname, node->valueType, node);
       _ppindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
   }
 }
 int insertbol(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(bolindex[i] ==0){
-      addVariable(bol[i], node->valueType, node);
+      sprintf(varname, "bol%d",i);
+      addVariable(varname, node->valueType, node);
       bolindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
   }
 }
 int insertelm(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<MAX; i++){
     if(elmindex[i] ==0){
-      addVariable(elm[i], node->valueType, node);
+      sprintf(varname, "elm%d",i);
+      addVariable(varname, node->valueType, node);
       elmindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -300,9 +318,11 @@ int insertelm(struct nodeType* node){
 }
 
 int inserttmp(struct nodeType* node){
+  char varname[100];
   for(int i =0; i<=MAX; i++){
     if(tmpindex[i] ==0){
-      addVariable(tmp[i], node->valueType, node);
+      sprintf(varname, "tmp%d",i);
+      addVariable(varname, node->valueType, node);
       tmpindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -310,12 +330,14 @@ int inserttmp(struct nodeType* node){
 }
 
 int insertapp(struct nodeType* node){
+  char varname[100];
   struct SymTable *tmp = node->table;
   for(int i =0; i<=MAX; i++){
     if(appindex[i] ==0){
       if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = node->table->parent;
-      addVariable(app[i], node->valueType, node);
+      sprintf(varname, "app%d",i);
+      addVariable(varname, node->valueType, node);
       appindex[i]=1;
       if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = tmp;
@@ -366,7 +388,7 @@ void pfcheck(struct nodeType* node){
     int index= insertift(node);
     assert(index!=-1);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, ift[index]);
+    sprintf(node->string, "ift%d",index);
     assert(node->string);
 
     thstmt->string = malloc(sizeof(char)*100);
@@ -427,7 +449,7 @@ void pfcheck(struct nodeType* node){
         int index= insertbol(node);
         assert(index!=-1);
         node->string = malloc(sizeof(char)*100);
-        strcpy(node->string, bol[index]);
+        sprintf(node->string, "bol%d",index);
         assert(node->string);
         //addVariable(node->string, node->valueType, node);
       }
@@ -440,7 +462,7 @@ void pfcheck(struct nodeType* node){
       int index= insertadd(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, add[index]);
+      sprintf(node->string, "add%d",index);
       assert(node->string);
       }
       pfcheck(LHS);
@@ -452,7 +474,7 @@ void pfcheck(struct nodeType* node){
       int index= insertsub(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, sub[index]);
+      sprintf(node->string, "sub%d",index);
       assert(node->string);
       }
       pfcheck(LHS);
@@ -464,7 +486,7 @@ void pfcheck(struct nodeType* node){
       int index= insertmul(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, mul[index]);
+      sprintf(node->string, "mul%d",index);
       assert(node->string);
       }
       pfcheck(LHS);
@@ -476,7 +498,7 @@ void pfcheck(struct nodeType* node){
       int index= insertdiv(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, ddiv[index]);
+      sprintf(node->string, "ddiv%d",index);
       assert(node->string);
       }
       pfcheck(LHS);
@@ -489,7 +511,7 @@ void pfcheck(struct nodeType* node){
       int index= inserttmp(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, tmp[index]);
+      sprintf(node->string, "tmp%d",index);
       assert(node->string);
       }
       pfcheck(LHS);
@@ -500,7 +522,7 @@ void pfcheck(struct nodeType* node){
       int index= inserttmp(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, tmp[index]);
+      sprintf(node->string, "tmp%d",index);
       assert(node->string);
       }
       pfcheck(LHS);
@@ -526,7 +548,7 @@ void pfcheck(struct nodeType* node){
       int index= insert_pp(node);
       assert(index!=-1);
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, _pp[index]);
+      sprintf(node->string, "_pp%d",index);
       assert(node->string);
 
       break;
@@ -635,7 +657,7 @@ void pfcheck(struct nodeType* node){
 
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, tmp[index]);
+    sprintf(node->string, "tmp%d",index);
     node->inserttmp = 1;
     pfcheck(node->child);
     pfcheck(node->child->rsibling);
@@ -657,7 +679,8 @@ void pfcheck(struct nodeType* node){
       addVariable("_i", TypeInt, node);
     int idx = insertapp(node); 
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, app[idx]);
+    sprintf(node->string, "app%d",idx);
+    
     if(!node->child->string){
       node->child->string = malloc(sizeof(char)*100);
       strcpy(node->child->string, "tmp");
@@ -675,7 +698,7 @@ void pfcheck(struct nodeType* node){
     if(node->parent->op!=OP_BIND){
       int idx = insertapp(node); 
       node->string = malloc(sizeof(char)*100);
-      strcpy(node->string, app[idx]);
+      sprintf(node->string, "app%d",idx);
     }
     break;
   }
@@ -723,7 +746,7 @@ void pfcheck(struct nodeType* node){
 
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, tmp[index]);
+    sprintf(node->string, "tmp%d",index);
     
     while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
     while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
@@ -739,7 +762,7 @@ void pfcheck(struct nodeType* node){
 
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, tmp[index]);
+    sprintf(node->string, "tmp%d",index);
     
     while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
     while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
@@ -752,7 +775,8 @@ void pfcheck(struct nodeType* node){
   case NODE_TUPLE:{
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, tmp[index]);
+    sprintf(node->string, "tmp%d",index);
+    
     node->inserttmp = 1;
     pfcheck(node->child);
     pfcheck(node->child->rsibling);
@@ -775,7 +799,7 @@ void pfcheck(struct nodeType* node){
     pfcheck(node->child); 
     int idx = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, tmp[idx]);
+    sprintf(node->string, "tmp%d",idx);
     node->counts = 1; // only one child;
   }
   case NODE_NEW_SEQ:{
@@ -784,7 +808,7 @@ void pfcheck(struct nodeType* node){
 
     int idx = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, tmp[idx]);
+    sprintf(node->string, "tmp%d",idx);
 
     LHS->paramcount = 0;
     RHS->paramcount = 1;
@@ -853,14 +877,14 @@ void pfcheck(struct nodeType* node){
     node->table = table;
     assert(index!=-1);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, let[index]);
+    sprintf(node->string, "let%d",index);
     assert(node->string);
     break;
   }
   case NODE_SEQ_REF:{
     int index = insertelm(node);
     node->string = malloc(sizeof(char)*100);
-    strcpy(node->string, elm[index]);
+    sprintf(node->string, "elm%d",index);
     assert(node->string);
     pfcheck(node->child);
     assert(node->child->string);
