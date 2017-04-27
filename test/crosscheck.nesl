@@ -1,0 +1,18 @@
+
+function cross_product(o,p1,p2) :((float,float),(float,float),(float,float)) ->float =
+let (xo,yo) = o; 
+    (x1,y1) = p1;
+    (x2,y2) = p2;
+in (x1-xo)*(y2-yo) - (y1-yo)*(x2-xo);
+
+
+
+function hull_demo(n):(int)->[(float)] =
+let 
+    arr1 = {rand(i)-1.0,rand(i)-1.0: i in dist(2.0,n)}; 
+    arr2 = {rand(i)-1.0,rand(i)-1.0: i in dist(2.0,n)};
+    arr3 = {rand(i)-1.0,rand(i)-1.0: i in dist(2.0,n)};
+    cp = {cross_product(o,p1,p2):o in arr1; p1 in arr2; p2 in arr3};
+in cp; 
+
+hull_demo(100);
