@@ -380,21 +380,20 @@ int atomicSub(int * a, int b){
 }while(0) 
 
 #define NESLDIST_F(res, p1, p2)  do{\
-  int i;\
+  int _disti;\
   MALLOC(res, p2, float);\
-  for(i=0; i<p2; i++) { \
-    float elem = p1;\
-    SET_ELEM_F(elem, res, i);\
+  for(_disti=0; _disti<p2; _disti++) { \
+    SET_ELEM_F(p1, res, _disti);\
   }\
 }while(0)
 
 
 #define NESLDIST(res, p1, p2)  do{\
-  int i;\
+  int _disti;\
   MALLOC(res, p2, int);\
-  for(i=0; i<p2; i++) { \
-    int elem = p1;\
-    SET_ELEM_I(elem, res, i);\
+  assert(res.len == p2);\
+  for(_disti=0; _disti<p2; _disti++) { \
+    SET_ELEM_I(p1, res, _disti);\
   }\
 }while(0)
 
