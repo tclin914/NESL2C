@@ -10,7 +10,6 @@
 #include "codegen.h"
 #include "pfcodegen.h"
 #include "sqcodegen.h"
-#include "genMacro.h"
 #include "codegencheck.h"
 
 int yydebug =1;
