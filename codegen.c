@@ -732,3 +732,19 @@ void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node
   }
   fprintf(fptr,"=%s.b;\n",node1->string);
 }
+
+int containArray(struct nodeType *node){
+  if(node->valueType<TypeSEQ_I) return 0;
+  else if(node->valueType>=TypeSEQ_I&&node->valueType<=TypeSEQ) return 1;
+  else if(node->valueType>=TypeTuple_SF&&node->valueType<=TypeTuple_IS) return 1;
+  else if(node->valueType == TypeTuple){
+    struct nodeType* Lchild = node->typeNode->child;
+    struct nodeType* Rchild = node->typeNode->child->rsibling;
+    assert(Lchild);
+    assert(Rchild);
+    if(containArray(Lchild) || containArray(Rchild))
+      return 1;
+    else return 0;
+  }
+  else return 0;
+}

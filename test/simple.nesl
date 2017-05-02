@@ -1,0 +1,10 @@
+function simple(i):int->int =
+  if (i == 0) then 1
+  else 2
+  $
+
+function run_simple(n):int ->[int]  =
+  {simple(rand(i)) : i in dist(100, n)}
+  $
+
+run_simple(10);

@@ -1,0 +1,10 @@
+function mulinc (xs, ys):([int],[int])->[int] = {x * y + 1 : x in xs; y in ys};
+
+function bench(i):int->(int,float) =
+let nums1 = {rand(i): i in dist(100, i)};
+    nums2 = {rand(i): i in dist(100, i)};
+    nums3 = {rand(i): i in dist(100, i)};
+    (res, tm) = time({a1+a2 : a1 in mulinc(nums1, nums2); a2 in mulinc(nums2, nums3)})
+in (res[0], tm) $
+
+bench(100);
