@@ -60,7 +60,7 @@ char fcl[MAX][6] = {"fcl1","fcl2","fcl3","fcl4","fcl5","fcl6","fcl7","fcl8","fcl
   "_pp21","_pp22","_pp23","_pp24","_pp25","_pp26","_pp27","_pp28","_pp29","_pp30"};
 
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
-  insertREF(string, type, node);
+  //insertREF(string, type, node);
   switch(type){
   case TypeSEQ_I:
     fprintf(fptr, "atomicAdd(REFCNT(%s, int),1);\n",string);
@@ -86,6 +86,24 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
       assert(0);
     }
     break;
+  case TypeTuple:{
+    struct nodeType *Lchild = node->typeNode->child;
+    struct nodeType *Rchild = Lchild->rsibling;
+    while(Lchild->nodeType==NODE_PAIR) Lchild=Lchild->child;
+    while(Rchild->nodeType==NODE_PAIR) Rchild=Rchild->child;
+    if(containArray(Lchild))
+      printAddREF(fptr, Lchild->string, Lchild->valueType, Lchild);
+    if(containArray(Rchild))
+      printAddREF(fptr, Rchild->string, Rchild->valueType, Rchild);
+    break;
+    }
+  case TypeTuple_SF:{
+    struct nodeType *Lchild = node->child;
+    while(Lchild->nodeType==NODE_PAIR||Lchild->nodeType==NODE_PATTERN) 
+      Lchild=Lchild->child;
+    printAddREF(fptr, Lchild->string, Lchild->valueType, Lchild);
+    break;  
+  }
   default:
     assert(0);
     break;

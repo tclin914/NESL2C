@@ -2901,15 +2901,26 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       struct SymTableEntry* entry = findSymbol(node->table, node->string);
       assert(entry);
       fprintf(fptr, "%s", node->string);
-
     }
-
     }
     break;
   default:
     break;
+  }// switch node->nodeType
+  
+  /*
+  * print addrefcnt 
+  */
+  if(containArray(node)&&node->nodeType!=NODE_OP&&
+      node->nodeType!=NODE_FUNC&&node->nodeType!=NODE_FUNC_CALL&&
+      node->nodeType!=NODE_PATTERN&&node->nodeType!=NODE_PAIR&&
+      node->parent->nodeType!=NODE_TUPLE&&node->parent->nodeType!=PARAM_TUPLE&&
+      node->nodeType!=NODE_TUPLE&&node->nodeType!=PARAM_TUPLE&&
+      node->parent->nodeType!=LHS_TUPLE&&node->parent->nodeType!=RHS_TUPLE){
+   printAddREF(fptr,node->string,node->valueType,node); 
   }
-  return;
+ 
+  return;// end of sqcodegen.
 }
 
 
