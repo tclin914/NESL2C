@@ -808,10 +808,11 @@ void pfcheck(struct nodeType* node){
     node->string = malloc(sizeof(char)*100);
     strcpy(node->string, node->parent->string);
 
-    if(RHS->nodeType == NODE_SEQ_TUPLE){
-      pfcheck(RHS);
-    }
-
+    //if(RHS->nodeType == NODE_SEQ_TUPLE){
+    //  pfcheck(RHS);
+    //}
+    pfcheck(LHS);
+    pfcheck(RHS);
     break;
   }
   case NODE_SEQ:{
@@ -832,12 +833,15 @@ void pfcheck(struct nodeType* node){
     LHS->paramcount = 0;
     RHS->paramcount = 1;
     if(RHS->nodeType == NODE_SEQ_TUPLE){
-      pfcheck(RHS);
+      //pfcheck(RHS);
       node->counts = RHS->counts+1;
     }
     else{
       node->counts = 2;
     }
+    pfcheck(LHS);
+    pfcheck(RHS);
+
     break;
   }
   case NODE_IN:{

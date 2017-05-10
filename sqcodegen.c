@@ -1488,6 +1488,28 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n",
               LHS->iValue, node->string, LHS->paramcount);
       break;
+    case NODE_FLOAT:
+      fprintf(fptr, "SET_ELEM_F(%f,%s,%d);\n",
+              LHS->rValue, node->string, LHS->paramcount);
+      break;
+    default:
+      sqcodegen(fptr, LHS);
+      switch(LHS->valueType){
+        case TypeInt:
+          fprintf(fptr, "SET_ELEM_I(%s,%s,%d);\n",
+              LHS->string, node->string, LHS->paramcount);
+        break;
+        case TypeFloat:
+          fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
+              LHS->string, node->string, LHS->paramcount);
+        break;
+       default:
+       assert(0);
+       break;
+        
+      }
+      break;
+    //assert(0);
     }
     switch(RHS->nodeType){
     case NODE_SEQ_TUPLE:
@@ -1496,6 +1518,22 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_INT:
       fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n",
               RHS->iValue, node->string, RHS->paramcount);
+      break;
+    default:
+      sqcodegen(fptr, RHS);
+      switch(RHS->valueType){
+        case TypeInt:
+          fprintf(fptr, "SET_ELEM_I(%s,%s,%d);\n",
+              RHS->string, node->string, RHS->paramcount);
+        break;
+        case TypeFloat:
+          fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
+              RHS->string, node->string, RHS->paramcount);
+        break;
+       default:
+       assert(0);
+        
+      }    
     }
     break;
   }
@@ -1640,6 +1678,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_INT:
       fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", LHS->iValue, node->string, LHS->paramcount);
       break;
+    case NODE_FLOAT:
+      fprintf(fptr, "SET_ELEM_F(%f,%s,%d);\n", LHS->rValue, node->string, LHS->paramcount); 
+      break;
     case NODE_TOKEN:
       switch(LHS->valueType){
       case TypeSEQ_I:
@@ -1655,10 +1696,28 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       }
       break;
+    default:
+      sqcodegen(fptr, LHS);
+      switch(LHS->valueType){
+      case TypeInt:
+        fprintf(fptr, "SET_ELEM_I(%s,%s,%d);\n",
+                LHS->string, node->string, LHS->paramcount);
+      break;
+      case TypeFloat:
+        fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
+                LHS->string, node->string, LHS->paramcount);
+      break;
+      default:
+      assert(0);
+      }
+    break;
     }
     switch(RHS->nodeType){
     case NODE_INT:
       fprintf(fptr, "SET_ELEM_I(%d,%s,%d);\n", RHS->iValue, node->string, RHS->paramcount); 
+      break;
+    case NODE_FLOAT:
+      fprintf(fptr, "SET_ELEM_F(%f,%s,%d);\n", RHS->rValue, node->string, RHS->paramcount); 
       break;
     case NODE_TOKEN:
       switch(RHS->valueType){
@@ -1678,6 +1737,21 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_SEQ_TUPLE:
       sqcodegen(fptr, RHS);
       break;
+    default:
+      sqcodegen(fptr, RHS);
+      switch(RHS->valueType){
+      case TypeInt:
+        fprintf(fptr, "SET_ELEM_I(%s,%s,%d);\n",
+                RHS->string, node->string, RHS->paramcount);
+      break;
+      case TypeFloat:
+        fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
+                RHS->string, node->string, RHS->paramcount);
+      break;
+      default:
+      assert(0);
+      }
+    break;
     }
 
     //if(LHS->valueType>=TypeSEQ_I&&LHS->valueType<TypeTuple_I)
