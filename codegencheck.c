@@ -1019,4 +1019,52 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
 
   }
 }
+void printDECREF(FILE *fptr, struct nodeType *node){
+  
+  switch(node->valueType){
+  case TypeSEQ_F:
+    fprintf(fptr, "DECREF_SEQ_F(%s);\n",node->string);
+    break;
+  case TypeSEQ_I:
+    fprintf(fptr, "DECREF_SEQ_I(%s);\n",node->string);
+    break;
+  case TypeSEQ:{
+    // has different situation.
+    struct nodeType *loopme;
+    int types;
+    loopme = node->typeNode;
 
+    fprintf(fptr, "DECREF_SEQ");
+    int x=0;
+    while(loopme->valueType ==TypeSEQ){
+      fprintf(fptr, "_SEQ");
+      loopme = loopme->typeNode;
+      assert(loopme);
+      if(x++==10) abort();//error;
+    }
+    switch(loopme->valueType){
+    case TypeSEQ_I:
+      fprintf(fptr, "_SEQ_I");
+      break;
+    case TypeSEQ_F:
+      fprintf(fptr, "_SEQ_F");
+      break;
+    case TypeSEQ:  
+      assert(0);//not implement;
+      break;
+    case TypeFloat:
+      fprintf(fptr, "_F");
+      break;
+    case TypeTuple_F:
+      fprintf(fptr, "_PAIR_F");
+      break;
+    default:
+      assert(0); //not implement
+    }
+    fprintf(fptr, "(%s);\n", node->string);
+    break;}
+  default:
+    assert(0); // not implement;
+    break;
+  }
+}

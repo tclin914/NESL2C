@@ -2914,12 +2914,35 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   if(containArray(node)&&node->nodeType!=NODE_OP&&
       node->nodeType!=NODE_FUNC&&node->nodeType!=NODE_FUNC_CALL&&
       node->nodeType!=NODE_PATTERN&&node->nodeType!=NODE_PAIR&&
+      (node->parent->op=OP_BIND&&node!=node->parent->child)&&
+      node->parent->nodeType!=NODE_NESL&&
       node->parent->nodeType!=NODE_TUPLE&&node->parent->nodeType!=PARAM_TUPLE&&
       node->nodeType!=NODE_TUPLE&&node->nodeType!=PARAM_TUPLE&&
       node->parent->nodeType!=LHS_TUPLE&&node->parent->nodeType!=RHS_TUPLE){
    printAddREF(fptr,node->string,node->valueType,node); 
   }
- 
+  
+  /*
+  * print DECREF 
+  */
+//  struct nodeType *child = node->child;
+  child = node->child;
+  if(child){
+    do{
+      if(containArray(child)&&child->nodeType!=NODE_OP&&
+         child->nodeType!=NODE_FUNC&&child->nodeType!=NODE_FUNC_CALL&&
+         child->nodeType!=NODE_PATTERN&&child->nodeType!=NODE_PAIR&&
+         child->parent->nodeType!=NODE_TUPLE&&child->parent->nodeType!=PARAM_TUPLE&&
+         child->nodeType!=NODE_TUPLE&&child->nodeType!=PARAM_TUPLE&&
+         child->nodeType!=NODE_RBINDS&&
+         child->parent->nodeType!=NODE_FUNC_CALL&&
+         child->parent->nodeType!=NODE_FUNC&&
+         child->parent->nodeType!=LHS_TUPLE&&child->parent->nodeType!=RHS_TUPLE){
+//        printDECREF(fptr, child);
+      }
+      child = child->rsibling;
+    }while(child!=node->child);
+  }
   return;// end of sqcodegen.
 }
 
