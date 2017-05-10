@@ -738,6 +738,7 @@ void typeAnalysis( struct nodeType *node){
         case OP_AT:
           break;
         case OP_UMINUS:
+          node->valueType=LHS->valueType;
           //assert(
           break;
         case OP_SHARP:{

@@ -523,6 +523,7 @@ void pfcheck(struct nodeType* node){
       pfcheck(RHS);
       break;
     }
+    case OP_UMINUS:
     case OP_SHARP:{
 
       if(!node->infilter){

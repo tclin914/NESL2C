@@ -1030,7 +1030,61 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         }
       }
       break;
-    }    
+    } 
+    case OP_UMINUS:{
+      if(node->infilter){
+        sqcodegen(fptr, node->child);
+        fprintf(fptr, " - ");
+        sqcodegen(fptr, node->child->rsibling);
+      }else{
+        struct nodeType *op1 = node->child;
+        struct nodeType *op2 = op1->rsibling;
+        while(op1->nodeType == NODE_PAIR) op1=op1->child;
+        while(op2->nodeType == NODE_PAIR) op2=op2->child;
+        fprintf(fptr,"{\n");
+        printparam(fptr, node);// declare int add; etc...
+        switch(node->valueType){
+        case TypeInt:
+          fprintf(fptr, "int op1;\n");
+          break;
+        case TypeFloat:
+          fprintf(fptr, "float op1;\n");
+          break;
+        }
+        switch(op1->nodeType){
+        case NODE_INT:
+        case NODE_FLOAT:
+          fprintf(fptr, "op1=");
+          sqcodegen(fptr, op1);
+          fprintf(fptr, ";\n");
+          break;
+          break;
+        case NODE_TOKEN:
+          assert(op1->string);
+          fprintf(fptr, "op1=%s;\n",op1->string);
+          break;
+        default:
+          assert(op1->string);
+          sqcodegen(fptr, op1);
+          fprintf(fptr, "op1=%s;\n",op1->string);
+          break;
+        }
+        
+        fprintf(fptr, "%s = -op1;\n",node->string);
+        fprintf(fptr,"}\n");
+        if(node->parent->nodeType == NODE_NESL){
+          switch(node->valueType){
+          case TypeInt:
+            fprintf(fptr, "print_I(%s);\n", node->string);
+            break;
+          case TypeFloat:
+            fprintf(fptr, "print_F(%s);\n", node->string);
+            break;
+          } 
+        }
+      }
+      break;
+    }
     case OP_UPT:{
       struct nodeType *op1 = node->child;
       struct nodeType *op2 = node->child->rsibling;
@@ -2894,8 +2948,71 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     } 
     break;
   }// end of NODE_FUNC_CALL
-
   case NODE_TOKEN:
+    
+    if(node->parent->nodeType == NODE_NESL){
+      switch(node->valueType){
+        struct nodeType *loopme; int x;
+      case TypeTuple_SF:
+        fprintf(fptr, "print_Tuple(%s,", node->string);
+        switch(node->typeNode->child->valueType){
+        case TypeSEQ:
+          loopme = node->typeNode->child; 
+          x=0;
+          while(loopme->valueType ==TypeSEQ){
+            fprintf(fptr, "SEQ_");
+            loopme = loopme->typeNode;
+            assert(loopme);
+            if(x++==10) abort();//error;
+          }
+          switch(loopme->valueType){
+          case TypeSEQ_I:
+            fprintf(fptr, "SEQ_I");
+            break;
+          case TypeSEQ_F:
+            fprintf(fptr, "SEQ_F");
+            break;
+          case TypeSEQ:  
+            assert(0);//not implement;
+            break;
+          case TypeFloat:
+            fprintf(fptr, "F");
+            break;
+          case TypeTuple_F:
+            fprintf(fptr, "PAIR_F");
+            break;
+          default:
+            assert(0); //not implement
+          }
+          fprintf(fptr, ", F);\n");
+          break;
+        default:
+          assert(0);
+        }
+        break;
+      case TypeTuple_F:
+        fprintf(fptr, "print_Tuple(%s, F, F);\n", node->string);
+        break;
+      case TypeTuple_IF:
+        fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
+        break;
+      case TypeInt:
+        fprintf(fptr, "print_I(%s);\n", node->string);
+        break;
+      case TypeFloat:
+        fprintf(fptr, "print_F(%s);\n", node->string);
+        break;
+      case TypeSEQ_I:
+        fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+        break;
+      case TypeSEQ_F:
+        fprintf(fptr, "print_SEQ_F(%s);\n", node->string);
+        break;
+      default:
+        assert(0);
+        break;
+      }
+    }else{
     switch(node->tokenType){
     case TOKE_ID:{
       struct SymTableEntry* entry = findSymbol(node->table, node->string);
@@ -2903,6 +3020,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "%s", node->string);
     }
     }
+    }
+
     break;
   default:
     break;
