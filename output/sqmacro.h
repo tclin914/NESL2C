@@ -348,13 +348,13 @@ int atomicSub(int * a, int b){
 }while(0)
 
 #define print_SEQ_F(src) do{ \
-  int i,e,_len; \
+  int i,_len; \
+  float e;\
   printf( "len=%d: \n",src.len); \
   _len = src.len;\
   for(i=0; i<_len; i++) { \
     GET_ELEM_F(e, src, i); \
-    print_F(e);\
-    printf(", ");\
+    printf("%f, ",(double)e);\
   }\
   printf("\n"); \
 }while(0)
