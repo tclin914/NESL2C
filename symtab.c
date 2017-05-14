@@ -493,6 +493,7 @@ void typeAnalysis( struct nodeType *node){
       assert(ifstmt->valueType == TypeBool); 
       assert(thstmt->valueType == elstmt->valueType);
       node->valueType = elstmt->valueType;
+      node->typeNode = elstmt->typeNode;
       
       break;
     }
@@ -514,12 +515,14 @@ void typeAnalysis( struct nodeType *node){
     case NODE_EXP:{
       typeAnalysis(node->child);
       node->valueType = node->child->valueType;
+      node->typeNode = node->child->typeNode;
       break;
     }
     case NODE_LET:{
       typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
       node->valueType = node->child->rsibling->valueType;
+      node->typeNode = node->child->rsibling->typeNode;
       break;
     }
     case NODE_BIND:{
@@ -713,6 +716,7 @@ void typeAnalysis( struct nodeType *node){
         }else{
           assert(0); // not implement
         }
+        node->typeNode=RHS->typeNode;
         break;
       }
         case OP_ADD:
@@ -1366,6 +1370,7 @@ void typeAnalysis( struct nodeType *node){
         node->counts = 2;
         RHS->paramcount = node->paramcount +1;
       }
+      node->typeNode=node;
       break;
     } 
     case NODE_SEQ:{

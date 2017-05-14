@@ -1215,6 +1215,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         sqcodegen(fptr, RHS);
         RHS= LHS->rsibling;
         break;}
+      case NODE_INT:
+        
+        break;
       default :
         sqcodegen(fptr, RHS);
         assert(RHS->string);
@@ -1327,7 +1330,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       
       //FIXME problem in quicksort?  
       if(node->child->nodeType!=NODE_SEQ)
-      //printAddREF(fptr, node->string, node->valueType, node);
+      ;//printAddREF(fptr, node->string, node->valueType, node);
       break; // end of OP_PP
     default:
       assert(0);// not implemented;
@@ -1503,6 +1506,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
               LHS->string, node->string, LHS->paramcount);
         break;
+        case TypeTuple_I:
+          fprintf(fptr, "SET_ELEM_PAIR_I(%s,%s,%d);\n",
+              LHS->string, node->string, LHS->paramcount);
+        break;
+        case TypeTuple:
+          fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+              LHS->string, node->string, LHS->paramcount);
+        break;
        default:
        assert(0);
        break;
@@ -1528,6 +1539,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
         case TypeFloat:
           fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
+              RHS->string, node->string, RHS->paramcount);
+        break;
+        case TypeTuple_I:
+          fprintf(fptr, "SET_ELEM_PAIR_I(%s,%s,%d);\n",
+              RHS->string, node->string, RHS->paramcount);
+        break;
+        case TypeTuple:
+          fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
               RHS->string, node->string, RHS->paramcount);
         break;
        default:
@@ -1636,7 +1655,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = node->child->rsibling;
     int deccount =0; 
-
+    while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
+    while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
     fprintf(fptr, "MALLOC(%s,%d,",node->string, node->counts);
 
     switch(LHS->valueType){
@@ -1666,6 +1686,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeTuple_IF:
       fprintf(fptr, "struct tupleIF");
+      break;
+    case TypeTuple:
+      fprintf(fptr, "struct tuple");
       break;
     default:
       assert(0);
@@ -1705,6 +1728,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
       case TypeFloat:
         fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
+                LHS->string, node->string, LHS->paramcount);
+      break;
+      case TypeTuple_I:
+        fprintf(fptr, "SET_ELEM_PAIR_I(%s,%s,%d);\n",
+                LHS->string, node->string, LHS->paramcount);
+      break;
+      case TypeTuple:
+        fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
                 LHS->string, node->string, LHS->paramcount);
       break;
       default:
@@ -1748,6 +1779,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, "SET_ELEM_F(%s,%s,%d);\n",
                 RHS->string, node->string, RHS->paramcount);
       break;
+      case TypeTuple_I:
+        fprintf(fptr, "SET_ELEM_PAIR_I(%s,%s,%d);\n",
+                RHS->string, node->string, RHS->paramcount);
+      break;
+      case TypeTuple:
+        fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+                RHS->string, node->string, RHS->paramcount);
+      break;
       default:
       assert(0);
       }
@@ -1758,7 +1797,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       //printAddREF(fptr, node->string, node->valueType, node);
     break;
   }// end of NODE_NEW_SEQ
-
 
   case NODE_APPLYBODY1:
     abort();
@@ -2328,6 +2366,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
     break;
   }
+  case ELEM_TUPLE:
   case RHS_TUPLE:
   case NODE_TUPLE:{
     struct nodeType *LHS = node->child;
@@ -3101,6 +3140,118 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
   }// switch node->nodeType
   
+  if(node->parent){
+    if(node->parent->nodeType == NODE_NESL && node->nodeType!=NODE_FUNC&&
+       node->op!=OP_BIND){
+      switch(node->valueType){
+        struct nodeType *loopme; int x;
+      case TypeInt:
+        if(node->nodeType==NODE_INT) fprintf(fptr,"printf(%d\\n);\n",node->iValue);
+        else fprintf(fptr, "print_I(%s);\n",node->string);
+      break;
+      case TypeChar:
+        assert(0);
+      break;
+      case TypeFloat:
+        assert(0);
+      break;
+      case TypeBool:
+        assert(0);
+      break;
+      case TypeTuple_SF:
+        fprintf(fptr, "print_Tuple(%s,", node->string);
+        switch(node->typeNode->child->valueType){
+        case TypeSEQ:
+          loopme = node->typeNode->child; 
+          x=0;
+          while(loopme->valueType ==TypeSEQ){
+            fprintf(fptr, "SEQ_");
+            loopme = loopme->typeNode;
+            assert(loopme);
+            if(x++==10) abort();//error;
+          }
+          switch(loopme->valueType){
+          case TypeSEQ_I:
+            fprintf(fptr, "SEQ_I");
+            break;
+          case TypeSEQ_F:
+            fprintf(fptr, "SEQ_F");
+            break;
+          case TypeSEQ:  
+            assert(0);//not implement;
+            break;
+          case TypeFloat:
+            fprintf(fptr, "F");
+            break;
+          case TypeTuple_F:
+            fprintf(fptr, "PAIR_F");
+            break;
+          default:
+            assert(0); //not implement
+          }
+          fprintf(fptr, ", F);\n");
+          break;
+        default:
+          assert(0);
+        }
+        break;
+      case TypeTuple_F:
+        fprintf(fptr, "print_Tuple(%s, F, F);\n", node->string);
+        break;
+      case TypeTuple_IF:
+        fprintf(fptr, "print_Tuple(%s, I, F);\n", node->string);
+        break;
+      case TypeSEQ_I:
+        fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
+        break;
+      case TypeSEQ_F:
+        fprintf(fptr, "print_SEQ_F(%s);\n", node->string);
+        break;
+      case TypeSEQ:{
+        fprintf(fptr, "print_SEQ_");
+        loopme = node->typeNode; 
+        x=0;
+        while(loopme->valueType ==TypeSEQ){
+          fprintf(fptr, "SEQ_");
+          loopme = loopme->typeNode;
+          assert(loopme);
+          if(x++==10) abort();//error;
+        }
+        switch(loopme->valueType){
+        case TypeSEQ_I:
+          fprintf(fptr, "SEQ_I");
+          break;
+        case TypeSEQ_F:
+          fprintf(fptr, "SEQ_F");
+          break;
+        case TypeSEQ:  
+          assert(0);//not implement;
+          break;
+        case TypeFloat:
+          fprintf(fptr, "F");
+          break;
+        case TypeTuple_I:
+          fprintf(fptr, "PAIR_I");
+          break;
+        case TypeTuple_F:
+          fprintf(fptr, "PAIR_F");
+          break;
+        case TypeTuple:
+          fprintf(fptr, "PAIR");
+          break;
+        default:
+          assert(0); //not implement
+        }
+        fprintf(fptr, "(%s);\n", node->string);
+        break;
+      }
+      default:
+        assert(0);
+        break;
+      }
+    }
+  }
+      
   /*
   * print addrefcnt 
   */
@@ -3110,6 +3261,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       (node->parent->op=OP_BIND&&node!=node->parent->child)&&
       node->parent->nodeType!=NODE_NESL&&
       node->parent->nodeType!=NODE_TUPLE&&node->parent->nodeType!=PARAM_TUPLE&&
+      node->nodeType!=NODE_IFSTMT&&
+      node->nodeType!=NODE_ELSESTMT&&
+      node->nodeType!=NODE_THENSTMT&&
       node->nodeType!=NODE_TUPLE&&node->nodeType!=PARAM_TUPLE&&
       node->parent->nodeType!=LHS_TUPLE&&node->parent->nodeType!=RHS_TUPLE){
    printAddREF(fptr,node->string,node->valueType,node); 

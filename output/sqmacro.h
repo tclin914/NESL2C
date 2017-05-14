@@ -100,6 +100,10 @@ int atomicSub(int * a, int b){
   res.a = ((int*)arr.ptr)[idx]; \
   res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
 
+#define GET_ELEM_PAIR_I(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((int*)arr.ptr)[arr.cap+idx]; } while(0)
+
 #define GET_ELEM_PAIR_F(res, arr, idx) do { \
   res.a = ((float*)arr.ptr)[idx]; \
   res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
@@ -119,6 +123,13 @@ int atomicSub(int * a, int b){
 #define SET_ELEM_F(elm, arr, idx) do { \
   ((float*)arr.ptr)[idx] = elm; \
 } while(0)
+
+#define SET_ELEM_PAIR(elm, arr, idx) do { \
+  ((struct tuple*)arr.ptr)[idx] = elm; } while(0)
+
+#define SET_ELEM_PAIR_I(elm, arr, idx) do { \
+  ((int*)arr.ptr)[idx] = elm.a; \
+  ((int*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
 #define SET_ELEM_PAIR_F(elm, arr, idx) do { \
   ((float*)arr.ptr)[idx] = elm.a; \
@@ -328,10 +339,31 @@ int atomicSub(int * a, int b){
 }while(0) \
 
 
+#define print_PAIR_I(src) do{\
+  print_I((int)src.a);\
+  printf(", ");\
+  print_I((int)src.b);\
+}while(0)
+
 #define print_PAIR_F(src) do{\
   print_F((float)src.a);\
   printf(", ");\
   print_F((float)src.b);\
+}while(0)
+
+#define print_SEQ_PAIR_I(src)do{\
+  int _i,_len;\
+  struct Pair_I e;\
+  _len = src.len;\
+    printf("[ ");\
+  for(_i=0; _i<_len; _i++) { \
+    GET_ELEM_PAIR_I(e, src, _i); \
+    printf("( ");\
+    print_PAIR_I(e);\
+    printf("), ");\
+  }\
+    printf("] ");\
+  printf("\n"); \
 }while(0)
 
 #define print_SEQ_PAIR_F(src)do{\
@@ -350,7 +382,8 @@ int atomicSub(int * a, int b){
 #define print_SEQ_F(src) do{ \
   int i,_len; \
   float e;\
-  printf( "len=%d: \n",src.len); \
+  printf("printSEQ %s, len=%d: \n",#src,src.len); \
+  /*printf( "len=%d: \n",src.len); */\
   _len = src.len;\
   for(i=0; i<_len; i++) { \
     GET_ELEM_F(e, src, i); \
@@ -382,6 +415,7 @@ int atomicSub(int * a, int b){
 #define NESLDIST_F(res, p1, p2)  do{\
   int _disti;\
   MALLOC(res, p2, float);\
+  assert(res.len == p2);\
   for(_disti=0; _disti<p2; _disti++) { \
     SET_ELEM_F(p1, res, _disti);\
   }\
