@@ -8,4 +8,4 @@ let nums1 = {rand(i): i in dist(100, i)};
         time({a1+a2 : a1 in muladd(nums1, nums2, nums3); a2 in muladd(nums2, nums3, nums1)})
 in (res[0], tm) $
 
-bench(10.0);
+bench(10);
