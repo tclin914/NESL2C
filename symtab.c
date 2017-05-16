@@ -323,7 +323,13 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
       node1->valueType = node2->valueType;
       addVariable(node1->string, node2->valueType, node1);
     break;
+    case NODE_OP:
+    assert(node2->valueType);
+    node1->valueType = node2->valueType;
+      addVariable(node1->string, node2->valueType, node1);
+    break;
     default:
+      
     assert(0); //not implement
     break;
     } // end of switch node2->type;
@@ -682,9 +688,11 @@ void typeAnalysis( struct nodeType *node){
           //        TOKEN_ID
           LHS->child->typeNode = RHS;
           LHS->typeNode = RHS;
-          if(RHS->valueType >= TypeSEQ_I){
+          if(RHS->valueType <= TypeSEQ && RHS->valueType >= TypeSEQ_I){
             LHS->typeNode = RHS->typeNode;
             LHS->child->typeNode = RHS->typeNode;
+          }else if(RHS->valueType >= TypeTuple_I && RHS->valueType<=TypeTuple){
+            typeBinding(LHS,RHS);
           }
           typeAnalysis(LHS);
           node->valueType = RHS->valueType;
