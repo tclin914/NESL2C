@@ -914,6 +914,15 @@ void typeAnalysis( struct nodeType *node){
           assert(0);// error
         }  
         return;
+      }else if(strcmp(LHS->string, "mod") == 0){
+        
+        if(RHS->valueType!=TypeTuple_I) {
+          printf("***semantic check error***\n");
+          abort();
+        }
+        node->valueType = TypeInt;
+        LHS->valueType = TypeInt;
+        return;
       }else{
           // TODO other built-in functions
       typeAnalysis(node->child);

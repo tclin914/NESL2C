@@ -2952,6 +2952,55 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "printf(%s);\n", param->string);
       fprintf(fptr, "%s = 1;\n",node->string);
       return ;
+    }else if(strcmp(LHS->string, "mod") == 0){
+      struct nodeType *param1 = node->child->rsibling->child->child;
+      struct nodeType *param2 = param1->rsibling;
+      switch(param1->nodeType){
+        case NODE_INT:
+        case NODE_FLOAT:
+        case NODE_BOOL:
+        case NODE_CHAR:
+        case NODE_TOKEN:
+        break;
+        default:
+          sqcodegen(fptr, param1);
+      }
+      switch(param2->nodeType){
+        case NODE_INT:
+        case NODE_FLOAT:
+        case NODE_BOOL:
+        case NODE_CHAR:
+        case NODE_TOKEN:
+        break;
+        default:
+          sqcodegen(fptr, param2);
+      }
+      fprintf(fptr, "%s = ",node->string);
+      switch(param1->nodeType){
+        case NODE_INT:
+        case NODE_FLOAT:
+        case NODE_BOOL:
+        case NODE_CHAR:
+        case NODE_TOKEN:
+        sqcodegen(fptr, param1);
+        break;
+        default:
+          fprintf(fptr, "%s",param1->string);
+      }
+      fprintf(fptr, "%c",37);
+      switch(param2->nodeType){
+        case NODE_INT:
+        case NODE_FLOAT:
+        case NODE_BOOL:
+        case NODE_CHAR:
+        case NODE_TOKEN:
+        sqcodegen(fptr, param2);
+        break;
+        default:
+          fprintf(fptr, "%s",param2->string);
+      }
+      fprintf(fptr, ";\n");
+      break;
     }else if(strcmp(LHS->string, "sum") == 0){
     assert(0);
     }else {
