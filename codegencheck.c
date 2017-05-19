@@ -986,9 +986,15 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
   case NODE_TOKEN:
     if(node->tokenType == TOKE_ID){
       switch( node->valueType){
-      case TypeInt:
+      case TypeInt:{
+        assert(node->string);
+        struct SymTableEntry *entry = findSymbol(node->table,node->string);
         fprintf(fptr, "int %s;\n", node->string);
-        break;
+        if(entry){
+          entry->isParam =1; 
+        }
+        else assert(0);// semantic check pass error
+        break;}
       case TypeFloat:
         fprintf(fptr, "float %s;\n", node->string);
         break;

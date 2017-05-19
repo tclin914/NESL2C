@@ -19,7 +19,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
     for(int i =0; i<node->counts ; i++){
       if(child->nodeType != NODE_DATATYPE && child->nodeType!= NODE_FUNC){
-        //printGlobalVar(fptr, child); 
+        printGlobalVar(fptr, child); 
       }
       child = child->rsibling;
     }
@@ -37,7 +37,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }
       child = child->rsibling;
     }
-
     fprintf(fptr, "#pragma pf global parallel\n");
     fprintf(fptr, "void myFunc1(){\n");
     dumpTable(fptr, node);
