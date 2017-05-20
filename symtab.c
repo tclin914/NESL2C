@@ -618,36 +618,14 @@ void typeAnalysis( struct nodeType *node){
       }
       switch(node->op){
       case OP_BIND:{
-        //while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
-        //while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
-        //switch(RHS->nodeType){
-        //  case NODE_INT:
-        //  case NODE_FLOAT:
-        //  case NODE_BOOL:
-        //  case NODE_CHAR:
-        //  break;
-        //  default:
-        //    typeAnalysis(RHS);
-        //    break;
-        //}
-        //switch(LHS->nodeType){
-        //  case NODE_INT:
-        //  case NODE_FLOAT:
-        //  case NODE_BOOL:
-        //  case NODE_CHAR:
-        //  break;
-        //  default:
-        //    typeAnalysis(LHS);
-        //    break;
-        //}
-
-
+        
         typeAnalysis(LHS);
         typeAnalysis(RHS);
         assert(RHS->valueType);
         LHS->valueType = RHS->valueType;
         if(node->parent->nodeType == NODE_NESL)
           LHS->isParam = 0;
+        
         if(LHS->nodeType == NODE_PATTERN){
           // might have pattern->pair->tuple-id&id,
           // can't directly addVariable.
@@ -697,6 +675,7 @@ void typeAnalysis( struct nodeType *node){
           typeAnalysis(LHS);
           node->valueType = RHS->valueType;
         }// end of if LHS == PATTERN
+        
         else if(LHS->valueType >=TypeTuple_I && LHS->nodeType == NODE_PAIR){
           if(RHS->nodeType == NODE_PAIR){
             typeBinding(LHS,RHS);
@@ -726,7 +705,7 @@ void typeAnalysis( struct nodeType *node){
         }
         node->typeNode=RHS->typeNode;
         break;
-      }
+      } // end of OP_BIND
         case OP_ADD:
           assert(LHS->valueType == RHS->valueType);
           node->valueType = RHS->valueType;
