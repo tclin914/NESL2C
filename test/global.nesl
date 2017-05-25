@@ -1,0 +1,9 @@
+x=5;
+
+function foo(a):int->[int]=
+if(mod(a,2)==0) then {x+i:i in dist(a,x)}
+else {x+i:i in dist(a,x)};
+
+foo(10);
+foo(9);
+
