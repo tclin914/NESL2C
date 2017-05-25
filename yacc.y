@@ -93,21 +93,12 @@ TopLevel
             $4->nodeType = NODE_OP;
             $4->op = OP_BIND;
             
-            //struct nodeType *input = newNode(NODE_FUNC_INPUT);
-            //addChild($$,input);
             addChild($$, $3);
             
-            //struct nodeType *pattern = newNode(NODE_PATTERN);
-            //addChild(pattern,$3);
-            //$3->nodeType = NODE_PATTERN;
-            //addChild($$,$3);
-            //addChild($$,pattern);
             addChild($$,$5);
             deleteNode($6);
         }
         | DATATYPE ID '(' TypeList ')' EndMark{
-            //FIXME float, int ... is also token ID
-            // but different tokenType
             $$ = $1;
             $$->nodeType = NODE_DATATYPE;
             addChild($$,$2);
@@ -128,8 +119,15 @@ TopLevel
         ;
 
 FunId   : ID{
-            //FIXME float, int ... is also token ID
-            // but different tokenType
+            /* if(tokenType!=TOKE_STRING) yyerror();*/
+            switch($1->tokenType){
+            case TOKE_INT:
+            case TOKE_FLOAT:
+            case TOKE_BOOL:
+            case TOKE_CHAR: 
+              yyerror($1->string); 
+            break;
+            }
             $$=$1;
         }
         | SpecialId{
@@ -151,8 +149,6 @@ FunTypeDef : TypeExp RARROW TypeExp{
         ;
 
 TypeExp : ID {  
-            //FIXME float, int ... is also token ID
-            // but different tokenType
             switch($1->tokenType){
                 case TOKE_INT:
                     $1->valueType = TypeInt;
@@ -169,17 +165,9 @@ TypeExp : ID {
                 default:
                     break;
             } 
-            //if(strcmp($$->string,"float")==0){
-            //    $1->valueType = TypeFloat;
-            //}
-            //else if(strcmp($$->string, "int")==0){
-            //    $1->valueType = TypeInt;
-            //}
             $$ = $1;  
         }
         | ID '(' TypeList ')' {
-            //FIXME float, int ... is also token ID
-            // but different tokenType
             $$=$1;
             addChild($$,$3);
         }
@@ -303,22 +291,12 @@ ExpBind
 
 TupleExp
     : OrExp {
-        //$$ = newNode(NODE_TUPLE);
-        //addChild($$, $1);
         $$ = $1;
     }
     | OrExp ',' TupleRest {
         $$ = newNode(NODE_TUPLE);
         addChild($$,$1);
         addChild($$,$3);
-        
-        //$$ =$3;
-        //addChild($$,$1);
-        //$$ = $1;
-        //addChild($$,$3);
-        // FIXME
-        // TODO
-        // Reverse the tuple list.
     }
     ;
 
@@ -492,13 +470,28 @@ AtomicExp
 
     }
     | ID {
-            //FIXME float, int ... is also token ID
-            // but different tokenType
-        $$ = $1;
+       switch($1->tokenType){
+       case TOKE_INT:
+       case TOKE_FLOAT:
+       case TOKE_BOOL:
+       case TOKE_CHAR: 
+         yyerror($1->string); 
+       break;
+       }
+       
+       $$ = $1;
     }
     | ID '(' Exp ')'{
             //FIXME float, int ... is also token ID
             // but different tokenType
+        switch($1->tokenType){
+         case TOKE_INT:
+         case TOKE_BOOL:
+         case TOKE_CHAR: 
+           yyerror($1->string); 
+         break;
+         }
+        
         $$ = newNode(NODE_FUNC_CALL);
         addChild($$,$1);
         struct nodeType *pair = newNode(NODE_PAIR);
@@ -511,6 +504,7 @@ SpecialId
     : ANY {
         $$ = $1; 
         $$->nodeType = NOTE_IMPLEMENT;
+        yyerror("not implemented");
     }
     ;
 
@@ -530,23 +524,26 @@ ApplyBody
 RBinds
     : RBinds ';' RBind{
         $$ = $1; 
-        //addChild($$,$3);
-        //addChild($$,$1);
         addChild($$,$3);
         deleteNode($2);
     
     }
     | RBind {
         $$ = newNode(NODE_RBINDS);
-        //$$ =$1;
         addChild($$,$1);
     }
     ;
     
 RBind
     : ID {
-        //FIXME float, int ... is also token ID
-        // but different tokenType
+        switch($1->tokenType){
+         case TOKE_INT:
+         case TOKE_FLOAT:
+         case TOKE_BOOL:
+         case TOKE_CHAR: 
+           yyerror($1->string); 
+         break;
+         }
         $$ = $1;
     }
     | Exp IN Exp{
@@ -587,9 +584,9 @@ Const
         $$->nodeType = NODE_BOOL;
     }
     | stringconst{
-        //FIXME change into SEQ of CHAR.
         $$ = $1;
         $$->nodeType = NODE_STRING;
+        $$->valueType = TypeSEQ_C;
     }
     ;
 
@@ -612,7 +609,7 @@ struct nodeType * newOpNode(int op) {
 }
 
 int yyerror(const char *s) {
-    printf("Syntax error\n");
+    printf("Syntax error: %s \n",s);
     //printf("errror: %s",s);
 
     exit(0);
