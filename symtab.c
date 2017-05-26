@@ -139,42 +139,6 @@ void tupleTransform(struct nodeType *node){
   }
 }
 
-void removePair(struct nodeType *node){
-  
-  // doing the tupleTransform
-  struct nodeType *child = node->child;
-  struct nodeType *RHS = node->rsibling;
-  struct nodeType *LHS = node->lsibling;
-  int counts=0;
-  int hasTuple=0;
-  int i =0;
-  switch(node->nodeType){
-    case NODE_SEQ:
-      if(child!=0){
-        do{
-          if(child->nodeType == NODE_TUPLE)
-            hasTuple =1;
-          counts++;
-          child = child->rsibling;
-        }while(child!=node->child);
-      } 
-      if(hasTuple){
-          tupleTransform(node);
-      }
-      printf("SEQ:count:%d\n",counts);
-      
-      break;
-    default:
-      if(child!=0){
-        do{
-          removePair(child);
-          child = child->rsibling;
-        }while(child != node->child);
-      }
-      break;
-  }
-}
-
 void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
   struct nodeType *lchild;
   struct nodeType *rchild;

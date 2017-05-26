@@ -680,8 +680,6 @@ int main(int argc, char** argv){
     /**
     * PrintTree
     */
-    //printTree(ASTRoot, 0);
-    removePair(ASTRoot);
     printTree(ASTRoot,0);
     printf("************************\n");
     
