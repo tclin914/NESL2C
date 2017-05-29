@@ -66,9 +66,16 @@ void printNESL(struct nodeType *node, FILE* yyout){
     fprintf(yyout,")");
     break;
   }
+  case NODE_ASSIGN:{
+    printNESL(node->child, yyout);
+    fprintf(yyout,"=");
+    printNESL(node->child->rsibling, yyout);
+    break;
+  }
   case NODE_OP:{
     switch(node->op){
     case OP_BIND:
+      assert(0);
       printNESL(node->child, yyout);
       fprintf(yyout,"=");
       printNESL(node->child->rsibling, yyout);

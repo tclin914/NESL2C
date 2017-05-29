@@ -445,6 +445,101 @@ void pfcheck(struct nodeType* node){
     node->isparallel_rr = node->child->isparallel_rr;
     break;
   }
+  case NODE_ASSIGN:{
+    struct nodeType* LHS;
+    struct nodeType* RHS;
+    LHS = node->child;
+    LHS->infilter = node->infilter;
+    RHS = LHS->rsibling;
+    RHS->infilter = node->infilter;
+    if(node->parent->isEndofFunction){
+      node->isEndofFunction = node->parent->isEndofFunction;
+      LHS->isEndofFunction = node->isEndofFunction;
+      RHS->isEndofFunction = node->isEndofFunction;
+    }
+    while(RHS->nodeType == NODE_PAIR) RHS= RHS->child;
+    while(LHS->nodeType == NODE_PAIR) LHS= LHS->child;
+    switch(RHS->nodeType){
+    case NODE_APPLYBODY1:
+      abort();
+      // not implement
+      break;
+    case NODE_APPLYBODY2:
+      // {action: RBINDS}
+      pfcheck(RHS);
+      node->isparallel_rr = RHS->isparallel_rr;
+      break;
+    case NODE_APPLYBODY3:
+      // {RBINDS|FILTER}
+      pfcheck(RHS);
+      node->needcounter = RHS->needcounter;
+      node->isparallel_rr = RHS->isparallel_rr;
+
+      if(node->needcounter)
+        if(!findSymbol(node->table,"_i"))
+          addVariable("_i", TypeInt, node->parent->parent);
+      node->nodeType = GEN_APP3;
+      node->string = malloc(sizeof(char)*100);
+      node->valueType = RHS->valueType;
+      node->typeNode = RHS->typeNode;
+      switch(LHS->nodeType){
+      case NODE_PATTERN:{
+        struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string);
+        if(ent){
+          if(ent->link->typeNode){
+            ent->link->typeNode = RHS->typeNode;
+          }
+        }
+        strcpy(node->string, LHS->child->string);
+        LHS->child->typeNode = RHS;
+        break;}
+      case NODE_TOKEN:
+        strcpy(node->string, LHS->string);
+        LHS->typeNode = RHS;
+        break;
+      }
+      return;  
+    case NODE_APPLYBODY4:
+      abort();// not implemented
+      break;
+    case NODE_TUPLE: //RHS->tuple
+      RHS->nodeType = RHS_TUPLE;
+      pfcheck(RHS);
+      assert(RHS->string);
+      break;
+    default:
+      pfcheck(LHS);
+      pfcheck(RHS);
+      if(LHS->isparallel_rr || RHS->isparallel_rr)node->isparallel_rr=1;
+      if(LHS->nodeType == NODE_TOKEN){
+        assert(LHS->string);
+        if(!findSymbol(node->table, LHS->string)){
+          addVariable(LHS->string, LHS->valueType, LHS);
+        }
+      }
+      break;
+    }// end of RHS->nodeType
+
+    while(LHS->nodeType == NODE_PATTERN) LHS= LHS->child;
+    while(LHS->nodeType == NODE_PAIR) LHS= LHS->child;
+    switch(LHS->nodeType){
+    case NODE_TUPLE:  
+      LHS->nodeType = LHS_TUPLE;
+      pfcheck(LHS);
+      assert(LHS->string);
+      break;
+    default:
+      pfcheck(LHS);
+      break;
+    }
+
+    LHS=node->child;
+    RHS=node->child->rsibling;
+
+
+    break;
+  } // end of OP_BIND
+
   case NODE_OP:{
     struct nodeType* LHS;
     struct nodeType* RHS;
@@ -573,6 +668,7 @@ void pfcheck(struct nodeType* node){
       break;
     }  
     case OP_BIND:{
+      assert(0);
       while(RHS->nodeType == NODE_PAIR) RHS= RHS->child;
       while(LHS->nodeType == NODE_PAIR) LHS= LHS->child;
       switch(RHS->nodeType){
@@ -714,7 +810,7 @@ void pfcheck(struct nodeType* node){
     pfcheck(node->child->rsibling);
     node->needcounter = node->child->needcounter;
     node->isparallel_rr = node->child->isparallel_rr;
-    if(node->parent->op!=OP_BIND){
+    if(node->parent->op!=NODE_ASSIGN){
       int idx = insertapp(node); 
       node->string = malloc(sizeof(char)*100);
       sprintf(node->string, "app%d",idx);
