@@ -25,5 +25,5 @@ struct RefTable{
 
 extern struct RefTable refTable;
 extern int issrand;
-#define MAX 30
+#define MAX 1000 
 #endif

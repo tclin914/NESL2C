@@ -3289,7 +3289,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   
   if(node->parent){
     if(node->parent->nodeType == NODE_NESL && node->nodeType!=NODE_FUNC&&
-       node->op!=OP_BIND){
+       node->nodeType!=NODE_ASSIGN){
       switch(node->valueType){
         struct nodeType *loopme; int x;
       case TypeInt:

@@ -128,7 +128,10 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sTYPE_SEQ\n", blank);
             ident++;
             break;
-
+        case NODE_ASSIGN:
+            printf("%s=\n", blank);
+            ident++;
+            break;
         case GEN_APP3:
             printf("%sGEN_APP3\n", blank);
             ident++;
@@ -188,6 +191,14 @@ void printTree(struct nodeType *node, int ident) {
             break;
         case NODE_ACTION_TUPLE:
             printf("%sACTION_TUPLE\n", blank);
+            ident++;
+            break;
+        case LHS_TUPLE:
+            printf("%sLHS_TUPLE\n", blank);
+            ident++;
+            break;
+        case RHS_TUPLE:
+            printf("%sRHS_TUPLE\n", blank);
             ident++;
             break;
         case ELEM_TUPLE:
