@@ -528,11 +528,14 @@ void typeAnalysis( struct nodeType *node){
       if(typeDef->op == OP_RARROW){
         // Bind the inputParameter with TypeDeclaration
         inputParam->isParam=1;
-        typeBinding(inputParam, typeDef->child);
         typeAnalysis(typeDef->child);
         printTree(typeDef->child,0);
         typeDef->child = removePair(typeDef->child);
         printTree(typeDef->child,0);
+        printTree(inputParam,0);
+        inputParam = removePair(inputParam);
+        printTree(inputParam,0);
+        typeBinding(inputParam, typeDef->child);
 
         // Analyse the returnType of the function, RHS of op_rarrow.
         typeAnalysis(typeDef->child->rsibling);
