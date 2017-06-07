@@ -70,7 +70,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     switch(entry->type){
     case TypeInt:
       fprintf(fptr, "int %s", node->string);
+      fprintf(fptr, "(");
       printparam(fptr, parameter);
+      fprintf(fptr, ")");
       fprintf(fptr, "{\nint _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr,funcbody);
@@ -81,7 +83,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeFloat:
       fprintf(fptr, "float %s", node->string);
+      fprintf(fptr, "(");
       printparam(fptr, parameter);
+      fprintf(fptr, ")");
       fprintf(fptr, "{\nfloat _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr,funcbody);
@@ -94,7 +98,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case TypeSEQ_I:
     case TypeSEQ_F:
       fprintf(fptr, "struct Sequence  %s", node->string);
+      fprintf(fptr, "(");
       printparam(fptr, parameter);
+      fprintf(fptr, ")");
       fprintf(fptr, "{\nstruct Sequence _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr, funcbody);
@@ -116,7 +122,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeTuple_IF:
       fprintf(fptr, "struct tupleIF %s", node->string);
+      fprintf(fptr, "(");
       printparam(fptr, parameter);
+      fprintf(fptr, ")");
       fprintf(fptr, "{\nstruct tupleIF _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr,funcbody);
@@ -127,7 +135,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeTuple_SF:
       fprintf(fptr, "struct tupleSF %s", node->string);
+      fprintf(fptr, "(");
       printparam(fptr, parameter);
+      fprintf(fptr, ")");
       fprintf(fptr, "{\nstruct tupleSF _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr,funcbody);
@@ -138,7 +148,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeTuple_F:
       fprintf(fptr, "struct Pair_F %s", node->string);
+      fprintf(fptr, "(");
       printparam(fptr, parameter);
+      fprintf(fptr, ")");
       fprintf(fptr, "{\nstruct Pair_F _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr,funcbody);
@@ -3300,7 +3312,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         assert(0);
       break;
       case TypeFloat:
-        assert(0);
+        if(node->nodeType==NODE_INT) fprintf(fptr,"printf(%f\\n);\n",node->rValue);
+        else fprintf(fptr, "print_F(%s);\n",node->string);
       break;
       case TypeBool:
         assert(0);

@@ -296,26 +296,26 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
   }
   case NODE_TUPLE:{
     switch(node2->nodeType){
-    case NODE_TUPLE:
-    if(node2->nodeType == NODE_TUPLE){
-    struct nodeType * child1,*child2;
-    child1 = node1->child;
-    child1->isParam = node1->isParam;
-    //node1->isParam = 0; 
-    //child1->isParam = 0; 
-    child2 = node2->child;
-    if(child1 && child2){
-      do{
-        typeBinding(child1, child2);
-        child1 = child1->rsibling;
-        child1->isParam = node1->isParam;
-        //child1->isParam = 0;
-        child2 = child2->rsibling;
-      }while((child1!=node1->child) && (child2!=node2->child));
-    }
-    node1->valueType = node2->valueType;
-    }
-    break;
+    case NODE_TUPLE:{
+      struct nodeType * child1,*child2;
+      child1 = node1->child;
+      child1->isParam = node1->isParam;
+      //node1->isParam = 0; 
+      //child1->isParam = 0; 
+      child2 = node2->child;
+      if(child1 && child2){
+        do{
+          typeBinding(child1, child2);
+          child1 = child1->rsibling;
+          child1->isParam = node1->isParam;
+          //child1->isParam = 0;
+          child2 = child2->rsibling;
+        }while((child1!=node1->child) && (child2!=node2->child));
+      }
+      node1->valueType = node2->valueType;
+      node1->typeNode = node2->typeNode;
+      break;
+      }
     case NODE_TOKEN:
       typeAnalysis(node2);
       node1->valueType= node2->valueType;
@@ -325,9 +325,9 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
       typeBinding(node1->child, node2->typeNode->child);
       typeBinding(node1->child->rsibling, node2->typeNode->child->rsibling);
       assert(node1->valueType == node2->valueType);
-    break;
+      break;
     default:
-    assert(0); //not implement
+      assert(0); //not implement
     }
     break;
   }
@@ -348,19 +348,19 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
         switch (node2->child->tokenType){
         case TOKE_INT:
           node1->valueType = TypeSEQ_I;
-          node1->typeNode = node2;
+          node1->typeNode = node2->child;
           break;
         case TOKE_FLOAT:
           node1->valueType = TypeSEQ_F;
-          node1->typeNode = node2;
+          node1->typeNode = node2->child;
           break;
         case TOKE_CHAR:
           node1->valueType = TypeSEQ_C;
-          node1->typeNode = node2;
+          node1->typeNode = node2->child;
           break;
         case TOKE_BOOL:
           node1->valueType = TypeSEQ_B;
-          node1->typeNode = node2;
+          node1->typeNode = node2->child;
           break;
         default:
           assert(0); // not implement;
@@ -419,16 +419,16 @@ void typeBinding(struct nodeType *node1, struct nodeType *node2){
     case NODE_FLOAT:
       node1->valueType = node2->valueType;
       addVariable(node1->string, node2->valueType, node1);
-    break;
+      break;
     case NODE_OP:
-    assert(node2->valueType);
-    node1->valueType = node2->valueType;
+      assert(node2->valueType);
+      node1->valueType = node2->valueType;
       addVariable(node1->string, node2->valueType, node1);
-    break;
+      break;
     default:
-      
-    assert(0); //not implement
-    break;
+
+      assert(0); //not implement
+      break;
     } // end of switch node2->type;
   }
   }
@@ -573,6 +573,7 @@ void typeAnalysis( struct nodeType *node){
    
     case NODE_TYPE_SEQ:{
       typeAnalysis(node->child);
+      node->typeNode=node->child;
       switch(node->child->valueType){
         case TypeInt:
           node->valueType = TypeSEQ_I;
