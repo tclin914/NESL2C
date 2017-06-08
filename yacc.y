@@ -66,8 +66,7 @@ TopLevel
             $$->nodeType = NODE_FUNC;
             $1->string =  (char*)malloc(sizeof(strlen($2->string)));
             strcpy($$->string, $2->string);
-            $6->nodeType = NODE_OP;
-            $6->op = OP_BIND;
+            $6->nodeType = NODE_ASSIGN;
             
             //struct nodeType *pattern = newNode(NODE_PATTERN);
             //addChild(pattern,$3);
@@ -90,8 +89,7 @@ TopLevel
             $$->nodeType = NODE_FUNC;
             $1->string =  (char*)malloc(sizeof(strlen($2->string)));
             strcpy($$->string, $2->string);
-            $4->nodeType = NODE_OP;
-            $4->op = OP_BIND;
+            $4->nodeType = NODE_ASSIGN;
             
             addChild($$, $3);
             
@@ -106,8 +104,7 @@ TopLevel
             deleteNode($6);
         }
         | Exp '=' Exp EndMark {
-            $$ = newNode(NODE_OP);
-            $$->op = OP_BIND;
+            $$ = newNode(NODE_ASSIGN);
             addChild($$,$1);
             addChild($$,$3);
             deleteNode($4);
@@ -280,8 +277,7 @@ ExpBinds
 ExpBind
     : Exp '=' Exp{
         $$ = $2;
-        $$->nodeType = NODE_OP;
-        $$->op = OP_BIND;
+        $$->nodeType = NODE_ASSIGN;
         struct nodeType *pattern = newNode(NODE_PATTERN);
         addChild($$,pattern);
         addChild(pattern, $1);
@@ -680,8 +676,6 @@ int main(int argc, char** argv){
     /**
     * PrintTree
     */
-    //printTree(ASTRoot, 0);
-    removePair(ASTRoot);
     printTree(ASTRoot,0);
     printf("************************\n");
     

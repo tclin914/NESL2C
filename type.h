@@ -65,7 +65,7 @@
 #define PARAM_TUPLE         44
 #define LHS_TUPLE           45
 #define RHS_TUPLE           46
-
+#define NODE_ASSIGN         47
 
 
 

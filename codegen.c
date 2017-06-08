@@ -66,9 +66,16 @@ void printNESL(struct nodeType *node, FILE* yyout){
     fprintf(yyout,")");
     break;
   }
+  case NODE_ASSIGN:{
+    printNESL(node->child, yyout);
+    fprintf(yyout,"=");
+    printNESL(node->child->rsibling, yyout);
+    break;
+  }
   case NODE_OP:{
     switch(node->op){
     case OP_BIND:
+      assert(0);
       printNESL(node->child, yyout);
       fprintf(yyout,"=");
       printNESL(node->child->rsibling, yyout);
@@ -497,6 +504,7 @@ void printparam(FILE *fptr, struct nodeType* node){
     break;
   case NODE_FUNC_CALL:
   case NODE_TOKEN:{
+    struct SymTableEntry *entry;
     //struct nodeType *refNode = node->typeNode;
     //printparam(fptr, refNode);
     switch(node->valueType){
@@ -523,16 +531,23 @@ void printparam(FILE *fptr, struct nodeType* node){
     case TypeTuple_IF:
       fprintf(fptr, "struct tupleIF ");
       break;
-    case TypeTuple:
-      fprintf(fptr, "struct tuple");
+    case TypeTuple:{
+      struct nodeType *typer = node->typeNode;
+      assert(typer);
+      fprintf(fptr, "struct tuple_");
+      printparam(fptr, typer->child);
+      fprintf(fptr, "(");
       break;
-      break;
+    }
     default:
       assert(0); // tuple not implemented.
       break;
     }
-
+    
     fprintf(fptr, " %s", node->string);
+    entry = findSymbol(node->table, node->string);
+    assert(entry);
+    entry->isParam =1;
     break;
   }
   case NODE_TYPE_SEQ:{
