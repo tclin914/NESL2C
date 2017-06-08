@@ -201,9 +201,9 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
   struct nodeType *ltype;
   struct nodeType *rtype;
 
-  assert(RHS->valueType >= TypeTuple_I);
+  assert(RHS->valueType >= TypeTuple);
   assert(RHS->typeNode);
-  assert(RHS->typeNode->valueType >=TypeTuple_I);
+  assert(RHS->typeNode->valueType >=TypeTuple);
 
   lchild = LHS->child;
   rchild = LHS->child->rsibling;
@@ -217,7 +217,7 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     assert(0);    
     break;}
   case NODE_TUPLE:
-    assert(RHS->valueType>=TypeTuple_I);
+    assert(RHS->valueType>=TypeTuple);
     tupleBinding(lchild,ltype);
     lchild->valueType = ltype->valueType;
     lchild->typeNode = ltype->typeNode;
@@ -273,167 +273,185 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
   }// end of rchild->nodeType
 }
 
-void typeBinding(struct nodeType *node1, struct nodeType *node2){
-  switch(node2->nodeType){
-  case NODE_PAIR:
-  case NODE_TYPE_PAIR:
-    node2= node2->child;
-    typeBinding(node1, node2);
-    return;
-  }
-  switch(node1->nodeType){
-  case NODE_PATTERN:
-  case NODE_PAIR:
-    node1= node1->child;
-    node1->isParam = node1->parent->isParam;
-    typeBinding(node1, node2);
-    return;
-  case RB_TUPLE:{
-    struct nodeType *child1 = node1->child;
-    struct nodeType *child2 = node2->child;
-    typeBinding(child1,child2);
-    break;
-  }
-  case NODE_TUPLE:{
-    switch(node2->nodeType){
-    case NODE_TUPLE:{
-      struct nodeType * child1,*child2;
-      child1 = node1->child;
-      child1->isParam = node1->isParam;
-      //node1->isParam = 0; 
-      //child1->isParam = 0; 
-      child2 = node2->child;
-      if(child1 && child2){
-        do{
-          typeBinding(child1, child2);
-          child1 = child1->rsibling;
-          child1->isParam = node1->isParam;
-          //child1->isParam = 0;
-          child2 = child2->rsibling;
-        }while((child1!=node1->child) && (child2!=node2->child));
-      }
-      node1->valueType = node2->valueType;
-      node1->typeNode = node2->typeNode;
-      break;
-      }
-    case NODE_TOKEN:
-      typeAnalysis(node2);
-      node1->valueType= node2->valueType;
-      node1->typeNode = node2->typeNode;
-      assert(node2->valueType>=TypeTuple_I);
-      assert(node2->typeNode->nodeType ==NODE_TUPLE);
-      typeBinding(node1->child, node2->typeNode->child);
-      typeBinding(node1->child->rsibling, node2->typeNode->child->rsibling);
-      assert(node1->valueType == node2->valueType);
-      break;
-    default:
-      assert(0); //not implement
-    }
-    break;
-  }
-  case NODE_TOKEN:{
-    switch(node2->nodeType){
-    case NODE_SEQ_REF:
-      assert(0); // not implement;
-      break;
-    case NODE_TUPLE:
-      typeAnalysis(node2);
-      node1->valueType = node2->valueType;
-      node1->typeNode = node2;
-      addVariable(node1->string, node2->valueType, node1); 
-      break;
-    case NODE_TYPE_SEQ:
-      switch(node2->child->nodeType){
-      case NODE_TOKEN: // extract simple SEQ here.
-        switch (node2->child->tokenType){
-        case TOKE_INT:
-          node1->valueType = TypeSEQ_I;
-          node1->typeNode = node2->child;
-          break;
-        case TOKE_FLOAT:
-          node1->valueType = TypeSEQ_F;
-          node1->typeNode = node2->child;
-          break;
-        case TOKE_CHAR:
-          node1->valueType = TypeSEQ_C;
-          node1->typeNode = node2->child;
-          break;
-        case TOKE_BOOL:
-          node1->valueType = TypeSEQ_B;
-          node1->typeNode = node2->child;
-          break;
-        default:
-          assert(0); // not implement;
-          break;
-        }
-        addVariable(node1->string, node1->valueType, node1);
-        break;
-      case NODE_TYPE_PAIR:
-        if(node2->child->child->nodeType == NODE_TUPLE){
-          node1->typeNode = node2->child->child;
-          node1->valueType = TypeSEQ;
-          addVariable(node1->string, node1->valueType, node1);
-        }else {
-          assert(0); // not implement;
-        }
-        break;
-      }
-      break;
-    case NODE_APPLYBODY2:{
-      addVariable(node1->string, node2->valueType, node1);
-      node1->valueType = node2->valueType;
-      node1->typeNode = node2;
-      break;}
-    case NODE_APPLYBODY3:{
-      addVariable(node1->string, node2->valueType, node1);
-      node1->valueType = node2->valueType;
-      node1->typeNode = node2;
-      break;}
-    case NODE_TOKEN:
-      switch(node2->tokenType){
-      case TOKE_INT:
-        node1->valueType = TypeInt;
-        addVariable(node1->string, TypeInt, node1);
-        break;
-      case TOKE_FLOAT:
-        node1->valueType = TypeFloat;
-        addVariable(node1->string, TypeFloat, node1);
-        break;
-      case TOKE_BOOL:
-        node1->valueType = TypeBool;
-        addVariable(node1->string, TypeBool, node1);
-        break;
-      case TOKE_CHAR:
-        node1->valueType = TypeChar;
-        addVariable(node1->string, TypeChar, node1);
-        break;
-      default:
-        addVariable(node1->string, node2->valueType, node1);
-        //assert(0);
-        break;
-      }
-      break;
-    case NODE_INT:
-    case NODE_BOOL:
-    case NODE_CHAR:
-    case NODE_FLOAT:
-      node1->valueType = node2->valueType;
-      addVariable(node1->string, node2->valueType, node1);
-      break;
-    case NODE_OP:
-      assert(node2->valueType);
-      node1->valueType = node2->valueType;
-      addVariable(node1->string, node2->valueType, node1);
-      break;
-    default:
+//void typeBinding(struct nodeType *node1, struct nodeType *node2){
+//  switch(node2->nodeType){
+//  case NODE_PAIR:
+//  case NODE_TYPE_PAIR:
+//    node2= node2->child;
+//    typeBinding(node1, node2);
+//    return;
+//  }
+//  switch(node1->nodeType){
+//  case NODE_PATTERN:
+//  case NODE_PAIR:
+//    node1= node1->child;
+//    node1->isParam = node1->parent->isParam;
+//    typeBinding(node1, node2);
+//    return;
+//  case RB_TUPLE:{
+//    struct nodeType *child1 = node1->child;
+//    struct nodeType *child2 = node2->child;
+//    typeBinding(child1,child2);
+//    break;
+//  }
+//  case NODE_TUPLE:{
+//    switch(node2->nodeType){
+//    case NODE_TUPLE:{
+//      struct nodeType * child1,*child2;
+//      child1 = node1->child;
+//      child1->isParam = node1->isParam;
+//      //node1->isParam = 0; 
+//      //child1->isParam = 0; 
+//      child2 = node2->child;
+//      if(child1 && child2){
+//        do{
+//          typeBinding(child1, child2);
+//          child1 = child1->rsibling;
+//          child1->isParam = node1->isParam;
+//          //child1->isParam = 0;
+//          child2 = child2->rsibling;
+//        }while((child1!=node1->child) && (child2!=node2->child));
+//      }
+//      node1->valueType = node2->valueType;
+//      node1->typeNode = node2->typeNode;
+//      break;
+//      }
+//    case NODE_TOKEN:
+//      typeAnalysis(node2);
+//      node1->valueType= node2->valueType;
+//      node1->typeNode = node2->typeNode;
+//      assert(node2->valueType>=TypeTuple);
+//      assert(node2->typeNode->nodeType ==NODE_TUPLE);
+//      typeBinding(node1->child, node2->typeNode->child);
+//      typeBinding(node1->child->rsibling, node2->typeNode->child->rsibling);
+//      assert(node1->valueType == node2->valueType);
+//      break;
+//    default:
+//      assert(0); //not implement
+//    }
+//    break;
+//  }
+//  case NODE_TOKEN:{
+//    switch(node2->nodeType){
+//    case NODE_SEQ_REF:
+//      assert(0); // not implement;
+//      break;
+//    case NODE_TUPLE:
+//      typeAnalysis(node2);
+//      node1->valueType = node2->valueType;
+//      node1->typeNode = node2;
+//      addVariable(node1->string, node2->valueType, node1); 
+//      break;
+//    case NODE_TYPE_SEQ:
+//      switch(node2->child->nodeType){
+//      case NODE_TOKEN: // extract simple SEQ here.
+//        switch (node2->child->tokenType){
+//        case TOKE_INT:
+//          node1->valueType = TypeSEQ_I;
+//          node1->typeNode = node2->child;
+//          break;
+//        case TOKE_FLOAT:
+//          node1->valueType = TypeSEQ_F;
+//          node1->typeNode = node2->child;
+//          break;
+//        case TOKE_CHAR:
+//          node1->valueType = TypeSEQ_C;
+//          node1->typeNode = node2->child;
+//          break;
+//        case TOKE_BOOL:
+//          node1->valueType = TypeSEQ_B;
+//          node1->typeNode = node2->child;
+//          break;
+//        default:
+//          assert(0); // not implement;
+//          break;
+//        }
+//        addVariable(node1->string, node1->valueType, node1);
+//        break;
+//      case NODE_TYPE_PAIR:
+//        if(node2->child->child->nodeType == NODE_TUPLE){
+//          node1->typeNode = node2->child->child;
+//          node1->valueType = TypeSEQ;
+//          addVariable(node1->string, node1->valueType, node1);
+//        }else {
+//          assert(0); // not implement;
+//        }
+//        break;
+//      }
+//      break;
+//    case NODE_APPLYBODY2:{
+//      addVariable(node1->string, node2->valueType, node1);
+//      node1->valueType = node2->valueType;
+//      node1->typeNode = node2;
+//      break;}
+//    case NODE_APPLYBODY3:{
+//      addVariable(node1->string, node2->valueType, node1);
+//      node1->valueType = node2->valueType;
+//      node1->typeNode = node2;
+//      break;}
+//    case NODE_TOKEN:
+//      switch(node2->tokenType){
+//      case TOKE_INT:
+//        node1->valueType = TypeInt;
+//        addVariable(node1->string, TypeInt, node1);
+//        break;
+//      case TOKE_FLOAT:
+//        node1->valueType = TypeFloat;
+//        addVariable(node1->string, TypeFloat, node1);
+//        break;
+//      case TOKE_BOOL:
+//        node1->valueType = TypeBool;
+//        addVariable(node1->string, TypeBool, node1);
+//        break;
+//      case TOKE_CHAR:
+//        node1->valueType = TypeChar;
+//        addVariable(node1->string, TypeChar, node1);
+//        break;
+//      default:
+//        addVariable(node1->string, node2->valueType, node1);
+//        //assert(0);
+//        break;
+//      }
+//      break;
+//    case NODE_INT:
+//    case NODE_BOOL:
+//    case NODE_CHAR:
+//    case NODE_FLOAT:
+//      node1->valueType = node2->valueType;
+//      addVariable(node1->string, node2->valueType, node1);
+//      break;
+//    case NODE_OP:
+//      assert(node2->valueType);
+//      node1->valueType = node2->valueType;
+//      addVariable(node1->string, node2->valueType, node1);
+//      break;
+//    default:
+//
+//      assert(0); //not implement
+//      break;
+//    } // end of switch node2->type;
+//  }
+//  }
+//}// end of typeBinding
 
-      assert(0); //not implement
-      break;
-    } // end of switch node2->type;
-  }
+void newtypeBinding(struct nodeType *node){
+  assert(node->typeNode);
+  switch(node->nodeType){
+  case NODE_TOKEN:
+    node->valueType = node->typeNode->valueType;
+    addVariable(node->string, node->valueType, node);
+  break;
+  case NODE_TUPLE:
+    node->valueType = node->typeNode->valueType;
+    node->child->typeNode = node->typeNode->child;
+    node->child->rsibling->typeNode = node->typeNode->child->rsibling;
+    newtypeBinding(node->child);
+    newtypeBinding(node->child->rsibling);
+  break;
+  default:
+    assert(0); //not implement;
   }
 }
-
 
 void typeAnalysis( struct nodeType *node){
   switch(node->nodeType){
@@ -462,57 +480,57 @@ void typeAnalysis( struct nodeType *node){
       typeAnalysis(node->child->rsibling);
       node->valueType = TypeTuple;
       node->typeNode = node;
-      if(node->child->valueType == node->child->rsibling->valueType){
-        switch(node->child->valueType){
-          case TypeInt: 
-            node->valueType = TypeTuple_I;
-          break;
-          case TypeFloat: 
-            node->valueType = TypeTuple_F;
-          break;
-          case TypeBool: 
-            node->valueType = TypeTuple_B;
-          break;
-          case TypeChar: 
-            node->valueType = TypeTuple_C;
-          break;
-        }
-      }
-      else{
-        switch (node->child->valueType){
-        case TypeInt:
-          switch(node->child->rsibling->valueType){
-          case TypeFloat:
-            node->valueType = TypeTuple_IF;
-          break;
-          }
-        break;
-        case TypeFloat:
-          switch(node->child->rsibling->valueType){
-          case TypeInt:
-            node->valueType = TypeTuple_FI;
-          break;
-          }
-        break;
-        case TypeBool:
-        case TypeChar:
-          assert(0);
-          break;
-        break;
-        case TypeSEQ_I:
-        case TypeSEQ_F:
-        case TypeSEQ_B:
-        case TypeSEQ_C:
-        case TypeSEQ:
-          switch(node->child->rsibling->valueType){
-          case TypeFloat:
-            node->valueType = TypeTuple_SF;
-          break;
-          }
-        break;
-        }
-      
-      } 
+      //if(node->child->valueType == node->child->rsibling->valueType){
+      //  switch(node->child->valueType){
+      //    case TypeInt: 
+      //      node->valueType = TypeTuple_I;
+      //    break;
+      //    case TypeFloat: 
+      //      node->valueType = TypeTuple_F;
+      //    break;
+      //    case TypeBool: 
+      //      node->valueType = TypeTuple_B;
+      //    break;
+      //    case TypeChar: 
+      //      node->valueType = TypeTuple_C;
+      //    break;
+      //  }
+      //}
+      //else{
+      //  switch (node->child->valueType){
+      //  case TypeInt:
+      //    switch(node->child->rsibling->valueType){
+      //    case TypeFloat:
+      //      node->valueType = TypeTuple_IF;
+      //    break;
+      //    }
+      //  break;
+      //  case TypeFloat:
+      //    switch(node->child->rsibling->valueType){
+      //    case TypeInt:
+      //      node->valueType = TypeTuple_FI;
+      //    break;
+      //    }
+      //  break;
+      //  case TypeBool:
+      //  case TypeChar:
+      //    assert(0);
+      //    break;
+      //  break;
+      //  case TypeSEQ_I:
+      //  case TypeSEQ_F:
+      //  case TypeSEQ_B:
+      //  case TypeSEQ_C:
+      //  case TypeSEQ:
+      //    switch(node->child->rsibling->valueType){
+      //    case TypeFloat:
+      //      node->valueType = TypeTuple_SF;
+      //    break;
+      //    }
+      //  break;
+      //  }
+      //
+      //} 
       break;
     }
       
@@ -535,7 +553,8 @@ void typeAnalysis( struct nodeType *node){
         printTree(inputParam,0);
         inputParam = removePair(inputParam);
         printTree(inputParam,0);
-        typeBinding(inputParam, typeDef->child);
+        inputParam->typeNode=typeDef->child;
+        newtypeBinding(inputParam);
 
         // Analyse the returnType of the function, RHS of op_rarrow.
         typeAnalysis(typeDef->child->rsibling);
@@ -549,23 +568,12 @@ void typeAnalysis( struct nodeType *node){
         // Assign the returnType to the functionNode
         typeAnalysis(node->child->rsibling->rsibling);
         node->valueType = node->child->rsibling->rsibling->valueType;
-      
-        switch(node->child->rsibling->rsibling->valueType){
-          case TypeInt:
-          case TypeBool:
-          case TypeFloat:
-          case TypeChar:
-            break;
-          case TypeSEQ_I:
-          case TypeSEQ_F:
-          case TypeSEQ_B:
-          case TypeSEQ_C:
-            break;
-        }
+        
         // Add the function node into SymbolTable
       }
       else {
         printf("error in node_func of semanticPass\n");
+        assert(0); // no function declaration.
         return;
       } 
      break;
@@ -573,26 +581,11 @@ void typeAnalysis( struct nodeType *node){
    
     case NODE_TYPE_SEQ:{
       typeAnalysis(node->child);
-      node->typeNode=node->child;
-      switch(node->child->valueType){
-        case TypeInt:
-          node->valueType = TypeSEQ_I;
-          break;
-        case TypeFloat :
-          node->valueType = TypeSEQ_F;
-          break;
-        case TypeBool:
-          node->valueType = TypeSEQ_B;
-          break;
-        case TypeChar:
-          node->valueType = TypeSEQ_C;
-          break;
-        default:
-          node->typeNode = node->child;
-          node->valueType = TypeSEQ;
-          break;
-        }
+      node->typeNode = node;
+      node->valueType = TypeSEQ;
+
       break;}
+
     case NODE_IFELSE:{
       struct nodeType* ifstmt = node->child;
       struct nodeType* thstmt = node->child->rsibling;
@@ -617,7 +610,7 @@ void typeAnalysis( struct nodeType *node){
       
       // this assumes they have been typeBinding.
       if(node->valueType >= TypeSEQ){
-        node->typeNode = node->child->typeNode;
+        node->typeNode = node->typeNode;
       }
       break;
     } 
@@ -650,60 +643,70 @@ void typeAnalysis( struct nodeType *node){
     }
     case NODE_SEQ_REF:{
       struct SymTableEntry * entry = findSymbol(node->child->table, node->child->string);
-      
-      assert(entry);
-      assert(entry->type <= TypeSEQ);
-      assert(entry->type >= TypeSEQ_I);
-      switch(entry->type){
-        case TypeSEQ:
-          //node->child
-          switch(entry->link->typeNode->nodeType){
-            case NODE_APPLYBODY1:
-              break;
-            case NODE_APPLYBODY2:
-              node->valueType = 
-              entry->link->typeNode->child->valueType;
-              break;
-            case NODE_APPLYBODY3:
-              node->valueType = 
-              entry->link->typeNode->child->valueType;
-              break;
-            case NODE_APPLYBODY4:
-              break;
-            case NODE_TUPLE:
-              node->valueType=
-              entry->link->typeNode->valueType;
-              break;
-            case NODE_FUNC_CALL:
-              node->valueType=
-              entry->link->typeNode->valueType;
-              break;
-            default:
-              assert(0); //not implement;
-          }
-          //node->valueType = node->typeNode->valueType;
-          //assert(0); // not implement yet; 
-          break;
-        case TypeSEQ_I:
-          node->valueType = TypeInt;
-          break;
-        case TypeSEQ_C:
-          node->valueType = TypeChar;
-          break;
-        case TypeSEQ_B:
-          node->valueType = TypeBool;
-          break;
-        case TypeSEQ_F:
-          node->valueType = TypeFloat;
-          break;
-        default:
-          assert(0);// impossible;
-          break;
-      }
-      // analyse the index part.
+      struct nodeType *typerefNode;
       struct nodeType *RHS = node->child->rsibling;
+
+      // analyse the index part.
       typeAnalysis(RHS);
       assert(RHS->valueType==TypeInt);
+      
+      // analyse the sequence.
+      assert(entry);      
+      assert(entry->type == TypeSEQ);
+      assert(entry->link);
+      typerefNode = entry->link;
+      assert(typerefNode->typeNode);
+      typerefNode = typerefNode->typeNode;
+      assert(typerefNode->child);
+      node->valueType = typerefNode->child->valueType;
+      
+      //switch(entry->type){
+      //  case TypeSEQ:
+      //    //node->child
+      //    switch(entry->link->typeNode->nodeType){
+      //      case NODE_APPLYBODY1:
+      //        break;
+      //      case NODE_APPLYBODY2:
+      //        node->valueType = 
+      //        entry->link->typeNode->child->valueType;
+      //        break;
+      //      case NODE_APPLYBODY3:
+      //        node->valueType = 
+      //        entry->link->typeNode->child->valueType;
+      //        break;
+      //      case NODE_APPLYBODY4:
+      //        break;
+      //      case NODE_TUPLE:
+      //        node->valueType=
+      //        entry->link->typeNode->valueType;
+      //        break;
+      //      case NODE_FUNC_CALL:
+      //        node->valueType=
+      //        entry->link->typeNode->valueType;
+      //        break;
+      //      default:
+      //        assert(0); //not implement;
+      //    }
+      //    //node->valueType = node->typeNode->valueType;
+      //    //assert(0); // not implement yet; 
+      //    break;
+      //  case TypeSEQ_I:
+      //    node->valueType = TypeInt;
+      //    break;
+      //  case TypeSEQ_C:
+      //    node->valueType = TypeChar;
+      //    break;
+      //  case TypeSEQ_B:
+      //    node->valueType = TypeBool;
+      //    break;
+      //  case TypeSEQ_F:
+      //    node->valueType = TypeFloat;
+      //    break;
+      //  default:
+      //    assert(0);// impossible;
+      //    break;
+      //}
+
       break;
     }
 
@@ -925,10 +928,10 @@ void typeAnalysis( struct nodeType *node){
           //assert(
           break;
         case OP_SHARP:{
-          if(LHS->valueType >=TypeSEQ_I && LHS->valueType <= TypeSEQ ){
+          if(LHS->valueType ==TypeSEQ ){
             node->valueType = TypeInt;
           }else{ 
-            assert(0);
+            assert(0); // semantic error
           }
           break;
         }
@@ -982,6 +985,7 @@ void typeAnalysis( struct nodeType *node){
       struct nodeType *RHS = LHS->rsibling;
       // first, check the input parameter.
       typeAnalysis(RHS);
+      RHS = removePair(RHS);
       
       // second, check the function return type.
       assert(node->child->nodeType == NODE_TOKEN);
@@ -1000,17 +1004,21 @@ void typeAnalysis( struct nodeType *node){
           return;
         }
       else if(strcmp(node->child->string, "dist")==0){
-          switch(RHS->child->child->valueType){
-          case TypeInt:
-          node->valueType = TypeSEQ_I;
-          break;
-          case TypeFloat:
-            node->valueType = TypeSEQ_F;
-          break;
-          default:
-          assert(0);
-          break;
-          }
+          node->valueType = TypeSEQ;
+          //RHS = removePair(RHS);
+          node->typeNode = RHS;
+          
+          //switch(RHS->child->child->valueType){
+          //case TypeInt:
+          //  node->valueType = TypeSEQ_I;
+          //break;
+          //case TypeFloat:
+          //  node->valueType = TypeSEQ_F;
+          //break;
+          //default:
+          //assert(0);
+          //break;
+          //}
           return;
           }
       else if(strcmp(node->child->string, "time")==0){
@@ -1039,17 +1047,22 @@ void typeAnalysis( struct nodeType *node){
         return;
       }else if(strcmp(node->child->string, "plusp") ==0){
         node->valueType = TypeBool;
+        assert(RHS->valueType>=TypeInt && RHS->valueType<=TypeFloat);
         return;
       }else if(strcmp(node->child->string, "flatten") == 0){
         assert(RHS->valueType==TypeSEQ);
-        node->valueType = RHS->typeNode->valueType;
-        node->typeNode = RHS->typeNode->typeNode;
+        node->valueType = RHS->typeNode->child->valueType;
+        node->typeNode = RHS->typeNode->child;
         return;
       }else if(strcmp(LHS->string, "max_index") == 0){
         node->valueType = TypeInt;
+        //RHS=removePair(RHS);
+        assert(RHS->valueType == TypeSEQ);
         return;
       }else if(strcmp(LHS->string, "min_index") == 0){
         node->valueType = TypeInt;
+        //RHS=removePair(RHS);
+        assert(RHS->valueType == TypeSEQ);
         return;
       }else if(strcmp(LHS->string, "float") == 0){
         node->valueType = TypeFloat;
@@ -1060,7 +1073,7 @@ void typeAnalysis( struct nodeType *node){
         return;
       }else if(strcmp(LHS->string, "print_string") == 0){
         node->valueType = TypeBool;
-        assert(RHS->valueType == TypeSEQ_C);
+        //assert(RHS->valueType == TypeSEQ_C);
         return;
       }else if(strcmp(LHS->string, "genShuffledList") == 0){
         node->valueType = TypeSEQ_I;
@@ -1071,19 +1084,30 @@ void typeAnalysis( struct nodeType *node){
         assert(RHS->valueType == TypeInt);
         return;
       }else if(strcmp(LHS->string, "sum") == 0){
-        switch(RHS->valueType){
-        case TypeSEQ_I:
-          node->valueType = TypeInt;
-        break;
-        case TypeSEQ_F:
-          node->valueType = TypeFloat;
-        break;
-        case TypeSEQ:
-          node->valueType = RHS->typeNode->valueType;
+        switch(RHS->typeNode->child->valueType){
+          case TypeInt:
+            node->valueType = TypeInt;
+            break;
+          case TypeFloat:
+            node->valueType = TypeFloat;
+            break;
+          default:
+            assert(0); //not implement;
           break;
-        default:
-          assert(0);// error
-        }  
+        }
+        //switch(RHS->valueType){
+        //case TypeSEQ_I:
+        //  node->valueType = TypeInt;
+        //break;
+        //case TypeSEQ_F:
+        //  node->valueType = TypeFloat;
+        //break;
+        //case TypeSEQ:
+        //  node->valueType = RHS->typeNode->valueType;
+        //  break;
+        //default:
+        //  assert(0);// error
+        //}  
         return;
       }else if(strcmp(LHS->string, "mod") == 0){
         
@@ -1112,6 +1136,7 @@ void typeAnalysis( struct nodeType *node){
       //node->valueType = node->child->valueType;
       break;
     }// end of NODE_FUNC_CALL
+
     case NODE_APPLYBODY1:{
       typeAnalysis(node->child);
       node->valueType = TypeSEQ;
@@ -1121,25 +1146,28 @@ void typeAnalysis( struct nodeType *node){
       // FIXME analyze child->rsibling first?
       typeAnalysis(node->child->rsibling);
       typeAnalysis(node->child);
-      switch(node->child->valueType){
-        case TypeInt:
-          node->valueType = TypeSEQ_I;
-          break;
-        case TypeFloat:
-          node->valueType = TypeSEQ_F;
-          break;
-        case TypeBool:
-          node->valueType = TypeSEQ_B;
-          break;
-        case TypeChar:
-          node->valueType = TypeSEQ_C;
-          break;
-        default:
-          node->valueType = TypeSEQ;
-          break;
-      }
+      node->valueType = TypeSEQ;
+      node->typeNode = node;
+
+      //switch(node->child->valueType){
+      //  case TypeInt:
+      //    node->valueType = TypeSEQ_I;
+      //    break;
+      //  case TypeFloat:
+      //    node->valueType = TypeSEQ_F;
+      //    break;
+      //  case TypeBool:
+      //    node->valueType = TypeSEQ_B;
+      //    break;
+      //  case TypeChar:
+      //    node->valueType = TypeSEQ_C;
+      //    break;
+      //  default:
+      //    node->valueType = TypeSEQ;
+      //    break;
+      //}
       //node->valueType = node->child->valueType;
-      node->typeNode = node->child;
+      //node->typeNode = node->child;
       break;
     }
     case NODE_APPLYBODY3:{
@@ -1148,8 +1176,9 @@ void typeAnalysis( struct nodeType *node){
       typeAnalysis(node->child->rsibling);
       assert(node->child->rsibling->valueType == TypeBool);
       assert(node->child->valueType);
-      node->valueType = node->child->valueType;
-      node->typeNode = node->child->child->child;
+      node->valueType = TypeSEQ;
+      assert(node->child->child->child->rsibling->valueType==TypeSEQ);
+      node->typeNode = node->child->child->rsibling;
       break;
     }
     case NODE_APPLYBODY4:{
@@ -1168,42 +1197,46 @@ void typeAnalysis( struct nodeType *node){
       
       typeAnalysis(RHS);
       node->valueType = RHS->valueType;
+      node->typeNode = RHS;
+      
+      LHS->valueType = RHS->typeNode->child->valueType;
+      LHS->typeNode = RHS->typeNode->child;
       
       //FIXME whether to use the typeBinding or processing here?
-      switch(RHS->valueType){
-        case TypeSEQ_I:
-          node->child->valueType = TypeInt;
-          break;
-        case TypeSEQ_F:
-          node->child->valueType = TypeFloat;
-          break;
-        case TypeSEQ_B:
-          node->child->valueType = TypeBool;
-          break;
-        case TypeSEQ_C:
-          node->child->valueType = TypeChar;
-          break;
-        case TypeSEQ:
-          if(RHS->nodeType == NODE_TOKEN){
-            struct SymTableEntry *entry = findSymbol(node->table,RHS->string);
-            assert(entry); 
-            struct nodeType* refNode = entry->link->typeNode;
-            assert(refNode);
-            LHS->valueType = refNode->valueType;
-            LHS->typeNode = refNode;
-            node->typeNode = refNode;
-          }else{
-          assert(node->child->rsibling->child->valueType);
-          node->child->valueType = node->child->rsibling->child->valueType;
-          node->typeNode = node->child->rsibling;
-          assert(node->typeNode);
-          }
-          break;
-        default:
-          // not implement
-          assert(0);
-        break;
-      }
+      //switch(RHS->valueType){
+      //  case TypeSEQ_I:
+      //    node->child->valueType = TypeInt;
+      //    break;
+      //  case TypeSEQ_F:
+      //    node->child->valueType = TypeFloat;
+      //    break;
+      //  case TypeSEQ_B:
+      //    node->child->valueType = TypeBool;
+      //    break;
+      //  case TypeSEQ_C:
+      //    node->child->valueType = TypeChar;
+      //    break;
+      //  case TypeSEQ:
+      //    if(RHS->nodeType == NODE_TOKEN){
+      //      struct SymTableEntry *entry = findSymbol(node->table,RHS->string);
+      //      assert(entry); 
+      //      struct nodeType* refNode = entry->link->typeNode;
+      //      assert(refNode);
+      //      LHS->valueType = refNode->valueType;
+      //      LHS->typeNode = refNode;
+      //      node->typeNode = refNode;
+      //    }else{
+      //    assert(node->child->rsibling->child->valueType);
+      //    node->child->valueType = node->child->rsibling->child->valueType;
+      //    node->typeNode = node->child->rsibling;
+      //    assert(node->typeNode);
+      //    }
+      //    break;
+      //  default:
+      //    // not implement
+      //    assert(0);
+      //  break;
+      //}
 
       // ValueType of LHS need to be derived downward.
       switch(LHS->nodeType){
@@ -1217,7 +1250,7 @@ void typeAnalysis( struct nodeType *node){
         struct nodeType * refNode = LHS->typeNode;
         int count=0;
         node->child->nodeType = RB_TUPLE;
-        while(refNode->valueType<=TypeTuple_I){
+        while(refNode->valueType<=TypeTuple){
           refNode = refNode->child;
           count ++;
           if(count==10) assert(0);//refNode error.

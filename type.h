@@ -133,10 +133,7 @@
 // 2. use the most outside type to represent the node.
 // 3. add TypeChar for char or string.
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
-              TypeSEQ_I,TypeSEQ_F,TypeSEQ_C,TypeSEQ_B,TypeSEQ,
-              TypeTuple_I,TypeTuple_F,TypeTuple_C,TypeTuple_B,
-              TypeTuple_IF, TypeTuple_FI, TypeTuple_SF,TypeTuple_FS,
-              TypeTuple_SI,TypeTuple_IS,TypeTuple};
+              TypeSEQ, TypeTuple};
 
 
 

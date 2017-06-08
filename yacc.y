@@ -582,7 +582,7 @@ Const
     | stringconst{
         $$ = $1;
         $$->nodeType = NODE_STRING;
-        $$->valueType = TypeSEQ_C;
+        $$->valueType = TypeSEQ;
     }
     ;
 
