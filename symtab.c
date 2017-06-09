@@ -201,9 +201,9 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
   struct nodeType *ltype;
   struct nodeType *rtype;
 
-  assert(RHS->valueType >= TypeTuple);
+  assert(RHS->valueType == TypeTuple);
   assert(RHS->typeNode);
-  assert(RHS->typeNode->valueType >=TypeTuple);
+  assert(RHS->typeNode->valueType ==TypeTuple);
 
   lchild = LHS->child;
   rchild = LHS->child->rsibling;
@@ -217,7 +217,8 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     assert(0);    
     break;}
   case NODE_TUPLE:
-    assert(RHS->valueType>=TypeTuple);
+    assert(lchild);
+    assert(rchild);
     tupleBinding(lchild,ltype);
     lchild->valueType = ltype->valueType;
     lchild->typeNode = ltype->typeNode;
@@ -607,11 +608,7 @@ void typeAnalysis( struct nodeType *node){
     case NODE_PAIR:{
       typeAnalysis(node->child);
       node->valueType = node->child->valueType;
-      
-      // this assumes they have been typeBinding.
-      if(node->valueType >= TypeSEQ){
-        node->typeNode = node->typeNode;
-      }
+      node->typeNode = node->child->typeNode;
       break;
     } 
     
@@ -723,7 +720,7 @@ void typeAnalysis( struct nodeType *node){
         
         typeAnalysis(RHS);
         assert(RHS->valueType);
-        if(RHS->valueType>=TypeTuple_I){
+        if(RHS->valueType==TypeTuple){
         printTree(RHS,0);
         RHS = removePair(RHS);
         printTree(RHS,0);
@@ -1024,7 +1021,7 @@ void typeAnalysis( struct nodeType *node){
       else if(strcmp(node->child->string, "time")==0){
         // sequential version
         node->valueType = TypeTuple;
-        struct nodeType *refNode = newNode(NODE_TUPLE);
+        struct nodeType *refNode = newNode(NODE_TYPE_TUPLE);
         struct nodeType *Lchild = newNode(NODE_TOKEN);
         struct nodeType *Rchild = newNode(NODE_TOKEN);
         addChild(refNode, Lchild);
@@ -1034,6 +1031,7 @@ void typeAnalysis( struct nodeType *node){
         Rchild->table = node->table;
         refNode->table = node->table;
         refNode->valueType = TypeTuple;
+        refNode->typeNode = refNode;
         assert(node->child->rsibling->valueType);
         Lchild->table = node->table;
         Lchild->tokenType = -1;
@@ -1076,11 +1074,23 @@ void typeAnalysis( struct nodeType *node){
         //assert(RHS->valueType == TypeSEQ_C);
         return;
       }else if(strcmp(LHS->string, "genShuffledList") == 0){
-        node->valueType = TypeSEQ_I;
-        assert(RHS->valueType == TypeTuple_I);
+        struct nodeType *refNode1 = newNode(NODE_TYPE_SEQ);
+        struct nodeType *refNode2 = newNode(NODE_TYPE_INT);
+        addChild(refNode1,refNode2);
+        refNode1->valueType = TypeSEQ;
+        refNode2->valueType = TypeInt;
+        node->valueType = TypeSEQ;
+        node->typeNode = refNode1;
+        assert(RHS->valueType == TypeTuple);
         return;
       }else if(strcmp(LHS->string, "genReverseList") == 0){
-        node->valueType = TypeSEQ_I;
+        struct nodeType *refNode1 = newNode(NODE_TYPE_SEQ);
+        struct nodeType *refNode2 = newNode(NODE_TYPE_INT);
+        addChild(refNode1,refNode2);
+        refNode1->valueType = TypeSEQ;
+        refNode2->valueType = TypeInt;
+        node->valueType = TypeSEQ;
+        node->typeNode = refNode1;
         assert(RHS->valueType == TypeInt);
         return;
       }else if(strcmp(LHS->string, "sum") == 0){
@@ -1111,7 +1121,7 @@ void typeAnalysis( struct nodeType *node){
         return;
       }else if(strcmp(LHS->string, "mod") == 0){
         
-        if(RHS->valueType!=TypeTuple_I) {
+        if(RHS->valueType!=TypeTuple) {
           printf("***semantic check error***\n");
           abort();
         }
@@ -1202,42 +1212,6 @@ void typeAnalysis( struct nodeType *node){
       LHS->valueType = RHS->typeNode->child->valueType;
       LHS->typeNode = RHS->typeNode->child;
       
-      //FIXME whether to use the typeBinding or processing here?
-      //switch(RHS->valueType){
-      //  case TypeSEQ_I:
-      //    node->child->valueType = TypeInt;
-      //    break;
-      //  case TypeSEQ_F:
-      //    node->child->valueType = TypeFloat;
-      //    break;
-      //  case TypeSEQ_B:
-      //    node->child->valueType = TypeBool;
-      //    break;
-      //  case TypeSEQ_C:
-      //    node->child->valueType = TypeChar;
-      //    break;
-      //  case TypeSEQ:
-      //    if(RHS->nodeType == NODE_TOKEN){
-      //      struct SymTableEntry *entry = findSymbol(node->table,RHS->string);
-      //      assert(entry); 
-      //      struct nodeType* refNode = entry->link->typeNode;
-      //      assert(refNode);
-      //      LHS->valueType = refNode->valueType;
-      //      LHS->typeNode = refNode;
-      //      node->typeNode = refNode;
-      //    }else{
-      //    assert(node->child->rsibling->child->valueType);
-      //    node->child->valueType = node->child->rsibling->child->valueType;
-      //    node->typeNode = node->child->rsibling;
-      //    assert(node->typeNode);
-      //    }
-      //    break;
-      //  default:
-      //    // not implement
-      //    assert(0);
-      //  break;
-      //}
-
       // ValueType of LHS need to be derived downward.
       switch(LHS->nodeType){
       case NODE_TOKEN:
@@ -1250,7 +1224,9 @@ void typeAnalysis( struct nodeType *node){
         struct nodeType * refNode = LHS->typeNode;
         int count=0;
         node->child->nodeType = RB_TUPLE;
-        while(refNode->valueType<=TypeTuple){
+        
+        //FIXME I forgot whats this aim to do.
+        while(refNode->valueType==TypeTuple){
           refNode = refNode->child;
           count ++;
           if(count==10) assert(0);//refNode error.
@@ -1363,7 +1339,7 @@ void typeAnalysis( struct nodeType *node){
             if(entry)
               node->valueType = entry->type; 
             //else //FIXME
-              if(node->valueType >= TypeSEQ_I){
+              if(node->valueType == TypeSEQ){
                 node->typeNode = entry->link->typeNode;
               }
               //addVariable(node->string, TypeInt, node);
@@ -1382,9 +1358,13 @@ void typeAnalysis( struct nodeType *node){
           case TOKE_CHAR:
             node->valueType = TypeChar;
             break;
-          case TOKE_STRING:
-            node->valueType = TypeSEQ_C;
-            break;
+          case TOKE_STRING:{
+            struct nodeType* refNode = newNode(NODE_CHAR);
+            refNode->valueType = TypeChar;
+            refNode->typeNode = refNode;
+            node->valueType = TypeSEQ;
+            node->typeNode = refNode;
+            break;}
           default:
             break;
         }// end of switch tokenType
@@ -1411,16 +1391,22 @@ void typeAnalysis( struct nodeType *node){
     }
     case NODE_FLOAT:{
       node->valueType = TypeFloat;
+      node->typeNode = node;
       break;
     }
     case NODE_CHAR:{
       node->valueType = TypeChar;
+      node->typeNode = node;
       break;
     }
     case NODE_STRING:{
-      node->valueType = TypeSEQ_C;
-      break;
-    }
+      struct nodeType* refNode = newNode(NODE_CHAR);
+      refNode->valueType = TypeChar;
+      refNode->typeNode = refNode;
+      node->valueType = TypeSEQ;
+      node->typeNode = refNode;
+      break;}
+    
     case NODE_FILTER:{
       int count = 0;
       struct nodeType *child = node->child;
@@ -1432,6 +1418,7 @@ void typeAnalysis( struct nodeType *node){
       node->counts = count;
       typeAnalysis(node->child);
       node->valueType = node->child->valueType;
+      node->typeNode = node;
       break;
     }
     case NODE_NEW_SEQ:{
@@ -1509,23 +1496,14 @@ void typeAnalysis( struct nodeType *node){
       
       switch(LHS->valueType){
         case TypeInt: 
-          node->valueType = TypeSEQ_I;
-          break;
         case TypeFloat:
-          node->valueType = TypeSEQ_F;
-          break;
         case TypeBool:
-          node->valueType = TypeSEQ_B;
-          break;
         case TypeChar:
-          node->valueType = TypeSEQ_C;
-          break;
         default:
           node->valueType = TypeSEQ;
-          node->typeNode = node->child;
+          node->typeNode = node;
           break;
       }
-      
       break;
     }
 
@@ -1600,24 +1578,12 @@ void typeAnalysis( struct nodeType *node){
         typeAnalysis(child);
         switch(child->valueType){
           case TypeInt:
-            node->valueType = TypeSEQ_I;
-            break;
           case TypeFloat:
-            node->valueType = TypeSEQ_F;
-            break;
           case TypeBool:
-            node->valueType = TypeSEQ_B;
-            break;
           case TypeChar:
-            node->valueType = TypeSEQ_C;
-            break;
-          case TypeSEQ_I:
-          case TypeSEQ_F:
-          case TypeSEQ_B:
-          case TypeSEQ_C:
           default:
             node->valueType = TypeSEQ;
-            node->typeNode = child;
+            node->typeNode = node;
             break;
         }
 
