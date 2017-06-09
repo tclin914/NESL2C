@@ -228,6 +228,8 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     assert(lchild->string);
     assert(ltype->valueType);
     lchild->valueType = ltype->valueType;
+    if(ltype->valueType>=TypeSEQ)
+      assert(ltype->typeNode);
     lchild->typeNode = ltype->typeNode;
     entry = findSymbol(lchild->table, lchild->string);
     if(entry){
@@ -1036,6 +1038,7 @@ void typeAnalysis( struct nodeType *node){
         Lchild->table = node->table;
         Lchild->tokenType = -1;
         Lchild->valueType = node->child->rsibling->valueType;
+        Lchild->typeNode = node->child->rsibling->typeNode;
         node->typeNode = refNode;
         typeAnalysis(refNode);
         node->valueType = refNode->valueType;
