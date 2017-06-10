@@ -210,7 +210,13 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
   typeNode = RHS->typeNode;
   ltype = typeNode->child;
   rtype = typeNode->child->rsibling;
-
+  if(LHS->nodeType == NODE_TUPLE){
+    LHS->valueType = RHS->valueType;
+    LHS->typeNode = RHS->typeNode;
+  }
+  if(LHS->nodeType == NODE_TOKEN){
+    assert(0); //note implement;
+  }
   // lchild of LHS
   switch(lchild->nodeType){
   case NODE_PAIR:{
@@ -658,7 +664,9 @@ void typeAnalysis( struct nodeType *node){
       typerefNode = typerefNode->typeNode;
       assert(typerefNode->child);
       node->valueType = typerefNode->child->valueType;
-      
+      node->typeNode = typerefNode->child;
+      assert(node->typeNode);
+
       //switch(entry->type){
       //  case TypeSEQ:
       //    //node->child
@@ -723,9 +731,11 @@ void typeAnalysis( struct nodeType *node){
         typeAnalysis(RHS);
         assert(RHS->valueType);
         if(RHS->valueType==TypeTuple){
+        assert(RHS->typeNode);
         printTree(RHS,0);
         RHS = removePair(RHS);
         printTree(RHS,0);
+        assert(RHS->typeNode);
         }
         
         LHS->valueType = RHS->valueType;
@@ -1205,97 +1215,118 @@ void typeAnalysis( struct nodeType *node){
     case NODE_IN:{
       struct nodeType* LHS = node->child;
       struct nodeType* RHS = node->child->rsibling;
-      // TODO e in a, e should be renamed or replaced from a var list.
-      //typeAnalysis(node->child);
+      
+      // TODO e in a; or (x,y) in points; ... ; 
+      // so we need to removePair(LHS); 
+      // then bind the child of the RHS's typeNode with LHS.
       
       typeAnalysis(RHS);
+      assert(RHS->valueType==TypeSEQ);
+      assert(RHS->typeNode);
+      assert(RHS->typeNode->valueType);
       node->valueType = RHS->valueType;
-      node->typeNode = RHS;
+      node->typeNode = RHS->typeNode;
+      LHS=removePair(LHS);
       
+      // FIXME make tupleBinding can handle this
+      if(LHS->nodeType ==NODE_TUPLE){
+      tupleBinding(LHS,RHS->typeNode->child);
       LHS->valueType = RHS->typeNode->child->valueType;
       LHS->typeNode = RHS->typeNode->child;
-      
+      LHS->nodeType = RB_TUPLE;
+      typeAnalysis(LHS);
+      }else{
+        LHS->valueType = RHS->typeNode->child->valueType;
+        LHS->typeNode = RHS->typeNode->child;
+        if(LHS->nodeType == NODE_TOKEN){
+          addVariable(LHS->string, LHS->valueType, LHS); 
+        }
+      }
+      //LHS->valueType = RHS->typeNode->child->valueType;
+      //LHS->typeNode = RHS->typeNode->child;
+      assert(LHS->valueType); 
+      assert(LHS->typeNode);
       // ValueType of LHS need to be derived downward.
-      switch(LHS->nodeType){
-      case NODE_TOKEN:
-        if(!findSymbol(node->table, node->child->string))
-          addVariable(node->child->string, 
-                      node->child->valueType,
-                      node->child);
-      break;
-      case NODE_TUPLE:{
-        struct nodeType * refNode = LHS->typeNode;
-        int count=0;
-        node->child->nodeType = RB_TUPLE;
-        
-        //FIXME I forgot whats this aim to do.
-        while(refNode->valueType==TypeTuple){
-          refNode = refNode->child;
-          count ++;
-          if(count==10) assert(0);//refNode error.
-        }
-        assert(refNode);
-        LHS->typeNode = refNode;
-        typeAnalysis(LHS);
-        break;
-      }
-      case NODE_PAIR:{
-        // remove pair;
-        struct nodeType * child = node->child;
-        struct nodeType * rhs = node->child->rsibling;
-        struct nodeType * lhs = node->child->lsibling;
-        struct nodeType * pchild = node->child->child;
+      //switch(LHS->nodeType){
+      //case NODE_TOKEN:
+      //  if(!findSymbol(node->table, node->child->string))
+      //    addVariable(node->child->string, 
+      //                node->child->valueType,
+      //                node->child);
+      //break;
+      //case NODE_TUPLE:{
+      //  struct nodeType * refNode = LHS->typeNode;
+      //  int count=0;
+      //  node->child->nodeType = RB_TUPLE;
+      //  
+      //  //FIXME I forgot whats this aim to do.
+      //  while(refNode->valueType==TypeTuple){
+      //    refNode = refNode->child;
+      //    count ++;
+      //    if(count==10) assert(0);//refNode error.
+      //  }
+      //  assert(refNode);
+      //  LHS->typeNode = refNode;
+      //  typeAnalysis(LHS);
+      //  break;
+      //}
+      //case NODE_PAIR:{
+      //  // remove pair;
+      //  struct nodeType * child = node->child;
+      //  struct nodeType * rhs = node->child->rsibling;
+      //  struct nodeType * lhs = node->child->lsibling;
+      //  struct nodeType * pchild = node->child->child;
 
-        while(child->nodeType == NODE_PAIR){
-          pchild->parent = node;
-          rhs->lsibling = pchild;
-          lhs->rsibling = pchild;
-          child = pchild;
-          child->rsibling = rhs;
-          child->lsibling = lhs;
-          rhs = child->rsibling;
-          lhs = child->lsibling;
-          pchild = child->child;
-        }
-        pchild->valueType = child->valueType;
-        node->child = child;
+      //  while(child->nodeType == NODE_PAIR){
+      //    pchild->parent = node;
+      //    rhs->lsibling = pchild;
+      //    lhs->rsibling = pchild;
+      //    child = pchild;
+      //    child->rsibling = rhs;
+      //    child->lsibling = lhs;
+      //    rhs = child->rsibling;
+      //    lhs = child->lsibling;
+      //    pchild = child->child;
+      //  }
+      //  pchild->valueType = child->valueType;
+      //  node->child = child;
 
-        if(node->child->nodeType == NODE_TUPLE){
-          struct nodeType* LHS = node->child;
-          struct nodeType *RHS = LHS->rsibling;
+      //  if(node->child->nodeType == NODE_TUPLE){
+      //    struct nodeType* LHS = node->child;
+      //    struct nodeType *RHS = LHS->rsibling;
 
-          LHS->nodeType = RB_TUPLE;
-          LHS->valueType = node->typeNode->valueType;
-          LHS->typeNode = node->typeNode;
-          assert(RHS->valueType ==9);
-          switch(RHS->nodeType){
-          case NODE_NEW_SEQ:
-            assert(RHS->child->valueType>=10);
-            LHS->typeNode = RHS->typeNode;
-            typeAnalysis(LHS);
-            break;
-          case NODE_TOKEN:{
-            struct SymTableEntry *entry = findSymbol(RHS->table, RHS->string);
-            assert(entry); 
-            node->typeNode = entry->link->typeNode;
-            typeAnalysis(LHS);
-            break;}
-          default:
-            assert(0);//not implement;
-            break;
-          }
-        }else{
-          if(!findSymbol(node->table, node->child->string))
-            addVariable(node->child->string, 
-                        node->child->valueType,
-                        node->child);
-        }
-        break;
-      }
-      default:
-        assert(0);//impossible
-      break;
-      }
+      //    LHS->nodeType = RB_TUPLE;
+      //    LHS->valueType = node->typeNode->valueType;
+      //    LHS->typeNode = node->typeNode;
+      //    assert(RHS->valueType ==9);
+      //    switch(RHS->nodeType){
+      //    case NODE_NEW_SEQ:
+      //      assert(RHS->child->valueType>=10);
+      //      LHS->typeNode = RHS->typeNode;
+      //      typeAnalysis(LHS);
+      //      break;
+      //    case NODE_TOKEN:{
+      //      struct SymTableEntry *entry = findSymbol(RHS->table, RHS->string);
+      //      assert(entry); 
+      //      node->typeNode = entry->link->typeNode;
+      //      typeAnalysis(LHS);
+      //      break;}
+      //    default:
+      //      assert(0);//not implement;
+      //      break;
+      //    }
+      //  }else{
+      //    if(!findSymbol(node->table, node->child->string))
+      //      addVariable(node->child->string, 
+      //                  node->child->valueType,
+      //                  node->child);
+      //  }
+      //  break;
+      //}
+      //default:
+      //  assert(0);//impossible
+      //break;
+      //}
       //FIXME consider the 
       
       //typeBinding(node->child,node->child->rsibling->typeNode);
@@ -1315,6 +1346,7 @@ void typeAnalysis( struct nodeType *node){
         if(!findSymbol(LHS->table, LHS->string)){
           addVariable(LHS->string, lref->valueType, LHS);
           LHS->valueType = lref->valueType;
+          LHS->typeNode = lref;
         }
       }else{
         assert(0);
@@ -1327,6 +1359,7 @@ void typeAnalysis( struct nodeType *node){
         if(!findSymbol(RHS->table, RHS->string)){
           addVariable(RHS->string, rref->valueType, RHS);
           RHS->valueType = rref->valueType;
+          RHS->typeNode = rref;
         }
       }else{
         assert(0);
@@ -1339,14 +1372,17 @@ void typeAnalysis( struct nodeType *node){
         switch(node->tokenType){
           case TOKE_ID:{
             struct SymTableEntry* entry = findSymbol(node->table, node->string);
-            if(entry)
+            if(entry){
               node->valueType = entry->type; 
-            //else //FIXME
+              node->typeNode = entry->link->typeNode;
+            
               if(node->valueType == TypeSEQ){
                 node->typeNode = entry->link->typeNode;
               }
               //addVariable(node->string, TypeInt, node);
-
+            }else{
+              printf("###[Warning] maybe not declare variable: %s ###\n",node->string);
+            }
             break;
             }
           case TOKE_INT:
