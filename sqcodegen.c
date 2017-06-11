@@ -57,7 +57,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   }
 
   case NODE_FUNC:{
-    struct SymTableEntry * entry = findSymbol(node->child->table, node->string);
+    struct SymTableEntry * entry = findSymbol(node->child->table, node->string, REFERENCE);
     struct nodeType * parameter = node->child;
     struct nodeType * funcbody = parameter->rsibling->rsibling;
 
@@ -3264,7 +3264,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }else{
       switch(node->tokenType){
       case TOKE_ID:{
-        struct SymTableEntry* entry = findSymbol(node->table, node->string);
+        struct SymTableEntry* entry = findSymbol(node->table, node->string, REFERENCE);
         assert(entry);
         fprintf(fptr, "%s", node->string);
         break;

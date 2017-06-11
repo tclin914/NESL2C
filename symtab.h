@@ -4,8 +4,12 @@
 #include <stdio.h>
 #include "node.h"
 #include "type.h"
+
+#define FORCEDECLARE 1
+#define REFERENCE 0
+
 void semanticCheck(struct nodeType* node);
-struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link);
+struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link, int mode);
 void typeAnalysis( struct nodeType *node);
 
 // TODO 
@@ -24,8 +28,18 @@ struct SymTable {
     struct SymTableEntry entries[100];
 };
 
+
+struct FuncTableEntry {
+    char name[100];
+    int renametimes;
+};
+
+struct FuncTable {
+    int size;
+    struct FuncTableEntry entries[100];
+};
 //extern struct SymTable SymbolTable;
-struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s) ;
+struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s, int mode) ;
 
 #endif
 

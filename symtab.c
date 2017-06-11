@@ -7,7 +7,20 @@
 #define help(s) {printf("\thelp: %s\n",s);}
 
 
+
+
 struct SymTable *rootTable;
+struct FuncTable *funcTable;
+
+struct FuncTableEntry * findFuction(char *s){
+  int size = funcTable->size;
+  if(size ==0) return 0;
+  for(int i=0; i<size;i++){
+    if(!strcmp(funcTable->entries[i].name, s))
+      return &funcTable->entries[i];
+  }
+  return 0;
+}
 
 struct SymTable * newSymTable(struct SymTable * parent){
   struct SymTable *table = (struct SymTable*)malloc(sizeof(struct SymTable));
@@ -19,7 +32,7 @@ struct SymTable * newSymTable(struct SymTable * parent){
   return table;
 }
 
-struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s) {
+struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s, int mode) {
     //struct SymTableEntry * entry;
     assert(s);
     
@@ -31,16 +44,25 @@ struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s) {
 
       }
     }
-    if(SymbolTable->parent !=0)
-      return findSymbol(SymbolTable->parent, s);  
-    else
+    switch(mode){
+    case FORCEDECLARE:
       return 0;
+      break;
+    case REFERENCE:{
+      if(SymbolTable->parent !=0 && mode == REFERENCE)
+        return findSymbol(SymbolTable->parent, s, mode);  
+      else
+        return 0;
+    }
+    default: assert(0);
+    }
+    return 0;// impossible
 }
 
-struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link) {
+struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link, int mode) {
     struct SymTable *SymbolTable = link->table;
     
-    if(findSymbol(link->table, s) != 0) {
+    if(findSymbol(link->table, s, mode) != 0) {
         printf("Error: duplicate declaration of variable %s\n", s);
         //exit(0);
     }
@@ -237,13 +259,13 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     if(ltype->valueType>=TypeSEQ)
       assert(ltype->typeNode);
     lchild->typeNode = ltype->typeNode;
-    entry = findSymbol(lchild->table, lchild->string);
+    entry = findSymbol(lchild->table, lchild->string, REFERENCE);
     if(entry){
       assert(entry->type== lchild->valueType);
       if(entry->link->typeNode && !(lchild->typeNode))
       lchild->typeNode =  entry->link->typeNode;
     }else{
-      addVariable(lchild->string, lchild->valueType, lchild);
+      addVariable(lchild->string, lchild->valueType, lchild, REFERENCE);
     }
     break;
   }
@@ -268,11 +290,11 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     assert(rtype->valueType);
     rchild->valueType = rtype->valueType;
     rchild->typeNode = rtype->typeNode;
-    entry = findSymbol(rchild->table, rchild->string);
+    entry = findSymbol(rchild->table, rchild->string, REFERENCE);
     if(entry){
       assert(entry->type== rchild->valueType);
     }else{
-      addVariable(rchild->string, rchild->valueType, rchild);
+      addVariable(rchild->string, rchild->valueType, rchild, REFERENCE);
     }
     break;
   }
@@ -448,7 +470,7 @@ void newtypeBinding(struct nodeType *node){
   switch(node->nodeType){
   case NODE_TOKEN:
     node->valueType = node->typeNode->valueType;
-    addVariable(node->string, node->valueType, node);
+    addVariable(node->string, node->valueType, node, REFERENCE);
   break;
   case NODE_TUPLE:
     node->valueType = node->typeNode->valueType;
@@ -548,6 +570,7 @@ void typeAnalysis( struct nodeType *node){
       struct nodeType *inputParam = node->child;
       struct nodeType *typeDef = node->child->rsibling;
       struct nodeType *funcExp = typeDef->rsibling;
+      struct FuncTableEntry *fentry;
       
       // functions must have the typeDefinition of Function.
       assert(typeDef->nodeType  == NODE_OP);
@@ -572,7 +595,20 @@ void typeAnalysis( struct nodeType *node){
         node->valueType = typeDef->child->rsibling->valueType;
         node->typeNode = typeDef->child->rsibling->typeNode;
         if(node->valueType==TypeSEQ) assert(node->typeNode);
-        addVariable(node->string, typeDef->child->rsibling->valueType, node);  
+        
+        // deal with the redefined functions.
+        fentry = findFuction(node->string);
+        if(fentry){
+          // already declared.
+          sprintf(node->string, "%s_%d",node->string,(fentry->renametimes)++);
+        } 
+        else{
+          // first appeared.
+          fentry = &funcTable->entries[funcTable->size++];
+          fentry->renametimes =1;
+          strcpy(fentry->name,node->string);
+        }
+        addVariable(node->string, typeDef->child->rsibling->valueType, node, REFERENCE);  
         
         // Assign the returnType to the functionNode
         typeAnalysis(node->child->rsibling->rsibling);
@@ -647,7 +683,9 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_SEQ_REF:{
-      struct SymTableEntry * entry = findSymbol(node->child->table, node->child->string);
+      struct SymTableEntry * entry = findSymbol(node->child->table, node->child->string,REFERENCE);
+
+
       struct nodeType *typerefNode;
       struct nodeType *RHS = node->child->rsibling;
 
@@ -808,9 +846,9 @@ void typeAnalysis( struct nodeType *node){
             assert(RHS->valueType);
             pattern->valueType=RHS->valueType;
             pattern->typeNode=RHS->typeNode;
-            entry = findSymbol(pattern->table, pattern->string);
+            entry = findSymbol(pattern->table, pattern->string,REFERENCE);
             if(!entry){
-              addVariable(pattern->string, pattern->valueType, pattern);
+              addVariable(pattern->string, pattern->valueType, pattern, REFERENCE);
             }
           break;}
           case NODE_TUPLE:
@@ -1144,7 +1182,7 @@ void typeAnalysis( struct nodeType *node){
       }else{
           // TODO other built-in functions
       typeAnalysis(node->child);
-      struct SymTableEntry *entry = findSymbol(node->table, node->child->string); 
+      struct SymTableEntry *entry = findSymbol(node->table, node->child->string, REFERENCE); 
       assert(entry);
       assert(entry->type);
       node->valueType = entry->type;
@@ -1239,7 +1277,7 @@ void typeAnalysis( struct nodeType *node){
         LHS->valueType = RHS->typeNode->child->valueType;
         LHS->typeNode = RHS->typeNode->child;
         if(LHS->nodeType == NODE_TOKEN){
-          addVariable(LHS->string, LHS->valueType, LHS); 
+          addVariable(LHS->string, LHS->valueType, LHS, REFERENCE); 
         }
       }
       //LHS->valueType = RHS->typeNode->child->valueType;
@@ -1343,8 +1381,8 @@ void typeAnalysis( struct nodeType *node){
         LHS->nodeType = RB_TUPLE;
         typeAnalysis(LHS);
       }else if(LHS->nodeType == NODE_TOKEN){
-        if(!findSymbol(LHS->table, LHS->string)){
-          addVariable(LHS->string, lref->valueType, LHS);
+        if(!findSymbol(LHS->table, LHS->string, REFERENCE)){
+          addVariable(LHS->string, lref->valueType, LHS,FORCEDECLARE);
           LHS->valueType = lref->valueType;
           LHS->typeNode = lref;
         }
@@ -1356,8 +1394,8 @@ void typeAnalysis( struct nodeType *node){
         RHS->nodeType = RB_TUPLE;
         typeAnalysis(RHS);
       }else if(RHS->nodeType == NODE_TOKEN){
-        if(!findSymbol(RHS->table, RHS->string)){
-          addVariable(RHS->string, rref->valueType, RHS);
+        if(!findSymbol(RHS->table, RHS->string, REFERENCE)){
+          addVariable(RHS->string, rref->valueType, RHS,FORCEDECLARE);
           RHS->valueType = rref->valueType;
           RHS->typeNode = rref;
         }
@@ -1371,7 +1409,7 @@ void typeAnalysis( struct nodeType *node){
     case NODE_TOKEN: {
         switch(node->tokenType){
           case TOKE_ID:{
-            struct SymTableEntry* entry = findSymbol(node->table, node->string);
+            struct SymTableEntry* entry = findSymbol(node->table, node->string, REFERENCE);
             if(entry){
               node->valueType = entry->type; 
               node->typeNode = entry->link->typeNode;
@@ -1641,6 +1679,15 @@ void semanticPass( struct nodeType *node){
   // then start the Analysis
   // which consist of table insertion, 
   // typeBinding and typeChechking.
+
+  /*initialize the function table*/
+  funcTable = (struct FuncTable*)malloc(sizeof(struct FuncTable));
+  funcTable->size = 0;
+  for(int i=0;i<100;i++){
+    funcTable->entries[i].renametimes =0;
+    strcpy(funcTable->entries[i].name, "");
+  }
+
   rootTable = newSymTable(NULL);
   node->table = rootTable;
   setTable(node);

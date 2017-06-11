@@ -223,7 +223,7 @@ int insertadd(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(addindex[i] ==0){
       sprintf(varname, "add%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       addindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -235,7 +235,7 @@ int insertsub(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(subindex[i] ==0){
       sprintf(varname, "sub%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       subindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -247,7 +247,7 @@ int insertmul(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(mulindex[i] ==0){
       sprintf(varname, "mul%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       mulindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -259,7 +259,7 @@ int insertdiv(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(divindex[i] ==0){
       sprintf(varname, "ddiv%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       divindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -271,7 +271,7 @@ int insertlet(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(letindex[i] ==0){
       sprintf(varname, "let%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       letindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -282,7 +282,7 @@ int insertfcl(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(fclindex[i] ==0){
       sprintf(varname, "fcl%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       fclindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -293,7 +293,7 @@ int insertift(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(iftindex[i] ==0){
       sprintf(varname, "ift%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       iftindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -304,7 +304,7 @@ int insert_pp(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(_ppindex[i] ==0){
       sprintf(varname, "_pp%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       _ppindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -315,7 +315,7 @@ int insertbol(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(bolindex[i] ==0){
       sprintf(varname, "bol%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       bolindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -326,7 +326,7 @@ int insertelm(struct nodeType* node){
   for(int i =0; i<MAX; i++){
     if(elmindex[i] ==0){
       sprintf(varname, "elm%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       elmindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -338,7 +338,7 @@ int inserttmp(struct nodeType* node){
   for(int i =0; i<=MAX; i++){
     if(tmpindex[i] ==0){
       sprintf(varname, "tmp%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       tmpindex[i]=1;
       return i;
     }else if(i==MAX) return -1;
@@ -353,7 +353,7 @@ int insertapp(struct nodeType* node){
       if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = node->table->parent;
       sprintf(varname, "app%d",i);
-      addVariable(varname, node->valueType, node);
+      addVariable(varname, node->valueType, node,REFERENCE);
       appindex[i]=1;
       if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = tmp;
@@ -363,7 +363,7 @@ int insertapp(struct nodeType* node){
 }
 
 int insertres(struct nodeType* node){
-  if(addVariable("res", node->valueType, node))
+  if(addVariable("res", node->valueType, node,REFERENCE))
     return 1;
   else 
     return 0;
@@ -387,7 +387,7 @@ void pfcheck(struct nodeType* node){
     pfcheck(node->child->rsibling->rsibling);
     node->isparallel_rr = node->child->rsibling->rsibling->isparallel_rr;
     if(node->isparallel_rr){
-      struct SymTableEntry *entry = findSymbol(node->table,node->string);
+      struct SymTableEntry *entry = findSymbol(node->table,node->string, REFERENCE);
       assert(entry);
       entry->link->isparallel_rr = 1;
     }
@@ -474,15 +474,15 @@ void pfcheck(struct nodeType* node){
       node->isparallel_rr = RHS->isparallel_rr;
 
       if(node->needcounter)
-        if(!findSymbol(node->table,"_i"))
-          addVariable("_i", TypeInt, node->parent->parent);
+        if(!findSymbol(node->table,"_i", REFERENCE))
+          addVariable("_i", TypeInt, node->parent->parent,REFERENCE);
       node->nodeType = GEN_APP3;
       node->string = malloc(sizeof(char)*100);
       node->valueType = RHS->valueType;
       node->typeNode = RHS->typeNode;
       switch(LHS->nodeType){
       case NODE_PATTERN:{
-        struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string);
+        struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string, REFERENCE);
         if(ent){
           if(ent->link->typeNode){
             ent->link->typeNode = RHS->typeNode;
@@ -511,8 +511,8 @@ void pfcheck(struct nodeType* node){
       if(LHS->isparallel_rr || RHS->isparallel_rr)node->isparallel_rr=1;
       if(LHS->nodeType == NODE_TOKEN){
         assert(LHS->string);
-        if(!findSymbol(node->table, LHS->string)){
-          addVariable(LHS->string, LHS->valueType, LHS);
+        if(!findSymbol(node->table, LHS->string, REFERENCE)){
+          addVariable(LHS->string, LHS->valueType, LHS,REFERENCE);
         }
       }
       break;
@@ -686,15 +686,15 @@ void pfcheck(struct nodeType* node){
         node->isparallel_rr = RHS->isparallel_rr;
 
         if(node->needcounter)
-          if(!findSymbol(node->table,"_i"))
-            addVariable("_i", TypeInt, node->parent->parent);
+          if(!findSymbol(node->table,"_i", FORCEDECLARE))
+            addVariable("_i", TypeInt, node->parent->parent,FORCEDECLARE);
         node->nodeType = GEN_APP3;
         node->string = malloc(sizeof(char)*100);
         node->valueType = RHS->valueType;
         node->typeNode = RHS->typeNode;
         switch(LHS->nodeType){
         case NODE_PATTERN:{
-          struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string);
+          struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string, REFERENCE);
           if(ent){
             if(ent->link->typeNode){
               ent->link->typeNode = RHS->typeNode;
@@ -723,8 +723,8 @@ void pfcheck(struct nodeType* node){
         if(LHS->isparallel_rr || RHS->isparallel_rr)node->isparallel_rr=1;
         if(LHS->nodeType == NODE_TOKEN){
           assert(LHS->string);
-          if(!findSymbol(node->table, LHS->string)){
-            addVariable(LHS->string, LHS->valueType, LHS);
+          if(!findSymbol(node->table, LHS->string, REFERENCE)){
+            addVariable(LHS->string, LHS->valueType, LHS,REFERENCE);
           }
         }
         break;
@@ -786,10 +786,10 @@ void pfcheck(struct nodeType* node){
 
     node->needcounter = 1;
     node->isparallel_rr = 1;
-    if(!findSymbol(node->table,"_len"))
-      addVariable("_len", TypeInt, node);
-    if(!findSymbol(node->table,"_i"))
-      addVariable("_i", TypeInt, node);
+    if(!findSymbol(node->table,"_len", FORCEDECLARE))
+      addVariable("_len", TypeInt, node, FORCEDECLARE);
+    if(!findSymbol(node->table,"_i", FORCEDECLARE))
+      addVariable("_i", TypeInt, node, FORCEDECLARE);
     int idx = insertapp(node); 
     node->string = malloc(sizeof(char)*100);
     sprintf(node->string, "app%d",idx);
@@ -797,7 +797,7 @@ void pfcheck(struct nodeType* node){
     if(!node->child->string){
       node->child->string = malloc(sizeof(char)*100);
       strcpy(node->child->string, "tmp");
-      addVariable(node->child->string, node->child->valueType, node->child);
+      addVariable(node->child->string, node->child->valueType, node->child, FORCEDECLARE);
     }
     printTree(node,0);
     break;  
@@ -839,7 +839,7 @@ void pfcheck(struct nodeType* node){
     pfcheck(RHS);
     if(LHS->isparallel_rr || RHS->isparallel_rr ) node->isparallel_rr=1;
 
-    entry = findSymbol(node->table, LHS->string);
+    entry = findSymbol(node->table, LHS->string, REFERENCE);
     if(entry){ if(entry->link->isparallel_rr) node->isparallel_rr=1; }
 
     break;
@@ -1082,7 +1082,7 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
       switch( node->valueType){
       case TypeInt:{
         assert(node->string);
-        struct SymTableEntry *entry = findSymbol(node->table,node->string);
+        struct SymTableEntry *entry = findSymbol(node->table,node->string, REFERENCE);
         fprintf(fptr, "int %s;\n", node->string);
         if(entry){
           entry->isParam =1; 

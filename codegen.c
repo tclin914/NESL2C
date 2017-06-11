@@ -574,7 +574,7 @@ void printparam(FILE *fptr, struct nodeType* node){
     }
     
     fprintf(fptr, " %s", node->string);
-    entry = findSymbol(node->table, node->string);
+    entry = findSymbol(node->table, node->string,REFERENCE);
     assert(entry);
     entry->isParam =1;
     break;
