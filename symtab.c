@@ -54,6 +54,12 @@ struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s, int mod
       else
         return 0;
     }
+    case NOROOT:{
+      if(SymbolTable->parent != rootTable){
+        return findSymbol(SymbolTable->parent, s, mode);  
+      }
+      else return 0;
+    }
     default: assert(0);
     }
     return 0;// impossible
@@ -142,6 +148,34 @@ struct nodeType* nthChild(int n, struct nodeType *node) {
         child = child->rsibling;
     }
     return child;
+}
+
+int renamefcall(char *origin, char *new, struct nodeType *node){
+  int counts=0;
+  switch(node->nodeType){
+  case NODE_FUNC:
+    assert(0);
+  case NODE_FUNC_CALL:
+    // TODO
+    assert(node->child->string);
+    if(!strcmp(node->child->string, origin)){
+      strcpy(node->child->string, new);
+    }
+    printf("got one\n");
+    printTree(node,0);
+    printf("###\n");
+  break;
+  default:
+  {
+    struct nodeType *child= node->child;
+    if(child){
+      do{
+        counts += renamefcall(origin, new, child);
+        child = child->rsibling;
+      }while(child!=node->child);
+    }
+  }
+  }
 }
 
 struct nodeType * removePair(struct nodeType* node){
@@ -247,6 +281,7 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
   case NODE_TUPLE:
     assert(lchild);
     assert(rchild);
+    lchild->mode= LHS->mode;
     tupleBinding(lchild,ltype);
     lchild->valueType = ltype->valueType;
     lchild->typeNode = ltype->typeNode;
@@ -255,17 +290,19 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     struct SymTableEntry * entry;
     assert(lchild->string);
     assert(ltype->valueType);
+    lchild->mode=LHS->mode;
     lchild->valueType = ltype->valueType;
     if(ltype->valueType>=TypeSEQ)
       assert(ltype->typeNode);
     lchild->typeNode = ltype->typeNode;
-    entry = findSymbol(lchild->table, lchild->string, REFERENCE);
+    entry = findSymbol(lchild->table, lchild->string, lchild->mode);
     if(entry){
       assert(entry->type== lchild->valueType);
       if(entry->link->typeNode && !(lchild->typeNode))
       lchild->typeNode =  entry->link->typeNode;
     }else{
-      addVariable(lchild->string, lchild->valueType, lchild, REFERENCE);
+      if(!lchild->typeNode) lchild->typeNode = lchild;
+      addVariable(lchild->string, lchild->valueType, lchild->typeNode, lchild->mode);
     }
     break;
   }
@@ -280,6 +317,7 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     assert(0); // not implement;
     break;
   case NODE_TUPLE:
+    rchild->mode= LHS->mode;
     tupleBinding(rchild, rtype);
     rchild->valueType = rtype->valueType;
     rchild->typeNode = rtype->typeNode;
@@ -288,13 +326,15 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
     struct SymTableEntry * entry;
     assert(rchild->string);
     assert(rtype->valueType);
+    rchild->mode = LHS->mode;
     rchild->valueType = rtype->valueType;
     rchild->typeNode = rtype->typeNode;
-    entry = findSymbol(rchild->table, rchild->string, REFERENCE);
+    entry = findSymbol(rchild->table, rchild->string, rchild->mode);
     if(entry){
-      assert(entry->type== rchild->valueType);
+      assert(entry->type == rchild->valueType);
     }else{
-      addVariable(rchild->string, rchild->valueType, rchild, REFERENCE);
+      if(!rchild->typeNode) rchild->typeNode = rchild;
+      addVariable(rchild->string, rchild->valueType, rchild->typeNode, rchild->mode);
     }
     break;
   }
@@ -599,13 +639,32 @@ void typeAnalysis( struct nodeType *node){
         // deal with the redefined functions.
         fentry = findFuction(node->string);
         if(fentry){
+          int ignore;
+          struct nodeType *RRR = node->rsibling; 
           // already declared.
           sprintf(node->string, "%s_%d",node->string,(fentry->renametimes)++);
+          ignore = renamefcall(fentry->name, node->string, node->child->rsibling->rsibling);
+          
+          printf("renamed: %d times\n",ignore);
+
+          while(RRR!=node->parent->child){
+            if(RRR->nodeType == NODE_FUNC){
+              if(!strcmp(RRR->string,fentry->name)){
+                printf("boom~~~\n");
+                break;
+              }
+            }
+            else
+              ignore = renamefcall(fentry->name, node->string, RRR);
+            RRR = RRR->rsibling;
+            printf("renamed: %d times\n",ignore);
+          }
         } 
         else{
           // first appeared.
           fentry = &funcTable->entries[funcTable->size++];
           fentry->renametimes =1;
+          
           strcpy(fentry->name,node->string);
         }
         addVariable(node->string, typeDef->child->rsibling->valueType, node, REFERENCE);  
@@ -781,6 +840,7 @@ void typeAnalysis( struct nodeType *node){
 
         /*Remove Pattern*/
         if(pattern->nodeType == NODE_PATTERN){
+          node->mode = NOROOT;
           struct nodeType *patright = pattern->rsibling;
           struct nodeType *patleft = pattern->lsibling;
           struct nodeType *patchild= pattern->child;
@@ -852,6 +912,7 @@ void typeAnalysis( struct nodeType *node){
             }
           break;}
           case NODE_TUPLE:
+            pattern->mode = node->mode;
             pattern->valueType = RHS->valueType;
             pattern->typeNode = RHS->typeNode;
             tupleBinding(pattern, RHS);

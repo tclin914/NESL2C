@@ -5,8 +5,9 @@
 #include "node.h"
 #include "type.h"
 
-#define FORCEDECLARE 1
 #define REFERENCE 0
+#define FORCEDECLARE 1
+#define NOROOT 2
 
 void semanticCheck(struct nodeType* node);
 struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link, int mode);

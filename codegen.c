@@ -436,8 +436,14 @@ void dumpTable(FILE *fptr, struct nodeType* node){
       //  break;
       case TypeTuple:{
         struct nodeType *link = table->entries[i].link;
-        struct nodeType *lchild = link->child;
-        struct nodeType *rchild = lchild->rsibling;
+        struct nodeType *lchild ;
+        struct nodeType *rchild ;
+        if(link->valueType>=TypeSEQ) {
+          assert(link->typeNode);
+          lchild = link->typeNode->child;
+          rchild = lchild->rsibling;
+        }
+        
         //FIXME black magic
         fprintf(fptr, "struct ");
         printType(fptr, link);
