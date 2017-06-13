@@ -21,43 +21,6 @@ int letindex[MAX];
 int _ppindex[MAX];
 int iftindex[MAX];
 int fclindex[MAX];
-// TODO use sprintf;
-char elm[MAX][6] = {"elm1","elm2","elm3","elm4","elm5","elm6","elm7","elm8","elm9","elm10",
-  "elm11","elm12","elm13","elm14","elm15","elm16","elm17","elm18","elm19","elm20",
-  "elm21","elm22","elm23","elm24","elm25","elm26","elm27","elm28","elm29","elm30"};
-char tmp[MAX][6] = {"tmp1","tmp2","tmp3","tmp4","tmp5","tmp6","tmp7","tmp8","tmp9","tmp10",
-  "tmp11","tmp12","tmp13","tmp14","tmp15","tmp16","tmp17","tmp18","tmp19","tmp20",
-  "tmp21","tmp22","tmp23","tmp24","tmp25","tmp26","tmp27","tmp28","tmp29","tmp30"};
-char app[MAX][6] = {"app1","app2","app3","app4","app5","app6","app7","app8","app9","app10",
-  "app11","app12","app13","app14","app15","app16","app17","app18","app19","app20",
-  "app21","app22","app23","app24","app25","app26","app27","app28","app29","app30"};
-char add[MAX][6] = {"add1","add2","add3","add4","add5","add6","add7","add8","add9","add10",
-  "add11","add12","add13","add14","add15","add16","add17","add18","add19","add20",
-  "add21","add22","add23","add24","add25","add26","add27","add28","add29","add30"};
-char sub[MAX][6] = {"sub1","sub2","sub3","sub4","sub5","sub6","sub7","sub8","sub9","sub10",
-  "sub11","sub12","sub13","sub14","sub15","sub16","sub17","sub18","sub19","sub20",
-  "sub21","sub22","sub23","sub24","sub25","sub26","sub27","sub28","sub29","sub30"};
-char mul[MAX][6] = {"mul1","mul2","mul3","mul4","mul5","mul6","mul7","mul8","mul9","mul10",
-  "mul11","mul12","mul13","mul14","mul15","mul16","mul17","mul18","mul19","mul20",
-  "mul21","mul22","mul23","mul24","mul25","mul26","mul27","mul28","mul29","mul30"};
-char ddiv[MAX][6] = {"div1","div2","div3","div4","div5","div6","div7","div8","div9","div10",
-  "div11","div12","div13","div14","div15","div16","div17","div18","div19","div20",
-  "div21","div22","div23","div24","div25","div26","div27","div28","div29","div30"};
-char bol[MAX][6] = {"bol1","bol2","bol3","bol4","bol5","bol6","bol7","bol8","bol9","bol10",
-  "bol11","bol12","bol13","bol14","bol15","bol16","bol17","bol18","bol19","bol20",
-  "bol21","bol22","bol23","bol24","bol25","bol26","bol27","bol28","bol29","bol30"};
-char let[MAX][6] = {"let1","let2","let3","let4","let5","let6","let7","let8","let9","let10",
-  "let11","let12","let13","let14","let15","let16","let17","let18","let19","let20",
-  "let21","let22","let23","let24","let25","let26","let27","let28","let29","let30"};
-char _pp[MAX][6] = {"_pp1","_pp2","_pp3","_pp4","_pp5","_pp6","_pp7","_pp8","_pp9","_pp10",
-  "_pp11","_pp12","_pp13","_pp14","_pp15","_pp16","_pp17","_pp18","_pp19","_pp20",
-  "_pp21","_pp22","_pp23","_pp24","_pp25","_pp26","_pp27","_pp28","_pp29","_pp30"};
-char ift[MAX][6] = {"ift1","ift2","ift3","ift4","ift5","ift6","ift7","ift8","ift9","ift10",
-  "ift11","ift12","ift13","ift14","ift15","ift16","ift17","ift18","ift19","ift20",
-  "_pp21","_pp22","_pp23","_pp24","_pp25","_pp26","_pp27","_pp28","_pp29","_pp30"};
-char fcl[MAX][6] = {"fcl1","fcl2","fcl3","fcl4","fcl5","fcl6","fcl7","fcl8","fcl9","fcl10",
-  "fcl11","fcl12","fcl13","fcl14","fcl15","fcl16","fcl17","fcl18","fcl19","fcl20",
-  "_pp21","_pp22","_pp23","_pp24","_pp25","_pp26","_pp27","_pp28","_pp29","_pp30"};
 
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
   //insertREF(string, type, node);
@@ -824,7 +787,6 @@ void pfcheck(struct nodeType* node){
     assert(index!=-1);
     node->string = malloc(sizeof(char)*100);
     sprintf(node->string, "fcl%d",index);
-//    strcpy(node->string, fcl[index]);
     assert(node->string);
 
     node->isEndofFunction = node->parent->isEndofFunction;
