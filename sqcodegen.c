@@ -109,9 +109,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     case TypeTuple:
       fprintf(fptr, "struct TypeTuple %s", node->string);
-      sqcodegen(fptr,parameter);
-      fprintf(fptr, "{\n");
-      fprintf(fptr, "{\nstruct TypeTuple _res;\n");
+      fprintf(fptr, "(");
+      printparam(fptr, parameter);
+      fprintf(fptr, ")");
+      fprintf(fptr, "{\nstruct "); 
+      gentypes(fptr, entry->link); 
+      fprintf(fptr, " _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr,funcbody);
       fprintf(fptr, "_res = %s;\n",funcbody->string);
@@ -216,18 +219,18 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   case NODE_LET:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = node->child->rsibling;
-    int refaddcount=refTable.size;
+//    int refaddcount=refTable.size;
     fprintf(fptr, "{\n");
     
     dumpTable(fptr, node);
     sqcodegen(fptr, LHS);
     sqcodegen(fptr, RHS);
     assert(RHS->string);
-    assert(refTable.size>=refaddcount);
-    refaddcount = refTable.size-refaddcount;
-#ifdef DEBUG
-    fprintf(fptr,"//DEBUG LETrefaddcount:%d\n",refaddcount);
-#endif
+//    assert(refTable.size>=refaddcount);
+//    refaddcount = refTable.size-refaddcount;
+//#ifdef DEBUG
+//    fprintf(fptr,"//DEBUG LETrefaddcount:%d\n",refaddcount);
+//#endif
     //DECREF(fptr,refaddcount);
     fprintf(fptr, "//end of LET\n");
     fprintf(fptr, "}\n");
@@ -237,7 +240,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType *LHS = node->child;
     struct RefTableEntry *entry;
     int index;
-    int refaddcount=refTable.size;
+//    int refaddcount=refTable.size;
     while (LHS->nodeType == NODE_PAIR) LHS = LHS->child;
     switch(LHS->nodeType){
     case NODE_INT:
@@ -253,16 +256,16 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }
     assert(LHS->string);
     fprintf(fptr, "%s = %s;\n", node->string,LHS->string);
-    index = findREF(LHS->string);
-    if(index!=-1){
-      entry = &refTable.entries[index];
-      assert(LHS == entry->link);
-      deleteREF(index, index+1);
-    }
-    refaddcount = refTable.size - refaddcount;
-#ifdef DEBUG
-    fprintf(fptr,"//DEBUG LETRETrefaddcount:%d\n",refaddcount);
-#endif
+//    index = findREF(LHS->string);
+//    if(index!=-1){
+//      entry = &refTable.entries[index];
+//      assert(LHS == entry->link);
+//      deleteREF(index, index+1);
+//    }
+//    refaddcount = refTable.size - refaddcount;
+//#ifdef DEBUG
+//    fprintf(fptr,"//DEBUG LETRETrefaddcount:%d\n",refaddcount);
+//#endif
     //DECREF(fptr,refaddcount);
     fprintf(fptr, "//end of LETRET\n");
 
@@ -2255,9 +2258,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                     RBINDS->counts,node->string, FREVAR->string);
         // FIXME dirtyway
         fprintf(fptr, "%s, %s,", FREVAR->child->string, FREVAR->child->rsibling->string);
-        printtype(fptr, FREVAR->child->valueType);
+        printtype(fptr, FREVAR->child);
         fprintf(fptr, ", ");
-        printtype(fptr, FREVAR->child->rsibling->valueType);
+        printtype(fptr, FREVAR->child->rsibling);
         fprintf(fptr, ",\n");
         break;
       default:
@@ -2389,11 +2392,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     }
     if(node->valueType==TypeTuple){
-      if(LHS->valueType<=TypeBool) fprintf(fptr, "(");
-      else  fprintf(fptr, "*(");
-      printtype(fptr, LHS->valueType);
-      if(LHS->valueType<=TypeBool) fprintf(fptr, ")");
-      else  fprintf(fptr, "*)");
+      //if(LHS->valueType<=TypeBool) fprintf(fptr, "(");
+      //else  fprintf(fptr, "*(");
+      //printtype(fptr, LHS);
+      //if(LHS->valueType<=TypeBool) fprintf(fptr, ")");
+      //else  fprintf(fptr, "*)");
     }
     fprintf(fptr,"%s.a;\n",node->string);
 
@@ -2412,11 +2415,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
     }
     if(node->valueType==TypeTuple){
-      if(RHS->valueType<=TypeBool) fprintf(fptr, "(");
-      else  fprintf(fptr, "*(");
-      printtype(fptr, RHS->valueType);
-      if(RHS->valueType<=TypeBool) fprintf(fptr, ")");
-      else  fprintf(fptr, "*)");
+      //if(RHS->valueType<=TypeBool) fprintf(fptr, "(");
+      //else  fprintf(fptr, "*(");
+      //printtype(fptr, RHS);
+      //if(RHS->valueType<=TypeBool) fprintf(fptr, ")");
+      //else  fprintf(fptr, "*)");
     }
     fprintf(fptr,"%s.b;\n",node->string);
     switch (LHS->nodeType ){
@@ -2484,16 +2487,16 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }
     assert(node->string);
     fprintf(fptr,"%s.a = ",node->string);
-    if(LHS->valueType ==TypeTuple)
-      fprintf(fptr, "&");
+    //if(LHS->valueType ==TypeTuple)
+    //  fprintf(fptr, "&");
     switch (LHS->nodeType ){
     case NODE_INT:
     case NODE_FLOAT:
     case NODE_CHAR:
     case NODE_BOOL:
-      if(node->valueType == TypeTuple){
-        fprintf(fptr, "(void*)");
-      }
+      //if(node->valueType == TypeTuple){
+      //  fprintf(fptr, "(void*)");
+      //}
     case NODE_TOKEN:
       sqcodegen(fptr, LHS);
       break;
@@ -2504,16 +2507,16 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }
 
     fprintf(fptr,";\n%s.b = ",node->string);
-    if(RHS->valueType ==TypeTuple)
-      fprintf(fptr, "&");
+    //if(RHS->valueType ==TypeTuple)
+    //  fprintf(fptr, "&");
     switch (RHS->nodeType ){
     case NODE_INT:
     case NODE_FLOAT:
     case NODE_CHAR:
     case NODE_BOOL:
-      if(node->valueType == TypeTuple){
-        fprintf(fptr, "(void*)");
-      }
+      //if(node->valueType == TypeTuple){
+      //  fprintf(fptr, "(void*)");
+      //}
     case NODE_TOKEN:
       sqcodegen(fptr, RHS);
       break;

@@ -29,7 +29,6 @@ struct SymTable {
     struct SymTableEntry entries[100];
 };
 
-
 struct FuncTableEntry {
     char name[100];
     int renametimes;
@@ -39,8 +38,14 @@ struct FuncTable {
     int size;
     struct FuncTableEntry entries[100];
 };
+
+struct  TypeTable{
+    int size;
+    struct nodeType *link[100];
+};
 //extern struct SymTable SymbolTable;
 struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s, int mode) ;
 
+struct TypeTable *typeTable;
 #endif
 

@@ -8,9 +8,18 @@
 
 
 
-
 struct SymTable *rootTable;
 struct FuncTable *funcTable;
+
+struct nodeType * findtype(struct nodeType *node){
+  int i=0;
+  if(typeTable->size ==0) return 0;
+  for(i=0;i<typeTable->size;i++){
+    if(isSameType( typeTable->link[i], node))
+      return typeTable->link[i];
+  }
+  return 0;
+}
 
 struct FuncTableEntry * findFuction(char *s){
   int size = funcTable->size;
@@ -65,6 +74,16 @@ struct SymTableEntry* findSymbol(struct SymTable * SymbolTable, char *s, int mod
     return 0;// impossible
 }
 
+void addtype(struct nodeType *node, enum StdType type){
+  assert(node->valueType==type);
+  assert(node->valueType==TypeTuple);
+  int i =0;
+  if(!findtype(node)){
+    typeTable->link[(typeTable->size)++] = node;
+  }
+}
+
+
 struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link, int mode) {
     struct SymTable *SymbolTable = link->table;
     
@@ -83,6 +102,8 @@ struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* l
     //printf("dump entry:%d, name:%s, type:%d, link:%x\n", index, 
     //    SymbolTable->entries[index].type,
     //    SymbolTable->entries[index].link);
+    
+    if(type == TypeTuple) addtype(link,type);
     printf("table:0x%p, AddVariable:%s, valueType:%d\n", SymbolTable, s, type);
     return &SymbolTable->entries[index];
 }
@@ -183,9 +204,14 @@ int isSameType( struct nodeType *L, struct nodeType *R){
   case TypeChar:
   return 1;
   case TypeSEQ:
-    return isSameType(L->child, R->child);
+    assert(L->typeNode->child);
+    assert(R->typeNode->child);
+    return isSameType(L->typeNode->child, R->typeNode->child);
   case TypeTuple:
-    return isSameType(L->child, R->child)&&isSameType(L->child->rsibling, R->child->rsibling);
+    assert(L->typeNode->child->rsibling);
+    assert(R->typeNode->child->rsibling);
+    return isSameType(L->typeNode->child, R->typeNode->child)&&
+            isSameType(L->typeNode->child->rsibling, R->typeNode->child->rsibling);
   default:
   assert(0); // impossible
   }
@@ -1255,6 +1281,9 @@ void semanticPass( struct nodeType *node){
   // typeBinding and typeChechking.
 
   /*initialize the function table*/
+  typeTable = (struct TypeTuple*)malloc(sizeof(struct TypeTable));
+  typeTable->size = 0;
+  
   funcTable = (struct FuncTable*)malloc(sizeof(struct FuncTable));
   funcTable->size = 0;
   for(int i=0;i<100;i++){

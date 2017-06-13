@@ -739,6 +739,8 @@ int main(int argc, char** argv){
         for(int i=0;i<100;i++){
           strcpy(refTable.entries[i].name, "");
         }
+        // generate the needed tuple structures
+        gentype(yyout);
         sqcodegen(yyout, ASTRoot);
         //pfcodegen(yyout, ASTRoot);
         //codegen(yyout, ASTRoot);
@@ -766,7 +768,8 @@ int main(int argc, char** argv){
         for(int i=0;i<100;i++){
           strcpy(refTable.entries[i].name, "");
         }
-
+        // generate the needed tuple structures
+        gentype(yyout);
         //pfcodegen(yyout, ASTRoot); 
         sqcodegen(yyout, ASTRoot); 
         fclose(yyout);

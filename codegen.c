@@ -8,6 +8,36 @@
 #define help(s) {printf("\thelp: %s\n",s);}
 
 
+void gentype(FILE* fptr){
+  struct nodeType *link;
+  for(int i =0; i<typeTable->size;i++){
+    link = typeTable->link[i];
+    switch(link->valueType){
+      case TypeTuple:
+      fprintf(fptr, "struct ");
+      gentypes(fptr, link);
+      fprintf(fptr, " {\n");
+      if(link->typeNode->child->valueType == TypeSEQ) 
+        fprintf(fptr,"struct Sequence a;\n");
+      else {
+        printtype(fptr, link->typeNode->child);
+        fprintf(fptr, " a;\n");
+      }
+      if(link->typeNode->child->rsibling->valueType == TypeSEQ)
+        fprintf(fptr,"struct Sequence b;\n");
+      else {
+      printtype(fptr, link->typeNode->child->rsibling);
+      fprintf(fptr, " b;\n");
+      }
+      fprintf(fptr, "};\n");
+      break;
+      case TypeSEQ:
+      break;
+      default: assert(0);
+    }
+  }
+}
+
 void printNESL(struct nodeType *node, FILE* yyout){
   switch(node->nodeType){
   case NODE_NESL:
@@ -446,7 +476,8 @@ void dumpTable(FILE *fptr, struct nodeType* node){
         
         //FIXME black magic
         fprintf(fptr, "struct ");
-        printType(fptr, link);
+        gentypes(fptr, link);
+        fprintf(fptr, " %s;\n", table->entries[i].name);
         break;
         }
       default:
@@ -569,9 +600,7 @@ void printparam(FILE *fptr, struct nodeType* node){
       struct nodeType *typer = node->typeNode;
       assert(typer);
       fprintf(fptr, "struct ");
-      //printparam(fptr, typer->child);
-      printType(fptr, typer);
-      fprintf(fptr, "(");
+      gentypes(fptr, typer);
       break;
     }
     default:
@@ -657,25 +686,25 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
         child2=child2->child;
 
       if(node1->valueType == TypeTuple){
-        if(child1->valueType<=TypeBool){
-          fprintf(fptr, "%s = (",child1->string);
-          printtype(fptr,child1->valueType);
-          fprintf(fptr, ")%s.a;\n",node1->string);
-        }else{
-          fprintf(fptr, "%s = *(",child1->string);
-          printtype(fptr,child1->valueType);
-          fprintf(fptr, "*)%s.a;\n",node1->string);
-        }
-        
-        if(child2->valueType<=TypeBool){
-          fprintf(fptr, "%s = (",child2->string);
-          printtype(fptr,child2->valueType);
-          fprintf(fptr, ")%s.b;\n",node1->string);
-        }else{
-          fprintf(fptr, "%s = *(",child2->string);
-          printtype(fptr,child2->valueType);
-          fprintf(fptr, "*)%s.b;\n",node1->string);
-        }
+        //if(child1->valueType<=TypeBool){
+        //  fprintf(fptr, "%s = (",child1->string);
+        //  printtype(fptr,child1);
+        //  fprintf(fptr, ")%s.a;\n",node1->string);
+        //}else{
+        //  fprintf(fptr, "%s = *(",child1->string);
+        //  printtype(fptr,child1);
+        //  fprintf(fptr, "*)%s.a;\n",node1->string);
+        //}
+        //
+        //if(child2->valueType<=TypeBool){
+        //  fprintf(fptr, "%s = (",child2->string);
+        //  printtype(fptr,child2);
+        //  fprintf(fptr, ")%s.b;\n",node1->string);
+        //}else{
+        //  fprintf(fptr, "%s = *(",child2->string);
+        //  printtype(fptr,child2);
+        //  fprintf(fptr, "*)%s.b;\n",node1->string);
+        //}
       }else{
         fprintf(fptr, "%s = %s.a;\n",child1->string, node1->string);
         fprintf(fptr, "%s = %s.b;\n",child2->string, node1->string);
@@ -693,8 +722,34 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
   }// end of switch node1->nodeType
 }// end of printBindTuple
 
-void printtype(FILE *fptr, enum StdType type){
-  switch(type){
+void gentypes(FILE *fptr, struct nodeType *type){
+  switch(type->valueType){
+  case TypeInt:
+    fprintf(fptr,"I");
+    break;
+  case TypeFloat:
+    fprintf(fptr,"F");
+    break;
+  case TypeBool:
+    fprintf(fptr,"B");
+    break;
+  case TypeChar:
+    fprintf(fptr,"C");
+    break;
+  case TypeSEQ:
+    fprintf(fptr,"S");
+    gentypes(fptr,type->typeNode->child); 
+    break;
+  case TypeTuple:
+    fprintf(fptr,"T");
+    gentypes(fptr,type->typeNode->child); 
+    gentypes(fptr,type->typeNode->child->rsibling); 
+    break;
+    }
+}
+
+void printtype(FILE *fptr, struct nodeType *type){
+  switch(type->valueType){
   case TypeInt:
     fprintf(fptr,"int");
     break;
@@ -707,9 +762,13 @@ void printtype(FILE *fptr, enum StdType type){
   case TypeChar:
     fprintf(fptr,"char");
     break;
-
   case TypeSEQ:
     fprintf(fptr,"struct Sequence");
+    break;
+  case TypeTuple:
+    fprintf(fptr,"struct T");
+    gentypes(fptr,type->typeNode->child); 
+    gentypes(fptr,type->typeNode->child->rsibling); 
     break;
 
   //case TypeTuple_I:
@@ -744,9 +803,6 @@ void printtype(FILE *fptr, enum StdType type){
   //  fprintf(fptr,"struct tupleIS");
   //  break;
 
-  case TypeTuple:
-    fprintf(fptr,"struct not yet  ");
-    break;
   default:
     assert(0); // new type?
   }
