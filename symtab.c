@@ -721,7 +721,7 @@ void typeAnalysis( struct nodeType *node){
           int done = 0;
           assert(LHS->valueType == TypeSEQ);
           assert(RHS->valueType == TypeSEQ);
-          LHSchild = LHS->typeNode->cihld;
+          LHSchild = LHS->typeNode->child;
           RHSchild = RHS->typeNode->child;
           assert(isSameType(LHSchild,RHSchild));
           node->valueType = LHS->valueType;
