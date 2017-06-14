@@ -154,6 +154,7 @@ void setTable(struct nodeType *node){
     }while(child!=node->child);
   }
   if(node->nodeType == NODE_APPLYBODY2){
+    //FIXME?????
     node->child->nodeType =node->child->counts;
     assert(node->child->table!=node->child->rsibling->table );
     assert(node->child->rsibling->child->child->table !=
@@ -336,7 +337,7 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
       lchild->typeNode =  entry->link->typeNode;
     }else{
       if(!lchild->typeNode) lchild->typeNode = lchild;
-      addVariable(lchild->string, lchild->valueType, lchild->typeNode, lchild->mode);
+      addVariable(lchild->string, lchild->valueType, lchild, lchild->mode);
     }
     break;
   }
@@ -368,7 +369,7 @@ void tupleBinding(struct nodeType *LHS, struct nodeType *RHS){
       assert(entry->type == rchild->valueType);
     }else{
       if(!rchild->typeNode) rchild->typeNode = rchild;
-      addVariable(rchild->string, rchild->valueType, rchild->typeNode, rchild->mode);
+      addVariable(rchild->string, rchild->valueType, rchild, rchild->mode);
     }
     break;
   }
@@ -415,6 +416,7 @@ void typeAnalysis( struct nodeType *node){
       node->counts = count;
       if(node->nodeType == NODE_RBINDS){
         node->valueType = node->child->valueType;
+        node->typeNode = node->child;
       }
       break;
     }
@@ -582,6 +584,7 @@ void typeAnalysis( struct nodeType *node){
       assert(typerefNode->child);
       node->valueType = typerefNode->child->valueType;
       node->typeNode = typerefNode->child;
+      if(typerefNode->child->typeNode) node->typeNode = typerefNode->child->typeNode;
       assert(node->typeNode);
       break;
     }
@@ -784,9 +787,12 @@ void typeAnalysis( struct nodeType *node){
           return;
         }
       else if(strcmp(node->child->string, "dist")==0){
+        struct nodeType *typer = newNode(NODE_TYPE_SEQ);
+        typer->child = RHS->child;
+        if(RHS->child->typeNode) typer->child = RHS->child->typeNode;
+        typer->valueType = TypeSEQ;
         node->valueType = TypeSEQ;
-        //RHS = removePair(RHS);
-        node->typeNode = RHS;
+        node->typeNode = typer;
         return;
       }
       else if(strcmp(node->child->string, "time")==0){
@@ -926,7 +932,8 @@ void typeAnalysis( struct nodeType *node){
       assert(node->child->valueType);
       node->valueType = TypeSEQ;
       assert(node->child->child->child->rsibling->valueType==TypeSEQ);
-      node->typeNode = node->child->child->rsibling;
+      assert(node->child->child->child->rsibling->typeNode);
+      node->typeNode = node->child->child->child->rsibling->typeNode;
       break;
     }
     case NODE_APPLYBODY4:{
@@ -958,11 +965,15 @@ void typeAnalysis( struct nodeType *node){
       tupleBinding(LHS,RHS->typeNode->child);
       LHS->valueType = RHS->typeNode->child->valueType;
       LHS->typeNode = RHS->typeNode->child;
+      if(RHS->typeNode->child->typeNode)
+        LHS->typeNode = RHS->typeNode->child->typeNode;
       LHS->nodeType = RB_TUPLE;
       typeAnalysis(LHS);
       }else{
         LHS->valueType = RHS->typeNode->child->valueType;
         LHS->typeNode = RHS->typeNode->child;
+        if(RHS->typeNode->child->typeNode)
+          LHS->typeNode = RHS->typeNode->child->typeNode;
         if(LHS->nodeType == NODE_TOKEN){
           addVariable(LHS->string, LHS->valueType, LHS, REFERENCE); 
         }

@@ -24,47 +24,50 @@ int fclindex[MAX];
 
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
   //insertREF(string, type, node);
+  assert(string);
+  struct nodeType* typer=node->child;
+  if(node->typeNode){
+    if(node->typeNode->child)
+      typer = node->typeNode->child;
+  }
+  
   switch(type){
-  //case TypeSEQ_I:
-  //  fprintf(fptr, "atomicAdd(REFCNT(%s, int),1);\n",string);
-  //  break;
-  //case TypeSEQ_F:
-  //  fprintf(fptr, "atomicAdd(REFCNT(%s, float),1);\n",string);
-  //  break;
   case TypeSEQ:
-    switch(node->typeNode->valueType){
-    //case TypeTuple_F:
-    //  fprintf(fptr, "atomicAdd(REFCNT(%s, struct Pair_F),1);\n",string);
-    //  break;
-    //case TypeTuple_I:
-    //  fprintf(fptr, "atomicAdd(REFCNT(%s, struct Pair_I),1);\n",string);
-    //  break;
+    switch(typer->valueType){
     case TypeSEQ:
       fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
       break;
-    
+    case TypeInt:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, int),1);\n",string);
+    break;
+    case TypeFloat:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, float),1);\n",string);
+    break;
+    case TypeBool:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, bool),1);\n",string);
+    break;
+    case TypeChar:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, char),1);\n",string);
+    break;
     default:
       assert(0);
     }
     break;
   case TypeTuple:{
-    struct nodeType *Lchild = node->typeNode->child;
+    struct nodeType *Lchild = node->child;
     struct nodeType *Rchild = Lchild->rsibling;
     while(Lchild->nodeType==NODE_PAIR) Lchild=Lchild->child;
     while(Rchild->nodeType==NODE_PAIR) Rchild=Rchild->child;
-    if(containArray(Lchild))
+    if(containArray(Lchild)){
+      assert(Lchild->string);
       printAddREF(fptr, Lchild->string, Lchild->valueType, Lchild);
-    if(containArray(Rchild))
+    }
+    if(containArray(Rchild)){
+      assert(Rchild->string);
       printAddREF(fptr, Rchild->string, Rchild->valueType, Rchild);
+      }
     break;
     }
-  //case TypeTuple_SF:{
-  //  struct nodeType *Lchild = node->child;
-  //  while(Lchild->nodeType==NODE_PAIR||Lchild->nodeType==NODE_PATTERN) 
-  //    Lchild=Lchild->child;
-  //  printAddREF(fptr, Lchild->string, Lchild->valueType, Lchild);
-  //  break;  
-  //}
   default:
     assert(0);
     break;
@@ -456,7 +459,8 @@ void pfcheck(struct nodeType* node){
         break;}
       case NODE_TOKEN:
         strcpy(node->string, LHS->string);
-        LHS->typeNode = RHS;
+        LHS->typeNode = RHS->typeNode;
+        LHS->valueType = RHS->valueType;
         break;
       }
       return;  
