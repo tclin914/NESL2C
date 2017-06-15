@@ -2208,6 +2208,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     fprintf(fptr,"//DEBUG forlooprefaddcount:%d\n",forlooprefaddcount);
 #endif
     ////DECREF(fptr,forlooprefaddcount);
+    if(containArray(LHS)) {
+      fprintf(fptr, "\n//release(%s); %d\n", LHS->string, LHS->nodeType);
+    }
     fprintf(fptr, "}\n");// close for
 
     if((node->parent->nodeType !=NODE_ASSIGN)&&(node->parent->nodeType !=NODE_PAIR)){
@@ -3462,23 +3465,26 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       node->nodeType!=PARAM_TUPLE&&
       node->nodeType!=NODE_OP&&
       node->nodeType!=NODE_FUNC&&
+      node->nodeType!=NODE_TOKEN&&
+      node->nodeType!=NODE_ELSESTMT&&
+      node->nodeType!=NODE_THENSTMT&&
       //node->nodeType!=NODE_FUNC_CALL&&
       node->nodeType!=NODE_PATTERN&&
       node->nodeType!=NODE_PAIR){
-   if(node->parent ->nodeType ==NODE_ASSIGN)
-    if(node!=node->parent->child){
+    if(node->parent ->nodeType ==NODE_ASSIGN){
+      if(node!=node->parent->child){
+        assert(node->string);
+        printAddREF(fptr,node->string,node->valueType,node); 
+      }
+      else ;}
+    else{
       assert(node->string);
       printAddREF(fptr,node->string,node->valueType,node); 
     }
-    else ;
-   else{
-      assert(node->string);
-   printAddREF(fptr,node->string,node->valueType,node); 
-   }
   }
   else {
-    if(containArray(node)){
-      if(node->op == OP_PP){
+    if(node->op == OP_PP){
+      if(containArray(node)){
         assert(node->string);
         printAddREF(fptr,node->string,node->valueType,node); 
       }else
@@ -3501,15 +3507,32 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
          &&child->nodeType!=NODE_TUPLE
          &&child->nodeType!=PARAM_TUPLE
          &&child->nodeType!=NODE_RBINDS
+         &&child->nodeType!=NODE_TOKEN
+         &&child->nodeType!=NODE_APPLYBODY1
+         &&child->nodeType!=NODE_APPLYBODY2
+         &&child->nodeType!=NODE_APPLYBODY3
+         &&child->nodeType!=NODE_APPLYBODY4
+         &&child->nodeType!=NODE_LETRET
+         &&child->nodeType!=NODE_LET
+         &&child->nodeType!=NODE_IFSTMT
+         &&child->nodeType!=NODE_THENSTMT
+         &&child->nodeType!=NODE_ELSESTMT
          &&child->parent->nodeType!=NODE_TUPLE
          &&child->parent->nodeType!=PARAM_TUPLE
          &&child->parent->nodeType!=NODE_FUNC_CALL
          &&child->parent->nodeType!=NODE_FUNC
          &&child->parent->nodeType!=LHS_TUPLE
          &&child->parent->nodeType!=RHS_TUPLE
+         &&child->parent->nodeType!=NODE_BIND
         ){
 //        printDECREF(fptr, child);
-        fprintf(fptr, "\n//release(%s); %d %d\n", node->string, node->nodeType, child->nodeType);
+        if(child->parent ->nodeType ==NODE_ASSIGN)
+          if(child!=child->parent->child){
+            assert(child->string);
+           // printAddREF(fptr,node->string,node->valueType,node); 
+            fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
+          }
+        fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
       }
       child = child->rsibling;
     }while(child!=node->child);
