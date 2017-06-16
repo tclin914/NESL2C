@@ -742,6 +742,14 @@ int main(int argc, char** argv){
         // generate the needed tuple structures
         gentype(yyout);
         sqcodegen(yyout, ASTRoot);
+        fprintf(yyout, "}\n\n"); // end of myFunc();
+        fprintf(yyout, "int main(){\n");
+        if(issrand)
+          fprintf(yyout, "srand(time(0));\n");
+        fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
+        fprintf(yyout,"myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
+
+
         //pfcodegen(yyout, ASTRoot);
         //codegen(yyout, ASTRoot);
         fclose(yyout);    
@@ -772,6 +780,14 @@ int main(int argc, char** argv){
         gentype(yyout);
         //pfcodegen(yyout, ASTRoot); 
         sqcodegen(yyout, ASTRoot); 
+        fprintf(yyout, "}\n\n"); // end of myFunc();
+        fprintf(yyout, "int main(){\n");
+        if(issrand)
+          fprintf(yyout, "srand(time(0));\n");
+        fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
+        fprintf(yyout,"myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
+
+
         fclose(yyout);
       }
       if(isomp){

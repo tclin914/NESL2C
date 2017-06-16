@@ -1104,13 +1104,13 @@ void printDECREF(FILE *fptr, struct nodeType *node){
     // has different situation.
     struct nodeType *loopme;
     int types;
-    loopme = node->typeNode;
+    loopme = node->typeNode->child;
 
     fprintf(fptr, "DECREF_SEQ");
     int x=0;
     while(loopme->valueType ==TypeSEQ){
       fprintf(fptr, "_SEQ");
-      loopme = loopme->typeNode;
+      loopme = loopme->typeNode->child;
       assert(loopme);
       if(x++==10) abort();//error;
     }
@@ -1123,6 +1123,9 @@ void printDECREF(FILE *fptr, struct nodeType *node){
     //  break;
     case TypeSEQ:  
       assert(0);//not implement;
+      break;
+    case TypeInt:
+      fprintf(fptr, "_I");
       break;
     case TypeFloat:
       fprintf(fptr, "_F");
