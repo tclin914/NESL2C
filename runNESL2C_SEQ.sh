@@ -17,5 +17,5 @@ gcc $outputname -lm -o $exename
 #gcc $outputname -lm -o $exenameO3 -O3
 #echo $outputname
 #echo $exename
-./$exename
+valgrind ./$exename
 #./$exenameO3
