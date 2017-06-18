@@ -64,12 +64,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case TypeInt:
       fprintf(fptr, "int %s", node->string);
       fprintf(fptr, "(");
-      printparam(fptr, parameter);
+      sqcodegen(fptr, parameter);
       fprintf(fptr, ")");
       fprintf(fptr, "{\nint _res;\n");
       dumpTable(fptr, parameter);
+      sqcodegen(fptr, parameter);
       sqcodegen(fptr,funcbody);
-      //DECREF(fptr,refTable.size);
       fprintf(fptr, "_res = %s;\n",funcbody->string);
       fprintf(fptr, "return _res;\n");
       fprintf(fptr, "\n}\n");
@@ -77,14 +77,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case TypeFloat:
       fprintf(fptr, "float %s", node->string);
       fprintf(fptr, "(");
-      //printparam(fptr, parameter);
       sqcodegen(fptr, parameter);
       fprintf(fptr, ")");
       fprintf(fptr, "{\nfloat _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr, parameter);
       sqcodegen(fptr,funcbody);
-      //DECREF(fptr,refTable.size);
       fprintf(fptr, "_res = %s;\n",funcbody->string);
       fprintf(fptr, "return _res;\n");
       fprintf(fptr, "\n}\n");
@@ -92,14 +90,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case TypeSEQ:
       fprintf(fptr, "struct Sequence  %s", node->string);
       fprintf(fptr, "(");
-      //printparam(fptr, parameter);
       sqcodegen(fptr, parameter);
       fprintf(fptr, ")");
       fprintf(fptr, "{\nstruct Sequence _res;\n");
       dumpTable(fptr, parameter);
       sqcodegen(fptr, parameter);
       sqcodegen(fptr, funcbody);
-      //DECREF(fptr, refTable.size);
       fprintf(fptr, "_res = %s;\n",funcbody->string);
       fprintf(fptr, "return _res;\n");
       fprintf(fptr, "\n}\n");
@@ -109,13 +105,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       gentypes(fptr, entry->link->typeNode);
       fprintf(fptr, " %s", node->string);
       fprintf(fptr, "(");
-      printparam(fptr, parameter);
+      sqcodegen(fptr, parameter);
       fprintf(fptr, ")");
       fprintf(fptr, "{\nstruct "); 
       gentypes(fptr, entry->link); 
       fprintf(fptr, " _res;\n");
       dumpTable(fptr, parameter);
-      sqcodegen(fptr,funcbody);
+      sqcodegen(fptr, parameter);
+      sqcodegen(fptr, funcbody);
       fprintf(fptr, "_res = %s;\n",funcbody->string);
       fprintf(fptr, "return _res;\n");
       fprintf(fptr, "\n}\n");
