@@ -49,6 +49,11 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
     case TypeChar:
       fprintf(fptr, "atomicAdd(REFCNT(%s, char),1);\n",string);
     break;
+    case TypeTuple:
+      fprintf(fptr, "atomicAdd(REFCNT(%s, ",string);
+      printtype(fptr,typer); 
+      fprintf(fptr, "),1);\n");
+    break;
     default:
       assert(0);
     }
@@ -349,14 +354,20 @@ void pfcheck(struct nodeType* node){
   switch(node->nodeType){
 
   case NODE_FUNC:{
+    struct nodeType *inputParam = node->child;
+    
     node->isEndofFunction = 1;
     pfcheck(node->child->rsibling->rsibling);
     node->isparallel_rr = node->child->rsibling->rsibling->isparallel_rr;
+    
     if(node->isparallel_rr){
       struct SymTableEntry *entry = findSymbol(node->table,node->string, REFERENCE);
       assert(entry);
       entry->link->isparallel_rr = 1;
     }
+  
+    if(inputParam->valueType == TypeTuple)
+     pfcheck(inputParam); 
 
     break;
   }
@@ -813,7 +824,8 @@ void pfcheck(struct nodeType* node){
   case PARAM_TUPLE:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = LHS->rsibling;
-    if(RHS->nodeType == NODE_TUPLE) RHS->nodeType = PARAM_TUPLE;
+    //if(RHS->nodeType == NODE_TUPLE) RHS->nodeType = PARAM_TUPLE;
+    if(RHS->nodeType == NODE_TUPLE) RHS->nodeType = RHS_TUPLE;
     pfcheck(LHS);
     pfcheck(RHS);
     break;}
@@ -1075,13 +1087,9 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
   }
   case NODE_TUPLE:{
     switch (node->valueType){
-    //case TypeTuple_F: 
-    //  fprintf(fptr, "struct Pair_F %s;\n", node->string); 
-    //  printGlobalVar(fptr,node->child);
-    //  (fptr,node->child->rsibling);
-    //  break;
     case TypeTuple: 
-      fprintf(fptr, "struct Tuple %s;\n", node->string); 
+      //fprintf(fptr, "struct Tuple %s;\n", node->string); 
+      assert(0);
       printGlobalVar(fptr,node->child);
       printGlobalVar(fptr,node->child->rsibling);
       break;
@@ -1091,48 +1099,37 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
 
   }
 }
+
 void printDECREF(FILE *fptr, struct nodeType *node){
   
   switch(node->valueType){
-  //case TypeSEQ_F:
-  //  fprintf(fptr, "DECREF_SEQ_F(%s);\n",node->string);
-  //  break;
-  //case TypeSEQ_I:
-  //  fprintf(fptr, "DECREF_SEQ_I(%s);\n",node->string);
-  //  break;
   case TypeSEQ:{
-    // has different situation.
     struct nodeType *loopme;
     int types;
     loopme = node->typeNode->child;
 
-    fprintf(fptr, "DECREF_SEQ");
+    fprintf(fptr, "DECREF_SEQ_");
     int x=0;
     while(loopme->valueType ==TypeSEQ){
-      fprintf(fptr, "_SEQ");
+      fprintf(fptr, "S");
       loopme = loopme->typeNode->child;
       assert(loopme);
       if(x++==10) abort();//error;
     }
     switch(loopme->valueType){
-    //case TypeSEQ_I:
-    //  fprintf(fptr, "_SEQ_I");
-    //  break;
-    //case TypeSEQ_F:
-    //  fprintf(fptr, "_SEQ_F");
-    //  break;
     case TypeSEQ:  
       assert(0);//not implement;
       break;
     case TypeInt:
-      fprintf(fptr, "_I");
+      fprintf(fptr, "I");
       break;
     case TypeFloat:
-      fprintf(fptr, "_F");
+      fprintf(fptr, "F");
       break;
-    //case TypeTuple_F:
-    //  fprintf(fptr, "_PAIR_F");
-    //  break;
+    case TypeTuple:
+      gentypes(fptr, loopme);
+      //fprintf(fptr, "T");
+      break;
     default:
       assert(0); //not implement
     }

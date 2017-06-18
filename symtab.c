@@ -433,6 +433,7 @@ void typeAnalysis( struct nodeType *node){
       
       struct nodeType *inputParam = node->child;
       struct nodeType *typeDef = node->child->rsibling;
+      struct nodeType *returnDef = typeDef->child->rsibling;
       struct nodeType *funcExp = typeDef->rsibling;
       struct FuncTableEntry *fentry;
       
@@ -451,13 +452,18 @@ void typeAnalysis( struct nodeType *node){
         printTree(inputParam,0);
         inputParam->typeNode=typeDef->child;
         newtypeBinding(inputParam);
-
+    
         // Analyse the returnType of the function, RHS of op_rarrow.
-        typeAnalysis(typeDef->child->rsibling);
+        typeAnalysis(returnDef);
         node->table = node->parent->table;
         node->isParam = 1;
-        node->valueType = typeDef->child->rsibling->valueType;
-        node->typeNode = typeDef->child->rsibling->typeNode;
+        
+        printTree(returnDef,0);
+        returnDef = removePair(returnDef);
+        printTree(returnDef,0);
+        
+        node->valueType = returnDef->valueType;
+        node->typeNode = returnDef->typeNode;
         if(node->valueType==TypeSEQ) assert(node->typeNode);
         
         // deal with the redefined functions.
@@ -828,7 +834,9 @@ void typeAnalysis( struct nodeType *node){
       }else if(strcmp(node->child->string, "flatten") == 0){
         assert(RHS->valueType==TypeSEQ);
         node->valueType = RHS->typeNode->child->valueType;
-        node->typeNode = RHS->typeNode->child;
+        //node->typeNode = RHS->typeNode->child;
+        node->typeNode = RHS->typeNode;
+        if(RHS->typeNode->typeNode) node->typeNode = RHS->typeNode->typeNode;
         return;
       }else if(strcmp(LHS->string, "max_index") == 0){
         node->valueType = TypeInt;

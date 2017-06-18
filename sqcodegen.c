@@ -1294,8 +1294,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }
 
       fprintf(fptr,"}\n");
-      if(node->parent->nodeType == NODE_NESL)
-        fprintf(fptr, "print_I(%s);\n", node->string);
+      //if(node->parent->nodeType == NODE_NESL)
+      //  fprintf(fptr, "print_I(%s);\n", node->string);
       break;
     }
     case OP_BIND:{
@@ -1537,7 +1537,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       case TypeTuple:
         //TODO
-        fprintf(fptr, "GET_ELEM_tuple(%s,%s,%s",node->string, LHS->string, RHS->string);
+        fprintf(fptr, "GET_ELEM_");
+        gentypes(fptr, node);
+        fprintf(fptr, "(%s,%s,%s",node->string, LHS->string, RHS->string);
         fprintf(fptr, ");\n");
       break;
       default:
@@ -1768,7 +1770,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       switch(node->typeNode->valueType){
       case TypeTuple:
         //TODO
-        fprintf(fptr, "SET_ELEM_PAIR_what(");
+        fprintf(fptr, "SET_ELEM_");
+        gentypes(fptr, node->typeNode);
+        fprintf(fptr, "(");
         break;
       default: 
         assert(0);
@@ -1830,7 +1834,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     //  fprintf(fptr, "struct tupleIF");
     //  break;
     case TypeTuple:
-      fprintf(fptr, "struct tuple");
+      printtype(fptr, LHS);
+      //fprintf(fptr, "s`truct tuple");
       break;
     default:
       assert(0);
@@ -2135,7 +2140,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       case TypeTuple:
       //TODO
-        fprintf(fptr, "GET_ELEM_PAIR_what");
+        fprintf(fptr, "GET_ELEM_");
+        gentypes(fptr, varchild);
         break;
       default:
         assert(0);
@@ -2188,8 +2194,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, "_F");
         break;
       case TypeTuple:
-        fprintf(fptr, "_PAIR");
-        assert(0);
+        fprintf(fptr, "_");
+        gentypes(fptr, loopme->typeNode);
+        //assert(0);
         //TODO
         break;
       }
@@ -2294,8 +2301,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       switch(node->typeNode->child->valueType){
       case TypeTuple:
         //TODO 
-        fprintf(fptr, " struct p,p");
-        assert(0);
+        //fprintf(fptr, " struct p,p");
+        //assert(0);
+        printtype(fptr, node->typeNode->child->typeNode);
+        fprintf(fptr, ", ");
+        gentypes(fptr, node->typeNode->child->typeNode);
+        fprintf(fptr, ",\n");
         break; 
       case TypeInt:
         fprintf(fptr, " int, I,\n");
@@ -2336,7 +2347,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       break;
       case TypeTuple:
           //TODO
-          assert(0);
+        //  assert(0);
+        printtype(fptr, node->typeNode->child->typeNode);
+        fprintf(fptr, ", ");
+        gentypes(fptr, node->typeNode->child->typeNode);
+        fprintf(fptr, ",\n");
         //fprintf(fptr, " struct Pair_F, PAIR_F,\n");
       break;
       default: 
@@ -2984,6 +2999,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       if(node->parent->nodeType!=NODE_FILTER) fprintf(fptr,";\n");
     }else if(strcmp(node->child->string, "flatten") == 0){
       struct nodeType *param = node->child->rsibling;
+      struct nodeType *typer = param->child->typeNode;
       while(param->nodeType==NODE_PAIR) param = param->child;
       switch(param->nodeType){
         case NODE_INT:
@@ -3012,10 +3028,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       }
       fprintf(fptr, ",%s,",node->string);
-      switch(node->typeNode->valueType){
+      
+      switch(typer->child->valueType){
         case TypeTuple:
         //TODO fprintf(fptr, "struct Pair_F, PAIR_F");
-        assert(0);
+        printtype(fptr, typer->child->typeNode);
+        fprintf(fptr, ",");
+        gentypes(fptr, typer->child->typeNode);
+        //assert(0);
         break;
         default:
         assert(0);
@@ -3474,6 +3494,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_APPLYBODY3:
     case NODE_APPLYBODY4:
     case NODE_NEW_SEQ:
+    case NODE_FUNC_CALL:
         printAddREF(fptr,node->string,node->valueType,node); 
     
     default:
@@ -3534,6 +3555,30 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       if(containArray(child)){
         switch(child->nodeType){
         case NODE_OP:
+          switch(child->op){
+          case OP_SHARP:
+            if(child->parent->nodeType == NODE_NESL)
+              if(child->child->nodeType==NODE_TOKEN)
+              printDECREF(fptr,child->child);
+            break;
+          case OP_PP:
+            if(child->parent->nodeType == NODE_OP){
+              switch(child->parent->op){
+                case OP_PP:
+                  //printDECREF(fptr,child);
+                  fprintf(fptr,"\nomg\n");
+                break;
+                default: break;
+              }
+            } 
+            if(child->parent->nodeType == NODE_NESL){
+              printDECREF(fptr, child);
+            }
+          default:
+                  fprintf(fptr,"\nomg:op:%d\n",child->op);
+                  break;
+          }
+        break;
         case NODE_SEQ_REF:
         case NODE_FUNC:
         case NODE_FUNC_CALL:
@@ -3553,6 +3598,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             break;
           }
           break;
+        case NODE_NEW_SEQ:
         case NODE_APPLYBODY1:
         case NODE_APPLYBODY2:
         case NODE_APPLYBODY3:
@@ -3562,8 +3608,18 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             //fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
             printDECREF(fptr, child);
             break;
+          case NODE_OP:
+            switch(child->parent->op){
+              case OP_SHARP:
+                printDECREF(fptr, child);
+              break;
+              default:
+                fprintf(fptr, "\n//non top-level applytoeach under op:%d\n",child->parent->op);
+              break;
+            }
+          break;
           default:
-            fprintf(fptr, "non top-level applytoeach");
+            fprintf(fptr, "\n//non top-level applytoeach\n");
             break;
           }
           break;

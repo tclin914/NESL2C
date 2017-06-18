@@ -836,6 +836,7 @@ void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node
 }
 
 int containArray(struct nodeType *node){
+  if(node->nodeType == NODE_OP && node->op == OP_SHARP) return  1;
   if(node->valueType<TypeSEQ) return 0;
   else if(node->valueType==TypeSEQ) return 1;
   else if(node->valueType == TypeTuple){
