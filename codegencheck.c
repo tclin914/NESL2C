@@ -366,12 +366,48 @@ void pfcheck(struct nodeType* node){
       entry->link->isparallel_rr = 1;
     }
   
+    if(inputParam->nodeType == NODE_TUPLE)
+      inputParam->nodeType = FPARAM_TUPLE;
     if(inputParam->valueType == TypeTuple)
-     pfcheck(inputParam); 
-
+      pfcheck(inputParam); 
+    
+    node->tuplenode = inputParam; 
     break;
   }
-
+  case FPARAM_TUPLE:{
+    struct nodeType *LHS=node->child;
+    struct nodeType *RHS=LHS->rsibling;
+    int index = inserttmp(node);
+    node->string = malloc(sizeof(char)*100);
+    sprintf(node->string, "tmp%d",index);
+    node->isvisited = 0;
+    switch(LHS->nodeType){
+    case NODE_TUPLE:
+      LHS->nodeType= FPARAM_TUPLE;
+      pfcheck(LHS);
+      break;
+    case NODE_TOKEN:
+      pfcheck(LHS);
+      break;
+    default:
+      assert(0);
+      break;
+    }
+    switch(RHS->nodeType){
+    case NODE_TUPLE:
+      RHS->nodeType = FPARAM_TUPLE;
+      pfcheck(RHS);
+      break;
+    case NODE_TOKEN:
+      pfcheck(RHS);
+      break;
+    default:
+      assert(0);
+      break;
+    }
+    
+    break;
+  }
   case NODE_IFELSE:{
     struct nodeType* ifstmt = node->child;
     struct nodeType* thstmt = node->child->rsibling;

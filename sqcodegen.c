@@ -84,10 +84,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case TypeFloat:
       fprintf(fptr, "float %s", node->string);
       fprintf(fptr, "(");
-      printparam(fptr, parameter);
+      //printparam(fptr, parameter);
+      sqcodegen(fptr, parameter);
       fprintf(fptr, ")");
       fprintf(fptr, "{\nfloat _res;\n");
       dumpTable(fptr, parameter);
+      sqcodegen(fptr, parameter);
       sqcodegen(fptr,funcbody);
       //DECREF(fptr,refTable.size);
       fprintf(fptr, "_res = %s;\n",funcbody->string);
@@ -97,10 +99,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case TypeSEQ:
       fprintf(fptr, "struct Sequence  %s", node->string);
       fprintf(fptr, "(");
-      printparam(fptr, parameter);
+      //printparam(fptr, parameter);
+      sqcodegen(fptr, parameter);
       fprintf(fptr, ")");
       fprintf(fptr, "{\nstruct Sequence _res;\n");
       dumpTable(fptr, parameter);
+      sqcodegen(fptr, parameter);
       sqcodegen(fptr, funcbody);
       //DECREF(fptr, refTable.size);
       fprintf(fptr, "_res = %s;\n",funcbody->string);
@@ -169,6 +173,53 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
   }
 
+  case FPARAM_TUPLE:{
+    struct nodeType *LHS=node->child;
+    struct nodeType *RHS=LHS->rsibling;
+    if(!node->isvisited){
+      /* generate function prototype */
+      printtype(fptr, node); 
+      assert(node->string);
+      fprintf(fptr, "%s", node->string);
+      node->isvisited = 1;
+    }
+    else{
+      /* bind the original var with tuple node.
+      ** linked by node->functioncall in use node->tuplenode as reference.
+      ** tuplenode is linked with the original variables in codegencheck pass.
+      */
+      
+      /* if child is token then we assign it with member of tuple. */
+      switch(LHS->nodeType){
+      case FPARAM_TUPLE:
+        fprintf(fptr, "%s = %s.a;\n",LHS->string, node->string);
+        LHS->isvisited=1;
+        sqcodegen(fptr,LHS);
+        break;
+      case NODE_TOKEN:
+        fprintf(fptr, "%s = %s.a;\n",LHS->string, node->string);
+        break;
+      default:
+        assert(0);
+        break;
+      }
+      switch(RHS->nodeType){
+      case FPARAM_TUPLE:
+        fprintf(fptr, "%s = %s.b;\n",RHS->string, node->string);
+        RHS->isvisited=1;
+        sqcodegen(fptr,RHS);
+        break;
+      case NODE_TOKEN:
+        fprintf(fptr, "%s = %s.a;\n",RHS->string, node->string);
+        break;
+      default:
+        assert(0);
+        break;
+      } 
+    }
+
+  break;
+  }
   case NODE_IFELSE:{
     struct nodeType* ifstmt = node->child;
     struct nodeType* thstmt = node->child->rsibling;
@@ -3566,7 +3617,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
               switch(child->parent->op){
                 case OP_PP:
                   //printDECREF(fptr,child);
-                  fprintf(fptr,"\nomg\n");
+                  fprintf(fptr,"\n//op_pp under op_pp\n");
                 break;
                 default: break;
               }
@@ -3574,8 +3625,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             if(child->parent->nodeType == NODE_NESL){
               printDECREF(fptr, child);
             }
+            break;
           default:
-                  fprintf(fptr,"\nomg:op:%d\n",child->op);
+                  fprintf(fptr,"\n//omg:op:%d\n",child->op);
                   break;
           }
         break;
