@@ -133,19 +133,10 @@ void DECREF(FILE* fptr,int n){
   for(int i =refTable.size-n;i<end;i++){
     if(strcmp("",refTable.entries[i].name)&&refTable.entries[i].link->isEndofFunction!=1){
       switch(refTable.entries[i].type){
-      //case TypeSEQ_F:
-      //  fprintf(fptr, "DECREF_SEQ_F(%s);\n",refTable.entries[i].name);
-      //  break;
-      //case TypeSEQ_I:
-      //  fprintf(fptr, "DECREF_SEQ_I(%s);\n",refTable.entries[i].name);
-      //  break;
       case TypeSEQ:{
         // has different situation.
         struct nodeType *loopme;
         int types;
-        //if(refTable.entries[i].link->typeNode->child)
-        //  loopme = refTable.entries[i].link->typeNode->child;
-        //else 
           loopme = refTable.entries[i].link->typeNode;
         
         fprintf(fptr, "DECREF_SEQ");
@@ -157,21 +148,12 @@ void DECREF(FILE* fptr,int n){
           if(x++==10) abort();//error;
         }
         switch(loopme->valueType){
-        //case TypeSEQ_I:
-        //  fprintf(fptr, "_SEQ_I");
-        //  break;
-        //case TypeSEQ_F:
-        //  fprintf(fptr, "_SEQ_F");
-        //  break;
         case TypeSEQ:  
           assert(0);//not implement;
           break;
         case TypeFloat:
           fprintf(fptr, "_F");
         break;
-        //case TypeTuple_F:
-        //  fprintf(fptr, "_PAIR_F");
-        //break;
         default:
         assert(0); //not implement
         }
@@ -689,12 +671,12 @@ void pfcheck(struct nodeType* node){
         // not implement
         break;
       case NODE_APPLYBODY2:
-        // {action: RBINDS}
+        /* {action: RBINDS} */
         pfcheck(RHS);
         node->isparallel_rr = RHS->isparallel_rr;
         break;
       case NODE_APPLYBODY3:
-        // {RBINDS|FILTER}
+        /* {RBINDS|FILTER} */
         pfcheck(RHS);
         node->needcounter = RHS->needcounter;
         node->isparallel_rr = RHS->isparallel_rr;
@@ -1164,7 +1146,6 @@ void printDECREF(FILE *fptr, struct nodeType *node){
       break;
     case TypeTuple:
       gentypes(fptr, loopme);
-      //fprintf(fptr, "T");
       break;
     default:
       assert(0); //not implement

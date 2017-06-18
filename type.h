@@ -128,10 +128,6 @@
 #define OP_PP             27
 
 
-// TODO 
-// 1. add TypeArray when detect '[]' stuff 
-// 2. use the most outside type to represent the node.
-// 3. add TypeChar for char or string.
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
               TypeSEQ, TypeTuple};
 
