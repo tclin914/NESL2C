@@ -51,6 +51,9 @@ struct nodeType {
     int inserttmp;
     int infilter;
     int isParam;
+
+    /*for variable declaration*/
+    int mode;
 };
 
 struct nodeType* newNode(int type);

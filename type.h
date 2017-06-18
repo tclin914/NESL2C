@@ -27,11 +27,11 @@
 #define NODE_TYPE_FLOAT     8
 #define NODE_TYPE_CHAR      9
 #define NODE_TYPE_BOOL      10
-
+#define NODE_TYPE_SEQ       13
+#define NODE_TYPE_TUPLE     35   
 // 
 #define NODE_TYPE_PARM      11
 #define NODE_SYM_REF        12
-#define NODE_TYPE_SEQ       13
 #define NODE_SEQ_REF        14
 #define NODE_TYPE_PAIR      34
 
@@ -66,7 +66,7 @@
 #define LHS_TUPLE           45
 #define RHS_TUPLE           46
 #define NODE_ASSIGN         47
-
+#define FPARAM_TUPLE        48
 
 
 
@@ -128,15 +128,8 @@
 #define OP_PP             27
 
 
-// TODO 
-// 1. add TypeArray when detect '[]' stuff 
-// 2. use the most outside type to represent the node.
-// 3. add TypeChar for char or string.
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
-              TypeSEQ_I,TypeSEQ_F,TypeSEQ_C,TypeSEQ_B,TypeSEQ,
-              TypeTuple_I,TypeTuple_F,TypeTuple_C,TypeTuple_B,
-              TypeTuple_IF, TypeTuple_FI, TypeTuple_SF,TypeTuple_FS,
-              TypeTuple_SI,TypeTuple_IS,TypeTuple};
+              TypeSEQ, TypeTuple};
 
 
 

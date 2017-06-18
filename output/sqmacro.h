@@ -104,6 +104,10 @@ int atomicSub(int * a, int b){
   res.a = ((int*)arr.ptr)[idx]; \
   res.b = ((int*)arr.ptr)[arr.cap+idx]; } while(0)
 
+#define GET_ELEM_TFF(res, arr, idx) do { \
+  res.a = ((float*)arr.ptr)[idx]; \
+  res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
+
 #define GET_ELEM_PAIR_F(res, arr, idx) do { \
   res.a = ((float*)arr.ptr)[idx]; \
   res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
@@ -178,6 +182,13 @@ int atomicSub(int * a, int b){
 
 #define DECREF_SEQ_F(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, float), 1);\
+  assert(_refcnt < 100); \
+  if(_refcnt == 1) { \
+    FREE(seq); \
+  }} while(0)
+
+#define DECREF_SEQ_TFF(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct TFF), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \

@@ -1,0 +1,37 @@
+function cross_product(o,line):
+((float,float),((float,float),(float,float) )) -> float =
+let (xo,yo) = o; 
+    ((x1,y1),(x2,y2)) = line;
+in (x1-xo)*(y2-yo) - (y1-yo)*(x2-xo);
+
+x = (2.0,3.0);
+y0 = (11.0,5.0);
+y1 = (0.0,0.0);
+y =(y0,y1);
+cross_product(x,y);
+
+function cross_product(o,line):
+((float,float),((float,float),(float,float) )) -> float =
+let (xo,yo) = o; 
+    ((x1,y1),(x2,y2)) = line;
+in (x1-xo)*(y2-yo) - (y1-yo)*(x2-xo);
+
+
+x = (1.0,1.0);
+y0 = (5.0,2.4);
+y1 = (4.1,4.3);
+y =(y0,y1);
+cross_product(x,y);
+
+function cross_product(o,line):
+((float,float),((float,float),(float,float) )) -> float =
+let (xo,yo) = o; 
+    ((x1,y1),(x2,y2)) = line;
+in (x1-xo)*(y2-yo) - (y1-yo)*(x2-xo);
+
+
+x = (1.0,1.0);
+y0 = (5.0,2.4);
+y1 = (4.1,4.3);
+y =(y0,y1);
+cross_product(x,y);
