@@ -128,10 +128,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType *LHS=node->child;
     struct nodeType *RHS=LHS->rsibling;
     if(!node->isvisited){
+      struct SymTableEntry * entry;
       /* generate function prototype */
       printtype(fptr, node); 
       assert(node->string);
-      fprintf(fptr, "%s", node->string);
+      fprintf(fptr, " %s", node->string);
+      //entry = findSymbol(rootTable, node->string, REFERENCE);
+      //assert(entry);
+      //entry ->isParam = 1;
       node->isvisited = 1;
     }
     else{
@@ -161,7 +165,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         sqcodegen(fptr,RHS);
         break;
       case NODE_TOKEN:
-        fprintf(fptr, "%s = %s.a;\n",RHS->string, node->string);
+        fprintf(fptr, "%s = %s.b;\n",RHS->string, node->string);
         break;
       default:
         assert(0);
@@ -1414,7 +1418,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case TypeSEQ:
         switch(node->typeNode->child->valueType){
         case TypeTuple:
-          fprintf(fptr, "struct tuple, tuple);\n");
+          printtype(fptr, node->typeNode->child);
+          fprintf(fptr, ", ");
+          gentypes(fptr, node->typeNode->child);
+          fprintf(fptr, ");\n");
+          //fprintf(fptr, "struct tuple, tuple);\n");
           break;
         case TypeInt:
           fprintf(fptr, "int , I);\n");
@@ -1580,8 +1588,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         child=child->rsibling;
       }while(child!=node->child);
       node->isvisited=1;
-    }else{ // second time 
+      
+    //}else{ 
+      // second time 
       while(LHS->nodeType == NODE_PAIR) LHS= LHS->child;
+      fprintf(fptr, "%s.a = ",node->string);
       switch(LHS->nodeType){
       case NODE_TOKEN:
       case NODE_INT:
@@ -1595,7 +1606,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       }
       LHS= node->child;
-      fprintf(fptr, ", ");
+      fprintf(fptr, ";\n");
+      fprintf(fptr, "%s.b = ",node->string);
       while(RHS->nodeType == NODE_PAIR) RHS= RHS->child;
       switch(RHS->nodeType){
       case NODE_TOKEN:
@@ -1603,7 +1615,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       case NODE_FLOAT:
       case NODE_CHAR:
       case NODE_BOOL:
-      case PARAM_TUPLE:
         sqcodegen(fptr,RHS);
         break;
       default:
@@ -1611,9 +1622,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       }
       RHS= node->child->rsibling;
+      fprintf(fptr, ";\n ");
     }// end of if else
-
-    break;}
+    
+    break;
+    }//end of PARAM_TUPLE
   case NODE_SEQ_TUPLE:{
     struct nodeType *LHS=node->child;
     struct nodeType *RHS = node->child->rsibling;
@@ -1642,8 +1655,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         //      LHS->string, node->string, LHS->paramcount);
         //break;
         case TypeTuple:
-          fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+        fprintf(fptr, "SET_ELEM_");
+        gentypes(fptr, LHS);
+        fprintf(fptr, "(%s,%s,%d);\n",
               LHS->string, node->string, LHS->paramcount);
+        //  fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+        //      LHS->string, node->string, LHS->paramcount);
         break;
        default:
        assert(0);
@@ -1674,7 +1691,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
         case TypeTuple:
         //TODO
-        fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+        fprintf(fptr, "SET_ELEM_");
+        gentypes(fptr, RHS);
+        fprintf(fptr, "(%s,%s,%d);\n",
               RHS->string, node->string, RHS->paramcount);
         break;
        default:
@@ -1683,7 +1702,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }    
     }
     break;
-  }
+  }// end of NODE_SEQ_TUPLE
   
   case NODE_SEQ:{
     struct nodeType *LHS = node->child;
@@ -1827,8 +1846,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                 LHS->string, node->string, LHS->paramcount);
         break;
       case TypeTuple:
-        fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
-                LHS->string, node->string, LHS->paramcount);
+        fprintf(fptr, "SET_ELEM_");
+        gentypes(fptr, LHS);
+        fprintf(fptr, "(%s,%s,%d);\n",
+              LHS->string, node->string, LHS->paramcount);
+        //fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+        //        LHS->string, node->string, LHS->paramcount);
       break;
       default:
         assert(0);
@@ -1847,8 +1870,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                 LHS->string, node->string, LHS->paramcount);
       break;
       case TypeTuple:
-        fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
-                LHS->string, node->string, LHS->paramcount);
+        fprintf(fptr, "SET_ELEM_");
+        gentypes(fptr, LHS);
+        fprintf(fptr, "(%s,%s,%d);\n",
+              LHS->string, node->string, LHS->paramcount);
+        //fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+        //        LHS->string, node->string, LHS->paramcount);
       break;
       default:
       assert(0);
@@ -1880,8 +1907,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                 RHS->string, node->string, RHS->paramcount);
         break;
       case TypeTuple:
-        fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
-                RHS->string, node->string, RHS->paramcount);
+        fprintf(fptr, "SET_ELEM_");
+        gentypes(fptr, RHS);
+        fprintf(fptr, "(%s,%s,%d);\n",
+              RHS->string, node->string, RHS->paramcount);
+        //fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+        //        RHS->string, node->string, RHS->paramcount);
       break;
       default:
         assert(0);
@@ -1903,8 +1934,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                 RHS->string, node->string, RHS->paramcount);
       break;
       case TypeTuple:
-        fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
-                RHS->string, node->string, RHS->paramcount);
+        fprintf(fptr, "SET_ELEM_");
+        gentypes(fptr, RHS);
+        fprintf(fptr, "(%s,%s,%d);\n",
+              RHS->string, node->string, RHS->paramcount);
+        //fprintf(fptr, "SET_ELEM_PAIR(%s,%s,%d);\n",
+        //        RHS->string, node->string, RHS->paramcount);
       break;
       default:
       assert(0);
@@ -2375,13 +2410,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_BOOL:
     case NODE_TOKEN:
       sqcodegen(fptr, LHS);
-      fprintf(fptr, "=");
+      fprintf(fptr, " = ");
       break;
     default:
       while(LHS->nodeType == NODE_PAIR) LHS = LHS->child;
-      fprintf(fptr,"%s=%s.a;\n",LHS->string,node->string);
+      fprintf(fptr,"%s = ",LHS->string);
       break;
     }
+    fprintf(fptr,"%s.a;\n",node->string);
 
     switch (RHS->nodeType ){
     case NODE_INT:
@@ -2390,13 +2426,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_BOOL:
     case NODE_TOKEN:
       sqcodegen(fptr, RHS);
-      fprintf(fptr, "=");
+      fprintf(fptr, " = ");
       break;
     default:
       while(RHS->nodeType == NODE_PAIR) RHS = RHS->child;
-      fprintf(fptr,"%s=%s.b;\n",RHS->string,node->string);
+      fprintf(fptr,"%s = ",RHS->string);
       break;
     }
+    fprintf(fptr,"%s.b;\n",node->string);
     
     switch (LHS->nodeType ){
     case NODE_INT:
@@ -3090,7 +3127,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       default:
         while(RHS->nodeType == NODE_PAIR) RHS = RHS->child;
         if(RHS->nodeType == PARAM_TUPLE)
-          sqcodegen(fptr, RHS); //second time it will print all the parameter names.
+          //sqcodegen(fptr, RHS); //second time it will print all the parameter names.
+          fprintf(fptr, "%s", RHS->string);
         else
           fprintf(fptr, "%s", RHS->string);
         RHS = LHS->rsibling;
@@ -3241,7 +3279,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
           fprintf(fptr, "F");
           break;
         case TypeTuple:
-          fprintf(fptr, "T_");
+          gentypes(fptr, loopme);
+          //fprintf(fptr, "T_");
           break;
         default:
           assert(0); //not implement

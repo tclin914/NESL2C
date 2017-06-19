@@ -350,9 +350,10 @@ void pfcheck(struct nodeType* node){
   
     if(inputParam->nodeType == NODE_TUPLE)
       inputParam->nodeType = FPARAM_TUPLE;
-    if(inputParam->valueType == TypeTuple)
+    if(inputParam->valueType == TypeTuple){
+      inputParam->isParam=1;// only the top tmp var being noted.
       pfcheck(inputParam); 
-    
+    }
     node->tuplenode = inputParam; 
     break;
   }
@@ -835,18 +836,30 @@ void pfcheck(struct nodeType* node){
     if(LHS->isparallel_rr || RHS->isparallel_rr ) node->isparallel_rr=1;
 
     entry = findSymbol(node->table, LHS->string, REFERENCE);
-    if(entry){ if(entry->link->isparallel_rr) node->isparallel_rr=1; }
+    if(entry){ 
+      
+      /* annotation information*/
+      if(entry->link->isparallel_rr) 
+        node->isparallel_rr=1; 
+      
+      /* link the signature with parameter */
+      RHS->tuplenode = entry->link->child;
+    }
 
     break;
   }
   case PARAM_TUPLE:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = LHS->rsibling;
-    //if(RHS->nodeType == NODE_TUPLE) RHS->nodeType = PARAM_TUPLE;
-    if(RHS->nodeType == NODE_TUPLE) RHS->nodeType = RHS_TUPLE;
+    if(LHS->nodeType == NODE_TUPLE) LHS->nodeType = PARAM_TUPLE;
+    if(RHS->nodeType == NODE_TUPLE) RHS->nodeType = PARAM_TUPLE;
+    int index = inserttmp(node);
+    node->string = malloc(sizeof(char)*100);
+    sprintf(node->string, "tmp%d",index);
     pfcheck(LHS);
     pfcheck(RHS);
-    break;}
+    break;
+  }
 
   case RB_TUPLE:
   case LHS_TUPLE:{

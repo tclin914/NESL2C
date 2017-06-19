@@ -135,6 +135,10 @@ int atomicSub(int * a, int b){
   ((int*)arr.ptr)[idx] = elm.a; \
   ((int*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
+#define SET_ELEM_TFF(elm, arr, idx) do { \
+  ((float*)arr.ptr)[idx] = elm.a; \
+  ((float*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
+
 #define SET_ELEM_PAIR_F(elm, arr, idx) do { \
   ((float*)arr.ptr)[idx] = elm.a; \
   ((float*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
@@ -146,6 +150,11 @@ int atomicSub(int * a, int b){
 } while(0)
 
 /* We need the element type of the sub sequence so that we can increase the reference count */
+#define SET_ELEM_SEQ_TFF(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, struct TFF), 1); \
+  assert(_refcnt > 0); \
+  ((struct Sequence*)arr.ptr)[idx] = elm; \
+} while(0)
 #define SET_ELEM_SEQ_PAIR_F(elm, arr, idx) do { \
   int _refcnt = atomicAdd(REFCNT(elm, struct Pair_F), 1); \
   assert(_refcnt > 0); \
@@ -356,6 +365,12 @@ int atomicSub(int * a, int b){
   print_I((int)src.b);\
 }while(0)
 
+#define print_TFF(src) do{\
+  print_F((float)src.a);\
+  printf(", ");\
+  print_F((float)src.b);\
+}while(0)
+
 #define print_PAIR_F(src) do{\
   print_F((float)src.a);\
   printf(", ");\
@@ -376,6 +391,20 @@ int atomicSub(int * a, int b){
     printf("] ");\
   printf("\n"); \
 }while(0)
+
+#define print_SEQ_TFF(src)do{\
+  int _i,_len;\
+  struct Pair_F e;\
+  _len = src.len;\
+  for(_i=0; _i<_len; _i++) { \
+    GET_ELEM_TFF(e, src, _i); \
+    printf("[ ");\
+    print_TFF(e);\
+    printf("], ");\
+  }\
+  printf("\n"); \
+}while(0)
+
 
 #define print_SEQ_PAIR_F(src)do{\
   int _i,_len;\
