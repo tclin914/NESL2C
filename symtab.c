@@ -677,6 +677,7 @@ void typeAnalysis( struct nodeType *node){
           default:
             assert(0);
         }
+        node->valueType = RHS->valueType;
         node->typeNode=RHS->typeNode;
         break;
       }

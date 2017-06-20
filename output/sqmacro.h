@@ -223,6 +223,20 @@ int atomicSub(int * a, int b){
     FREE(seq); \
   }} while(0)
 
+#define DECREF_SEQ_STFF(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
+  assert(_refcnt < 100); \
+  if(_refcnt == 1) { \
+    struct Sequence *_subseq = (struct Sequence*)seq.ptr; \
+    int _i = 0; \
+    while(_i < seq.len) { \
+      DECREF_SEQ_TFF(_subseq[_i]); \
+      _i++; \
+    } \
+    FREE(seq); \
+  }} while(0)
+
+
 #define DECREF_SEQ_SEQ_PAIR_F(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, struct Sequence), 1); \
   assert(_refcnt < 100); \
