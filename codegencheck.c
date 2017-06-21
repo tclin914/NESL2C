@@ -551,6 +551,7 @@ void pfcheck(struct nodeType* node){
     case OP_LT:
     case OP_LE:
     case OP_EQ:
+    case OP_NE:
     case OP_GT:
     case OP_GE:{
       if(!node->infilter){
@@ -1178,7 +1179,8 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
           case OP_SHARP:
             if(child->parent->nodeType == NODE_NESL)
               if(child->child->nodeType==NODE_TOKEN)
-              printDECREF(fptr,child->child);
+              fprintf(fptr, "//opsharp\n");
+              //printDECREF(fptr,child->child);
             break;
           case OP_PP:
             if(child->parent->nodeType == NODE_OP){
@@ -1279,15 +1281,16 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
             //fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
             printDECREF(fptr, child);
             break;
-          case NODE_OP:
-            switch(child->parent->op){
-              case OP_SHARP:
-                printDECREF(fptr, child);
-              break;
-              default:
-                fprintf(fptr, "\n//non top-level applytoeach under op:%d\n",child->parent->op);
-              break;
-            }
+          //case NODE_OP:
+          //  switch(child->parent->op){
+          //    case OP_SHARP:
+          //      fprintf(fptr, "//opsharp upper than app\n");
+          //      printDECREF(fptr, child);
+          //    break;
+          //    default:
+          //      fprintf(fptr, "\n//non top-level applytoeach under op:%d\n",child->parent->op);
+          //    break;
+          //  }
           case NODE_FUNC_CALL:
             printDECREF(fptr, child);
           break;

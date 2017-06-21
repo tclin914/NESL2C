@@ -1,0 +1,4 @@
+a= 0;
+if(a==0) then a else 5/a;
+a= 5;
+if(a/=0) then 5/a else a;

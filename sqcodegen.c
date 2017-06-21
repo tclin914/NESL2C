@@ -768,6 +768,101 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }
 
       break;
+    case OP_NE:
+      if(node->infilter){
+        sqcodegen(fptr, node->child);
+        fprintf(fptr, " != ");
+        sqcodegen(fptr, node->child->rsibling);
+      }else{
+        struct nodeType *op1 = node->child;
+        struct nodeType *op2 = op1->rsibling;
+
+        /* remove pairs */
+        while(op1->nodeType == NODE_PAIR) op1=op1->child;
+        while(op2->nodeType == NODE_PAIR) op2=op2->child;
+
+        /*open new scope*/ 
+        fprintf(fptr,"{\n");
+
+        /*declare op1*/
+        switch(op1->valueType){
+        case TypeInt:
+          fprintf(fptr, "int op1;\n");
+          break;
+        case TypeChar:
+          fprintf(fptr, "char op1;\n");
+          break;
+        case TypeFloat:
+          fprintf(fptr, "float op1;\n");
+          break;
+        default:
+          assert(0);
+        }
+
+        /* declare op2*/
+        switch(op2->valueType){
+        case TypeInt:
+          fprintf(fptr, "int op2;\n");
+          break;
+        case TypeChar:
+          fprintf(fptr, "char op2;\n");
+          break;
+        case TypeFloat:
+          fprintf(fptr, "float op2;\n");
+          break;
+        default:
+          assert(0);
+        }
+
+        /*assign op1*/
+        switch(op1->nodeType){
+        case NODE_TOKEN:
+          fprintf(fptr, "op1 = %s;\n",op1->string);
+          break;
+        case NODE_INT:
+          fprintf(fptr, "op1 = %d;\n", op1->iValue);
+          break;
+        case NODE_FLOAT:
+          fprintf(fptr, "op1 = %f;\n", op1->rValue);
+          break;
+        case NODE_CHAR:
+          fprintf(fptr, "op1 = %s;\n", op1->string);
+          break;
+        default:
+          assert(op1->string);
+          sqcodegen(fptr, op1);
+          fprintf(fptr, "op1 = %s;\n",op1->string);
+          break;  
+        }
+
+        /*assign op2*/
+        switch(op2->nodeType){
+        case NODE_TOKEN:
+          fprintf(fptr, "op2 = %s;\n",op2->string);
+          break;
+        case NODE_INT:
+          fprintf(fptr, "op2 = %d;\n", op2->iValue);
+          break;
+        case NODE_FLOAT:
+          fprintf(fptr, "op2 = %f;\n", op2->rValue);
+          break;
+        case NODE_CHAR:
+          fprintf(fptr, "op2 = %s;\n", op2->string);
+          break;
+        default:
+          assert(op2->string);
+          sqcodegen(fptr,op2);
+          fprintf(fptr, "op2 = %s;\n",op2->string);
+          break;  
+        }
+
+        fprintf(fptr, "%s = op1 != op2;\n",node->string);
+
+        /*close scope*/
+        fprintf(fptr,"}\n"); 
+      }
+
+      break;
     case OP_EQ:
       if(node->infilter){
         sqcodegen(fptr, node->child);
@@ -3213,17 +3308,19 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_APPLYBODY4:
     case GEN_APP3:
     case NODE_NEW_SEQ:
+    case NODE_THENSTMT:
+    case NODE_ELSESTMT:
         printAddREF(fptr,node->string,node->valueType,node); 
     break;
-    case NODE_FUNC_CALL:
-        switch(node->parent->nodeType){
-        case NODE_LETRET:
-        break;
-        default:
-        printAddREF(fptr,node->string,node->valueType,node); 
-        break;
-        }
-    break;
+    //case NODE_FUNC_CALL:
+    //    switch(node->parent->nodeType){
+    //    case NODE_LETRET:
+    //    break;
+    //    default:
+    //    printAddREF(fptr,node->string,node->valueType,node); 
+    //    break;
+    //    }
+    //break;
     default:
     break;
     }

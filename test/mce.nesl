@@ -164,7 +164,7 @@ function leaveBitBefore120(tuple, pos): ((int, int, int, int), int) -> (int, int
      else                    (x, y, z, w AND (lshift(1, pos-90+1)-1)) $
 
 function listBitPos30(val, offset): (int, int) -> [int] = 
-  if val == 0 then [] int 
+  if (val == 0) then [] int 
   else 
     let nextVal = (val AND (val-1));
         mask    = (val XOR nextVal);
