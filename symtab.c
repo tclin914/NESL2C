@@ -734,19 +734,18 @@ void typeAnalysis( struct nodeType *node){
         case OP_NOT:
           node->valueType = LHS->valueType;
           break;
-        case OP_OR:
-          break;
         case OP_COMMA:
           break;
-        case OP_AND:
-          break;
+        case OP_OR:
         case OP_NOR:
-          break;
-        case OP_NAND:
-          break;
         case OP_XOR:
+        case OP_AND:
+        case OP_NAND:
+          assert(LHS->valueType == RHS->valueType);
+          node->valueType = RHS->valueType;
           break;
         case OP_LARROW:
+          assert(0);
           break;
         case OP_UPT:
           assert(RHS->valueType == TypeInt);
@@ -1301,7 +1300,7 @@ void semanticPass( struct nodeType *node){
   // typeBinding and typeChechking.
 
   /*initialize the function table*/
-  typeTable = (struct TypeTuple*)malloc(sizeof(struct TypeTable));
+  typeTable = (struct TypeTable*)malloc(sizeof(struct TypeTable));
   typeTable->size = 0;
   
   funcTable = (struct FuncTable*)malloc(sizeof(struct FuncTable));

@@ -7,8 +7,8 @@
 #include "codegen.h"
 #define help(s) {printf("\thelp: %s\n",s);}
 
-
-void gentype(FILE* fptr){
+/*generate needed tuple structure*/
+void gentuple(FILE* fptr){
   struct nodeType *link;
   for(int i =0; i<typeTable->size;i++){
     link = typeTable->link[i];

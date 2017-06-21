@@ -221,7 +221,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "%s = %s;\n", node->string,LHS->string);
       break;
     }
-    fprintf(fptr, "\n}\n");
     break;}
 
   case NODE_LET:{
@@ -1509,7 +1508,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, ");\n");
         break;
       case TypeSEQ:
-        //TODO
         fprintf(fptr, "GET_ELEM_SEQ");
         switch(node->typeNode->child->valueType){
         case TypeInt:
@@ -1525,7 +1523,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, ");\n");
         break;
       case TypeTuple:
-        //TODO
         fprintf(fptr, "GET_ELEM_");
         gentypes(fptr, node);
         fprintf(fptr, "(%s,%s,%s",node->string, LHS->string, RHS->string);
@@ -1952,18 +1949,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   case NODE_APPLYBODY1:
     abort();
     break;
-  case NODE_APPRET:{
-    //don't consider tuple here.
-    switch(node->valueType){
-    case TypeSEQ:
-      assert(0);
-      break;
-    default :
-      assert(0);
-      break;
-    }
-    break;
-  }
+
   case NODE_ACTION_TUPLE:{
     // FIXME support no nested situation.
     struct nodeType *LHS = node->child;
@@ -2382,10 +2368,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   }
 
   case NODE_APPLYBODY4:
+    assert(0);
     break;
 
   case NODE_RBINDS:
     //FIXME might have many children
+    // has been done by the upper level apply-to-each.
     sqcodegen(fptr, node->child);
     break;
 
@@ -3340,8 +3328,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
   }
   
   switch(node->nodeType){
+  case NODE_THENSTMT:
+  case NODE_ELSESTMT:
   case NODE_LET:
-    fprintf(fptr, "}\n");
+    fprintf(fptr, "\n}\n");
   break;
   }
 

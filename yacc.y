@@ -740,7 +740,7 @@ int main(int argc, char** argv){
           strcpy(refTable.entries[i].name, "");
         }
         // generate the needed tuple structures
-        gentype(yyout);
+        gentuple(yyout);
         sqcodegen(yyout, ASTRoot);
         fprintf(yyout, "}\n\n"); // end of myFunc();
         fprintf(yyout, "int main(){\n");
@@ -777,7 +777,7 @@ int main(int argc, char** argv){
           strcpy(refTable.entries[i].name, "");
         }
         // generate the needed tuple structures
-        gentype(yyout);
+        gentuple(yyout);
         //pfcodegen(yyout, ASTRoot); 
         sqcodegen(yyout, ASTRoot); 
         fprintf(yyout, "}\n\n"); // end of myFunc();

@@ -4,6 +4,7 @@
 int inserttmp(struct nodeType* node);
 int insertelm(struct nodeType* node);
 void pfcheck(struct nodeType* node);
+void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child);
 //void deleteREF(char *s, int num);
 void deleteREF(int start, int end);
 void DECREF(FILE* fptr, int n);

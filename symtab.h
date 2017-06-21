@@ -12,6 +12,7 @@
 void semanticCheck(struct nodeType* node);
 struct SymTableEntry* addVariable(char *s, enum StdType type, struct nodeType* link, int mode);
 void typeAnalysis( struct nodeType *node);
+int isSameType( struct nodeType *L, struct nodeType *R);
 
 // TODO 
 // 1. bind the parameter name with the typedefine nodes.
