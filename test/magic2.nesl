@@ -1,0 +1,12 @@
+function magic(aa,bb):([int], [int])-> [int] = 
+if(#aa > #bb) then let x =aa[0]; x = 10; in aa else bb;
+
+function do_magic(xx): int->[int] = 
+let 
+    a0 = [1,2,3];
+    a1 = [4,5,6,7];
+    a = magic(a0,a1);
+    b = a[0];
+in {x+b: x in a};
+
+
