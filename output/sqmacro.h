@@ -315,7 +315,7 @@ int atomicSub(int * a, int b){
   res.len = _j; \
 } while(0)
 
-#define FILTER_TUPLE_1( res,resExpr, child1, child2, ctype1, ctype2,\
+#define FILTER_TUPLE_1( res, resExpr, child1, child2, ctype1, ctype2,\
                         typer, typeMacror, \
                         s1, e1, type1, typeMacro1,\
                         predExpr) do { \

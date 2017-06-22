@@ -123,7 +123,21 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }
     break;
   }
-
+  case FPARAM_TOKEN:{
+    if(!node->isvisited){
+      struct SymTableEntry * entry;
+      printtype(fptr, node); 
+      assert(node->string);
+      fprintf(fptr, " %s", node->string);
+      entry = findSymbol(node->table, node->string, REFERENCE);
+      assert(entry);
+      entry ->isParam = 1;
+      node->isvisited = 1;
+    }else{
+      ;//assert(0); 
+    }
+  break;
+  }
   case FPARAM_TUPLE:{
     struct nodeType *LHS=node->child;
     struct nodeType *RHS=LHS->rsibling;
@@ -2057,7 +2071,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "struct Sequence");
     break;
     case TypeTuple:
-      fprintf(fptr, "struct notyet");
+      fprintf(fptr, "struct ");
+      gentypes(fptr,LHS);
     break;
     default:
     assert(0);
@@ -2155,8 +2170,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }
     break;}
     case TypeTuple:
+      fprintf(fptr, "SET_ELEM_");
+      gentypes(fptr, LHS->typeNode);
     //TODO
-    assert(0);
+    //assert(0);
     break;
     default:
       assert(0);
@@ -2307,9 +2324,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
     switch(node->valueType){
     case TypeSEQ:
-      switch(node->typeNode->valueType){
+      switch(node->typeNode->child->valueType){
       case TypeTuple:
-        assert(0);
+        printtype(fptr, node->typeNode->child);
+        fprintf(fptr, ", ");
+        gentypes(fptr, node->typeNode->child);
+        fprintf(fptr, ",\n ");
         break; 
       default:
         assert(0);//not implement;
@@ -2324,7 +2344,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "%s, %s, ", SRCARR->string, FREVAR->string);
       switch(FREVAR->valueType){
       case TypeSEQ:
-        switch(FREVAR->typeNode->valueType){
+        switch(FREVAR->typeNode->child->valueType){
         case TypeTuple:
           assert(0);
           break; 
@@ -2339,7 +2359,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         fprintf(fptr, " float, F,\n");
         break;
       case TypeTuple:
-        assert(0);
+        printtype(fptr, FREVAR->typeNode);
+        fprintf(fptr, ", ");
+        gentypes(fptr, FREVAR->typeNode);
+        fprintf(fptr, ",\n");
+        //assert(0);
         break;
       default: 
         assert(0); // not implement;

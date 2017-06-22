@@ -67,6 +67,7 @@
 #define RHS_TUPLE           46
 #define NODE_ASSIGN         47
 #define FPARAM_TUPLE        48
+#define FPARAM_TOKEN        51
 
 
 

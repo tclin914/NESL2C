@@ -785,7 +785,7 @@ void typeAnalysis( struct nodeType *node){
           return;
           }
       else if(strcmp(node->child->string, "verifyQHull")==0){
-          struct nodeType *param1 = RHS->child->child;
+          struct nodeType *param1 = RHS->child;
           struct nodeType *param2 = param1->rsibling;
           node->valueType= TypeBool;
           assert(param1->valueType == TypeInt); 

@@ -348,11 +348,18 @@ void pfcheck(struct nodeType* node){
       entry->link->isparallel_rr = 1;
     }
   
-    if(inputParam->nodeType == NODE_TUPLE)
+    switch(inputParam->nodeType){
+    case NODE_TUPLE:
       inputParam->nodeType = FPARAM_TUPLE;
-    if(inputParam->valueType == TypeTuple){
       inputParam->isParam=1;// only the top tmp var being noted.
       pfcheck(inputParam); 
+    break;
+    case NODE_TOKEN:
+      inputParam->nodeType = FPARAM_TOKEN;
+      break;
+    default:
+      assert(0);
+      break;
     }
     node->tuplenode = inputParam; 
     break;
@@ -1166,7 +1173,36 @@ void printDECREF(FILE *fptr, struct nodeType *node){
     }
     fprintf(fptr, "(%s);\n", node->string);
     break;}
+  case TypeTuple:{
+    struct nodeType *LHS,*RHS;
+    LHS=node->child;
+    RHS= LHS->rsibling;
+    switch (LHS->valueType){
+      case TypeSEQ:
+      case TypeTuple:{
+        printDECREF(fptr, LHS);
+      break;
+      }
+      default:{
+        // do nothing.
+      break;
+      }
+    }
+    switch (RHS->valueType){
+      case TypeSEQ:
+      case TypeTuple:{
+        printDECREF(fptr, RHS);
+      break;
+      }
+      default:{
+        // do nothing.
+      break;
+      }
+    }
+    break;
+  }
   default:
+    printf("node->valueType:%d\n", node->valueType);
     assert(0); // not implement;
     break;
   }
@@ -1233,19 +1269,21 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
           
           break;
         case PARAM_TUPLE:{
-          //struct nodeType *LHS = child->child;
-          //struct nodeType *RHS = child->child->rsibling;
-          //  //FIXME: only print once and recycle too early.
-          //  if(containArray(LHS)) {
-          //    //DecRefCountForContainedArray(fptr, LHS);
-          //    if(LHS->valueType == TypeSEQ)
-          //      fprintf(fptr, "\n//clean the paramtuple\n");
-          //      printDECREF(fptr, LHS);
-          //  }
-          //  if(containArray(RHS)) {
-          //    
-          //  DecRefCountForContainedArray(fptr, RHS);
-          //  }
+          struct nodeType *LHS = child->child;
+          struct nodeType *RHS = child->child->rsibling;
+            //FIXME: only print once and recycle too early.
+            if(containArray(LHS)) {
+              //DecRefCountForContainedArray(fptr, LHS);
+              if(LHS->valueType == TypeSEQ)
+                fprintf(fptr, "\n//clean the paramtuple\n");
+                printDECREF(fptr, LHS);
+            }
+            if(containArray(RHS)) {
+               if(LHS->valueType == TypeSEQ)
+                fprintf(fptr, "\n//clean the paramtuple\n");
+                printDECREF(fptr, RHS);
+               // DecRefCountForContainedArray(fptr, RHS);
+            }
         break;  
         }
         case NODE_TOKEN:
@@ -1260,7 +1298,7 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         case NODE_RBINDS:
           break;
         case NODE_PAIR:
-            fprintf(fptr, "\npair not removed\n");
+            fprintf(fptr, "\n//pair not removed\n");
         break;
         case NODE_IN:
           switch(child->parent->nodeType){
@@ -1281,16 +1319,6 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
             //fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
             printDECREF(fptr, child);
             break;
-          //case NODE_OP:
-          //  switch(child->parent->op){
-          //    case OP_SHARP:
-          //      fprintf(fptr, "//opsharp upper than app\n");
-          //      printDECREF(fptr, child);
-          //    break;
-          //    default:
-          //      fprintf(fptr, "\n//non top-level applytoeach under op:%d\n",child->parent->op);
-          //    break;
-          //  }
           case NODE_FUNC_CALL:
             printDECREF(fptr, child);
           break;
