@@ -3253,7 +3253,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         do{
           switch(child->valueType){
           case TypeSEQ:
-            assert(0); // TODO use the gentype(); 
+            gentypes(fptr, child);
+            //assert(0); // TODO use the gentype(); 
             break;
           case TypeFloat:
             fprintf(fptr, "F");
@@ -3320,9 +3321,12 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_APPLYBODY4:
     case GEN_APP3:
     case NODE_NEW_SEQ:
+    case PARAM_TUPLE:
+        printAddREF(fptr,node->string,node->valueType,node); 
+    break;
     case NODE_THENSTMT:
     case NODE_ELSESTMT:
-        printAddREF(fptr,node->string,node->valueType,node); 
+        printAddREF(fptr,node->string,node->valueType,node->typeNode); 
     break;
     //case NODE_FUNC_CALL:
     //    switch(node->parent->nodeType){

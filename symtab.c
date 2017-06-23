@@ -833,10 +833,11 @@ void typeAnalysis( struct nodeType *node){
         return;
       }else if(strcmp(node->child->string, "flatten") == 0){
         assert(RHS->valueType==TypeSEQ);
-        node->valueType = RHS->typeNode->child->valueType;
+        assert(RHS->typeNode->child->valueType == TypeSEQ);
+        node->valueType = TypeSEQ;
         //node->typeNode = RHS->typeNode->child;
-        node->typeNode = RHS->typeNode;
-        if(RHS->typeNode->typeNode) node->typeNode = RHS->typeNode->typeNode;
+        node->typeNode = RHS->typeNode->child;
+        //if(RHS->typeNode->child) node->typeNode = RHS->typeNode->child->child;
         return;
       }else if(strcmp(LHS->string, "max_index") == 0){
         node->valueType = TypeInt;

@@ -7,9 +7,46 @@
 #include "codegen.h"
 #define help(s) {printf("\thelp: %s\n",s);}
 
+int countlayers(struct nodeType *node){
+  int lcount=0;
+  int rcount=0;
+  switch(node->valueType){
+    case TypeInt:
+    case TypeFloat:
+    case TypeBool:
+    case TypeChar:
+      node->counts = 1;
+      return 1;
+    case TypeSEQ:
+      node->counts = 1+countlayers(node->typeNode->child);
+      return node->counts;
+    case TypeTuple:
+      node->counts = countlayers(node->typeNode->child) 
+        + countlayers(node->typeNode->child->rsibling);
+      return node->counts; 
+  } 
+}
+
 /*generate needed tuple structure*/
 void gentuple(FILE* fptr){
   struct nodeType *link;
+  /* sorting */
+  
+  for(int i =0; i<typeTable->size;i++){
+    link = typeTable->link[i];
+    countlayers(link);
+  }
+  for(int i =0; i<typeTable->size;i++){
+    for(int j =i+1; j<typeTable->size; j++){
+    if(typeTable->link[i]>typeTable->link[j]){
+      link = typeTable->link[j];
+      typeTable->link[j] = typeTable->link[i];
+      typeTable->link[i] = link;
+      }
+    }
+  }
+
+  /* generate */
   for(int i =0; i<typeTable->size;i++){
     link = typeTable->link[i];
     switch(link->valueType){
