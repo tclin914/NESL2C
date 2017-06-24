@@ -1,0 +1,6 @@
+function random_points(n) :(int)->[(float,float)]=
+let m = round(float(n)*4.0/pi);
+    points = {rand(i) - 1.0, rand(i) - 1.0: i in dist(2.0,m)};
+in {x,y in points | x^2 + y^2 < 1.0} ;
+
+time(random_points(100));

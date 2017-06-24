@@ -432,6 +432,19 @@ int atomicSub(int * a, int b){
   printf("\n"); \
 }while(0)
 
+#define print_STFF(src)do{\
+  int _i,_len;\
+  struct Pair_F e;\
+  _len = src.len;\
+  for(_i=0; _i<_len; _i++) { \
+    GET_ELEM_TFF(e, src, _i); \
+    printf("[ ");\
+    print_TFF(e);\
+    printf("], ");\
+  }\
+  printf("\n"); \
+}while(0)
+
 
 #define print_SEQ_PAIR_F(src)do{\
   int _i,_len;\

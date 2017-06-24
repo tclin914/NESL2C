@@ -1182,9 +1182,33 @@ void printDECREF(FILE *fptr, struct nodeType *node){
     fprintf(fptr, "(%s);\n", node->string);
     break;}
   case TypeTuple:{
+    struct nodeType *typenode = node;
     struct nodeType *LHS,*RHS;
-    LHS=node->child;
-    RHS= LHS->rsibling;
+    //if(node->typeNode) typenode = node->typeNode;
+    //if(typenode->child){
+    //LHS= typenode->child;
+    //RHS= LHS->rsibling;
+    //}
+    //else{
+      struct nodeType *nL  = newNode(NODE_TOKEN);
+      struct nodeType *nR  = newNode(NODE_TOKEN);
+      //char name[100];
+      typenode = node->typeNode;
+      nL->valueType = typenode->child->valueType;
+      nL->typeNode = typenode->child->typeNode;
+      nR->valueType = typenode->child->rsibling->valueType;
+      nR->typeNode = typenode->child->rsibling->typeNode;
+      nL->string = malloc(sizeof(char)*100);
+      nR->string = malloc(sizeof(char)*100);
+      sprintf(nL->string, "%s.a",node->string);
+      sprintf(nR->string, "%s.b",node->string);
+      LHS=nL;
+      RHS=nR;
+      //addChild(node, nL);
+      //addChild(node, nR);
+      //LHS= node->child;
+      //RHS= LHS->rsibling;
+    //}
     switch (LHS->valueType){
       case TypeSEQ:
       case TypeTuple:{
@@ -1264,8 +1288,13 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
           {
           switch(child->parent->nodeType){
             case NODE_NESL:
-              fprintf(fptr, "\n//here\n");
-              printDECREF(fptr, child);
+              fprintf(fptr, "//here\n");
+              
+              if(child->valueType==TypeTuple){
+                fprintf(fptr, "//its a tuple:%s\n",child->string);
+                printDECREF(fptr, child);
+              }
+              else printDECREF(fptr, child);
               if(containArray(child->child->rsibling)){
               //DecRefCountForContainedArray(fptr, child->child->rsibling);
               }
@@ -1279,7 +1308,7 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         case PARAM_TUPLE:{
           struct nodeType *LHS = child->child;
           struct nodeType *RHS = child->child->rsibling;
-            //FIXME: only print once and recycle too early.
+            //FIXME: only print once and might recycle too early.
             if(containArray(LHS)) {
               //DecRefCountForContainedArray(fptr, LHS);
               if(LHS->valueType == TypeSEQ)

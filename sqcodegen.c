@@ -2794,7 +2794,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       fprintf(fptr, "_t2 = CLOCK();\n");
 
       fprintf(fptr, "diff = ((float)(_t2 - _t1) / CLOCKSPEED);\n");
-      fprintf(fptr, "tm = diff;\n");
+      //fprintf(fptr, "tm = diff;\n");
       int count =0;
       while(!RHS->string && count<10) {RHS=RHS->child; count++;}
       //FIXME dirty
@@ -2806,7 +2806,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       #endif
       fprintf(fptr, "%s.a = %s;\n", node->string, RHS->string);
       RHS=LHS->rsibling;
-      fprintf(fptr, "%s.b = tm;\n", node->string);
+      fprintf(fptr, "%s.b = diff;\n", node->string);
       fprintf(fptr, "}//end of function time(...)\n");
 
     }else if(strcmp(node->child->string, "rand")==0){
