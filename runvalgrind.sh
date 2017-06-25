@@ -17,5 +17,5 @@ gcc $input -lm -g -o $exename
 #gcc $outputname -lm -o $exenameO3 -O3
 #echo $outputname
 #echo $exename
-valgrind ./$exename
+valgrind --leak-check=full  --track-origins=yes ./$exename 
 #./$exenameO3
