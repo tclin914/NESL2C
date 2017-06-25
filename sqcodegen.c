@@ -3324,6 +3324,15 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case PARAM_TUPLE:
         printAddREF(fptr,node->string,node->valueType,node); 
     break;
+    case NODE_OP:
+      switch(node->op){
+      case OP_PP:
+        printAddREF(fptr,node->string,node->valueType,node); 
+      break;
+      default:
+      break; 
+      }
+    break;
     case NODE_THENSTMT:
     case NODE_ELSESTMT:
         printAddREF(fptr,node->string,node->valueType,node->typeNode); 

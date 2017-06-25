@@ -867,6 +867,6 @@ bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
   }else{
     printf("###ERROR###\tVerify FAILED!\n");
   }
-  DECREF_SEQ_PAIR_F(H_Points);
+  //DECREF_SEQ_PAIR_F(H_Points);
   return allCorrect;
 }
