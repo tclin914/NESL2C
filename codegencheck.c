@@ -69,12 +69,15 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
   case TypeTuple:{
     struct nodeType *Lchild = node->child;
     struct nodeType *Rchild = Lchild->rsibling;
-    while(Lchild->nodeType==NODE_PAIR) Lchild=Lchild->child;
-    while(Rchild->nodeType==NODE_PAIR) Rchild=Rchild->child;
+    assert(node->nodeType!=NODE_PAIR);
+    assert(Lchild->nodeType != NODE_PAIR);
+    assert(Rchild->nodeType != NODE_PAIR);
+     
     if(containArray(Lchild)){
       assert(Lchild->string);
       printAddREF(fptr, Lchild->string, Lchild->valueType, Lchild);
     }
+    
     if(containArray(Rchild)){
       assert(Rchild->string);
       printAddREF(fptr, Rchild->string, Rchild->valueType, Rchild);
@@ -1154,6 +1157,25 @@ void printDECREF(FILE *fptr, struct nodeType *node){
     struct nodeType *loopme;
     int types;
     loopme = node->typeNode->child;
+    
+    /*VVVVV added for debuging */
+    //struct nodeType* typer = node->child;
+    //if(node->typeNode){
+    //  typer = node->child;
+    //  if(node->typeNode->child){
+    //    typer = node->typeNode->child;
+    //    if(node->typeNode->child->typeNode){
+    //      typer = node->typeNode->child->typeNode;
+    //      //if(node->typeNode->child->typeNode->child){
+    //      //  typer = node->typeNode->child->typeNode->child;
+    //      //}
+    //    }
+    //  }
+    //}
+    //fprintf(fptr, "printf(\"***DECREF refcnt:%s:%cd\\n\",*REFCNT(%s,",node->string,'%',node->string); 
+    //printtype(fptr, typer);
+    //fprintf(fptr, "));\n"); 
+    /*^^^^^ added for debuging */
 
     fprintf(fptr, "DECREF_SEQ_");
     int x=0;
@@ -1284,26 +1306,32 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         case NODE_FUNC_CALL:
           if(child->child->rsibling->nodeType == NODE_APPLYBODY2)
             fprintf(fptr, "\n //burn it up\n");
-          else
-          {
-          switch(child->parent->nodeType){
+          else{
+            switch(child->parent->nodeType){
             case NODE_NESL:
               fprintf(fptr, "//here\n");
-              
+
               if(child->valueType==TypeTuple){
                 fprintf(fptr, "//its a tuple:%s\n",child->string);
                 printDECREF(fptr, child);
               }
               else printDECREF(fptr, child);
               if(containArray(child->child->rsibling)){
-              //DecRefCountForContainedArray(fptr, child->child->rsibling);
+                //DecRefCountForContainedArray(fptr, child->child->rsibling);
               }
-            break;
+              break;
+            case NODE_BIND:
+              {
+                struct SymTableEntry *entry;
+                entry = findSymbol(child->parent->table, child->child->string, REFERENCE);
+                assert(entry);
+                assert(entry->isParam++);
+              }
+              break;
             default:
-            break;
+              break;
+            }
           }
-          }
-          
           break;
         case PARAM_TUPLE:{
           struct nodeType *LHS = child->child;

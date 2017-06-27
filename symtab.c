@@ -552,10 +552,15 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_LET:{
+      struct nodeType *RHS= node->child->rsibling;
       typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
+      RHS = removePair(RHS);
+      node->child->rsibling = RHS;
+      RHS->rsibling = node->child;
       node->valueType = node->child->rsibling->valueType;
       node->typeNode = node->child->rsibling->typeNode;
+      
       break;
     }
     case NODE_BIND:{
@@ -836,7 +841,7 @@ void typeAnalysis( struct nodeType *node){
         assert(RHS->typeNode->child->valueType == TypeSEQ);
         node->valueType = TypeSEQ;
         //node->typeNode = RHS->typeNode->child;
-        node->typeNode = RHS->typeNode->child;
+        node->typeNode = RHS->typeNode->child->typeNode;
         //if(RHS->typeNode->child) node->typeNode = RHS->typeNode->child->child;
         return;
       }else if(strcmp(LHS->string, "max_index") == 0){

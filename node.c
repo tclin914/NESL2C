@@ -177,6 +177,10 @@ void printTree(struct nodeType *node, int ident) {
             printf("%sSEQTAIL\n", blank);
             ident++;
             break;
+        case NODE_LETRET:
+            printf("%sLETRET\n", blank);
+            ident++;
+            break;
         case NODE_LET:
             printf("%sEXP_LET\n", blank);
             ident++;

@@ -151,10 +151,12 @@ int atomicSub(int * a, int b){
 
 /* We need the element type of the sub sequence so that we can increase the reference count */
 #define SET_ELEM_SEQ_TFF(elm, arr, idx) do { \
-  int _refcnt = atomicAdd(REFCNT(elm, struct TFF), 1); \
+  /*int _refcnt = atomicAdd(REFCNT(elm, struct TFF), 1);*/ \
+  int _refcnt = *REFCNT(elm, struct TFF); \
   assert(_refcnt > 0); \
   ((struct Sequence*)arr.ptr)[idx] = elm; \
 } while(0)
+
 #define SET_ELEM_SEQ_PAIR_F(elm, arr, idx) do { \
   int _refcnt = atomicAdd(REFCNT(elm, struct Pair_F), 1); \
   assert(_refcnt > 0); \
@@ -307,7 +309,9 @@ int atomicSub(int * a, int b){
     } \
     _numCopied += _s.len; \
     _i++; \
-  }} while(0)
+  }\
+  atomicAdd(REFCNT(res, type),1);\
+  } while(0)
 
 /* sequential version FILTER_1*/
 #define FILTER_1(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, predExpr) do { \
@@ -499,6 +503,7 @@ int atomicSub(int * a, int b){
   for(_disti=0; _disti<p2; _disti++) { \
     SET_ELEM_F(p1, res, _disti);\
   }\
+  atomicAdd(REFCNT(res, float),1);\
 }while(0)
 
 
@@ -764,7 +769,8 @@ struct Sequence  random_points_seed(int  n){
       int _len;
       int _i;
       NESLDIST_F(fcl13,2.000000,m);
-      atomicAdd(REFCNT(fcl13, float),1);
+      //atomicAdd(REFCNT(fcl13, float),1);
+      printf("makerandom fcl13:%d\n",*REFCNT(fcl13, float));
       MALLOC(app4,fcl13.len,struct Pair_F);
       _len = app4.len;
 #pragma pf parallel_rr
@@ -803,17 +809,15 @@ struct Sequence  random_points_seed(int  n){
     points = app4;
     //end of OP_BIND
     {
-      float x;
-      float y;
       struct Pair_F tmp15;
-      x=tmp15.a;
-      y=tmp15.b;
       FILTER_TUPLE_1(app5, tmp15,x, y,float, float,
                      struct Pair_F, PAIR_F,
                      points, tmp15,  struct Pair_F, PAIR_F,
                      ( pow( x ,  2  ) +  pow( y ,  2  ) <  1.000000 ));
     }
+    atomicAdd(REFCNT(app5, struct Pair_F),1);
     let5 = app5;
+    
     //DEBUG LETRETrefaddcount:0
     //end of LETRET
     //DEBUG LETrefaddcount:1
@@ -824,6 +828,7 @@ struct Sequence  random_points_seed(int  n){
   return _res;
 
 }
+
 bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
   bool allCorrect = true;
   struct Sequence H_Points;
@@ -831,6 +836,7 @@ bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
   int numHullPoints;
   seed=123456789;
   H_Points = random_points_seed(numPoints);
+  printf("refcnt H_Points :%d\n", *REFCNT(H_Points, struct Pair_F));
   numHullPoints = H_Hull.len;
   hullXs = (float*)H_Hull.ptr;
   hullYs = ((float*)H_Hull.ptr)+H_Hull.cap;
@@ -838,8 +844,12 @@ bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
   ys = ((float*)H_Points.ptr)+H_Points.cap, H_Points.len;
   int i;
   for(i=0; i<numHullPoints; i++) {
-    struct Pair_F p = {hullXs[i], hullYs[i]};
-    struct Pair_F q = {hullXs[i+1<numHullPoints ? i+1 : 0], hullYs[i+1<numHullPoints ? i+1 : 0]};
+    struct Pair_F p;
+    p.a= hullXs[i];
+    p.b = hullYs[i];
+    struct Pair_F q;
+    q.a = hullXs[i+1<numHullPoints ? i+1 : 0];
+    q.b = hullYs[i+1<numHullPoints ? i+1 : 0];
 
     int j;
     if((p.a)*(p.a)+(p.b)*(p.b) > 1) {
@@ -853,7 +863,9 @@ bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
     }
 
     for(j=0; j<numPoints; j++) {
-      struct Pair_F pt = {xs[j], ys[j]};
+      struct Pair_F pt;
+      pt.a = xs[j];
+      pt.b = ys[j];
       float dist = (p.a-pt.a)*(q.b-pt.b) - (p.b-pt.b)*(q.a-pt.a);
       if(dist > 0) {
         printf("Wrong result: (%f,%f) is outside (%f,%f), (%f,%f), dist: %f\n",
@@ -867,6 +879,6 @@ bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
   }else{
     printf("###ERROR###\tVerify FAILED!\n");
   }
-  //DECREF_SEQ_PAIR_F(H_Points);
+  DECREF_SEQ_PAIR_F(H_Points);
   return allCorrect;
 }

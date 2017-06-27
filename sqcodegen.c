@@ -2895,6 +2895,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         break;
       }
       
+      fprintf(fptr, "//add refcnt inside header file\n");
       fprintf(fptr, "FLATTEN(");
       
       switch(param->nodeType){
@@ -3321,6 +3322,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_APPLYBODY4:
     case GEN_APP3:
     case NODE_NEW_SEQ:
+    //case NODE_LET:
     case PARAM_TUPLE:
         printAddREF(fptr,node->string,node->valueType,node); 
     break;
@@ -3332,6 +3334,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       default:
       break; 
       }
+    break;
+    case NODE_LETRET:
+        printAddREF(fptr,node->string, node->valueType, node->child); 
     break;
     case NODE_THENSTMT:
     case NODE_ELSESTMT:
