@@ -600,11 +600,6 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
 
-    case NODE_PATTERN:{
-      assert(0);
-      typeAnalysis(node->child);
-      node->valueType = node->child->valueType;
-      break;}
     case NODE_ASSIGN:{
         struct nodeType *LHS= node->child;
         struct nodeType *RHS=LHS->rsibling;
