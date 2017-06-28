@@ -132,6 +132,10 @@
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
               TypeSEQ, TypeTuple};
 
-
+struct DataType{
+  enum StdType type;
+  struct DataType* child1;
+  struct DataType* child2;
+};
 
 #endif

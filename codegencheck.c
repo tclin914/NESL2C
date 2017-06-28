@@ -65,6 +65,9 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
     default:
       assert(0);
     }
+    fprintf(fptr, "printf(\"refcnt:%s:%cd\\n\",*REFCNT(%s,",string,'%',string);
+    printtype(fptr, typer);
+    fprintf(fptr, "));\n");
     break;
   case TypeTuple:{
     struct nodeType *Lchild = node->child;
