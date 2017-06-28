@@ -314,12 +314,10 @@ int insertapp(struct nodeType* node){
   struct SymTable *tmp = node->table;
   for(int i =0; i<=MAX; i++){
     if(appindex[i] ==0){
-      if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = node->table->parent;
       sprintf(varname, "app%d",i);
       addVariable(varname, node->valueType, node,REFERENCE);
       appindex[i]=1;
-      if(node->nodeType==NODE_APPLYBODY3||node->nodeType==NODE_APPLYBODY2)
         node->table = tmp;
       return i;
     }else if(i==MAX) return -1;
@@ -473,8 +471,8 @@ void pfcheck(struct nodeType* node){
     while(LHS->nodeType == NODE_PAIR) LHS= LHS->child;
     switch(RHS->nodeType){
     case NODE_APPLYBODY1:
-      abort();
-      // not implement
+      pfcheck(RHS);
+      node->isparallel_rr = RHS->isparallel_rr;
       break;
     case NODE_APPLYBODY2:
       // {action: RBINDS}
@@ -513,7 +511,8 @@ void pfcheck(struct nodeType* node){
       }
       return;  
     case NODE_APPLYBODY4:
-      abort();// not implemented
+      pfcheck(RHS);
+      node->isparallel_rr = RHS->isparallel_rr;
       break;
     case NODE_TUPLE: //RHS->tuple
       RHS->nodeType = RHS_TUPLE;
@@ -708,6 +707,23 @@ void pfcheck(struct nodeType* node){
     pfcheck(node->child->rsibling);
     break;
   }
+  case NODE_APPLYBODY1:
+    {
+    node->isEndofFunction = node->parent->isEndofFunction;
+
+    pfcheck(node->child);
+
+    node->needcounter = 1;
+    node->isparallel_rr = 1;
+    if(!findSymbol(node->table,"_len", FORCEDECLARE))
+      addVariable("_len", TypeInt, node, FORCEDECLARE);
+    if(!findSymbol(node->table,"_i", FORCEDECLARE))
+      addVariable("_i", TypeInt, node, FORCEDECLARE);
+    int idx = insertapp(node); 
+    node->string = malloc(sizeof(char)*100);
+    sprintf(node->string, "app%d",idx);
+    break;
+
   case NODE_APPLYBODY2:{
     node->isEndofFunction = node->parent->isEndofFunction;
 
@@ -741,12 +757,29 @@ void pfcheck(struct nodeType* node){
     node->needcounter = node->child->needcounter;
     node->isparallel_rr = node->child->isparallel_rr;
     if(node->parent->op!=NODE_ASSIGN){
-      int idx = insertapp(node); 
+      int idx = insertapp(node);
       node->string = malloc(sizeof(char)*100);
       sprintf(node->string, "app%d",idx);
     }
     break;
   }
+  case NODE_APPLYBODY4:
+  {
+    node->isEndofFunction = node->parent->isEndofFunction;
+    pfcheck(node->child->rsibling);
+    pfcheck(node->child->lsibling);
+    node->child->infilter =1;
+    pfcheck(node->child);
+    node->needcounter = node->child->needcounter;
+    node->isparallel_rr = node->child->isparallel_rr;
+    if(node->parent->op!=NODE_ASSIGN){
+      int idx = insertapp(node);
+      node->string = malloc(sizeof(char)*100);
+      sprintf(node->string, "app%d",idx);
+    }
+    break;
+  }
+  break;
   case NODE_FUNC_CALL:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = LHS->rsibling;

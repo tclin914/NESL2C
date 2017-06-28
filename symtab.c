@@ -925,6 +925,7 @@ void typeAnalysis( struct nodeType *node){
     case NODE_APPLYBODY1:{
       typeAnalysis(node->child);
       node->valueType = TypeSEQ;
+      node->typeNode = node->child->child->child->rsibling;
       break;
     }
     case NODE_APPLYBODY2:{
@@ -946,10 +947,11 @@ void typeAnalysis( struct nodeType *node){
       break;
     }
     case NODE_APPLYBODY4:{
-      typeAnalysis(node->child);
       typeAnalysis(node->child->rsibling);
       typeAnalysis(node->child->lsibling);
+      typeAnalysis(node->child);
       node->valueType = TypeSEQ;
+      node->typeNode = node->child->rsibling->child->child->rsibling->typeNode;
       assert(node->child->lsibling->valueType == TypeBool);
       break;
     }

@@ -1960,9 +1960,185 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
   }// end of NODE_NEW_SEQ
 
-  case NODE_APPLYBODY1:
-    abort();
+  case NODE_APPLYBODY1:{
+    struct nodeType *LHS = node->child;
+    struct nodeType *RBINDS = LHS;
+    struct nodeType *rbchild = RBINDS->child;
+    struct nodeType *varchild = rbchild->child;
+    struct nodeType *arrchild = varchild->rsibling;
+    int refaddcount=0;
+    int forlooprefaddcount=0;
+
+    //open scope
+    fprintf(fptr, "{\n");
+    dumpTable(fptr, node);
+
+    /*generate the src arrays.*/
+    refaddcount = refTable.size;
+    //sqcodegen(fptr, SRCARR);
+    do{
+      arrchild = rbchild->child->rsibling;
+      if(arrchild->nodeType!=NODE_TOKEN)
+        sqcodegen(fptr, arrchild);
+      rbchild = rbchild->rsibling;
+    }while(rbchild!=RBINDS->child);
+
+    refaddcount = refTable.size-refaddcount; 
+
+    /* allocate the dest array.*/
+    fprintf(fptr, "MALLOC(%s,%s.len,",node->string, arrchild->string);
+    
+    switch(varchild->valueType){
+    case TypeInt:
+      fprintf(fptr, "int");
     break;
+    case TypeFloat:
+      fprintf(fptr, "float");
+    break;
+    case TypeBool:
+      fprintf(fptr, "bool");
+    break;
+    case TypeChar:
+      fprintf(fptr, "char");
+    break;
+    case TypeSEQ:
+      fprintf(fptr, "struct Sequence");
+    break;
+    case TypeTuple:
+      fprintf(fptr, "struct ");
+      gentypes(fptr,LHS);
+    break;
+    default:
+    assert(0);
+    break;
+    }
+    fprintf(fptr,");\n");
+
+    /* generate for loop */
+    forlooprefaddcount = refTable.size;
+    fprintf(fptr, "_len = %s.len;\n",node->string);
+    fprintf(fptr, "#pragma pf parallel_rr\n");
+    fprintf(fptr, "for (_i =0; _i <_len;_i++){\n");
+    dumpTable(fptr, node->child); 
+    /* get elem from src array.*/
+    do{
+      varchild = rbchild->child;
+      arrchild = rbchild->child->rsibling;
+      while(varchild->nodeType == NODE_PAIR) varchild = varchild->child;
+      switch(varchild->valueType){
+      case TypeInt:
+        fprintf(fptr, "GET_ELEM_I");
+        break;
+      case TypeFloat:
+        fprintf(fptr, "GET_ELEM_F");
+        break;
+      case TypeSEQ:
+      //TODO
+        fprintf(fptr, "GET_ELEM_SEQ");
+        switch(varchild->typeNode->child->valueType){
+        case TypeInt:
+        fprintf(fptr, "_I");
+        break;
+        case TypeFloat :
+        fprintf(fptr, "_F");
+        break;
+        default:
+        assert(0); //TODO
+        }
+        break;
+      case TypeTuple:
+      //TODO
+        fprintf(fptr, "GET_ELEM_");
+        gentypes(fptr, varchild);
+        break;
+      default:
+        assert(0);
+        break;
+      }
+      assert(varchild->string);
+      fprintf(fptr, "(%s,%s,_i);\n",varchild->string,arrchild->string);
+      if(varchild->nodeType == RB_TUPLE){
+        sqcodegen(fptr,varchild);
+      }
+      rbchild= rbchild->rsibling;
+    }while(rbchild!=RBINDS->child);
+
+    switch(varchild->valueType){
+    case TypeInt:
+      fprintf(fptr, "SET_ELEM_I");
+      break;
+    case TypeFloat:
+      fprintf(fptr, "SET_ELEM_F");
+      break;
+    case TypeSEQ:{
+      int x=0;
+      struct nodeType *loopme = varchild->typeNode->child;
+      fprintf(fptr, "SET_ELEM_SEQ");
+      while(loopme->valueType == TypeSEQ){
+        fprintf(fptr,"_SEQ");
+        loopme = loopme->typeNode->child;
+        if(x++==10) abort();
+        }
+      switch(loopme->valueType){
+      case TypeInt:
+        fprintf(fptr, "_I");
+        break;
+      case TypeFloat:
+        fprintf(fptr, "_F");
+        break;
+      case TypeTuple:
+        fprintf(fptr, "_");
+        gentypes(fptr, loopme->typeNode);
+        break;
+      }
+    break;}
+    case TypeTuple:
+      fprintf(fptr, "SET_ELEM_");
+      gentypes(fptr, varchild->typeNode);
+    //TODO
+    //assert(0);
+    break;
+    default:
+      assert(0);
+      break;
+    }
+    fprintf(fptr, "(%s,%s,_i);\n", varchild->string, node->string);
+    forlooprefaddcount = refTable.size - forlooprefaddcount;
+#ifdef DEBUG
+    fprintf(fptr,"//DEBUG forlooprefaddcount:%d\n",forlooprefaddcount);
+#endif
+    ////DECREF(fptr,forlooprefaddcount);
+    if(containArray(varchild)) {
+      fprintf(fptr, "\n//app1 release(%s); %d\n", varchild->string, varchild->nodeType);
+      printDECREF(fptr,varchild);
+    }
+    fprintf(fptr, "}\n");// close for
+    /* release the arrchilds */
+    do{
+      arrchild = rbchild->child->rsibling;
+      if(containArray(arrchild)){
+        //sqcodegen(fptr, arrchild);
+        if(arrchild->nodeType!=NODE_TOKEN){
+          fprintf(fptr, "\n//release arrchild :%s , nodeType:%d\n", arrchild->string, arrchild->nodeType);
+          printDECREF(fptr, arrchild);
+        }
+      }
+      else assert(0);
+      rbchild = rbchild->rsibling;
+    }while(rbchild!=RBINDS->child);
+
+
+
+#if DEBUG
+    fprintf(fptr,"//DEBUG refaddcount:%d\n",refaddcount);
+#endif
+    //DECREF(fptr,refaddcount);
+    //node->typeNode = node->child;
+    //printAddREF(fptr, node->string, node->valueType, node);
+    fprintf(fptr, "}\n");//close scope
+
+    break;
+  }
 
   case NODE_ACTION_TUPLE:{
     // FIXME support no nested situation.
@@ -2304,7 +2480,14 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     struct nodeType *SRCARR = FREVAR->rsibling;
     struct nodeType *FILTER = RBINDS->rsibling; // TODO remove the pair in yacc.
     fprintf(fptr, "{\n");
-    //dumpTable(fptr, node);
+    dumpTable(fptr, node);
+    switch(SRCARR->nodeType){
+      case NODE_TOKEN:
+      break;
+      default:
+      sqcodegen(fptr, SRCARR);
+      break;
+    }
     switch(FREVAR->nodeType){
       case RB_TUPLE:
         //sqcodegen(fptr,FREVAR);
@@ -2331,10 +2514,22 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         gentypes(fptr, node->typeNode->child);
         fprintf(fptr, ",\n ");
         break; 
+      case TypeFloat:
+        fprintf(fptr, "float , F,\n");
+      break;
+      case TypeInt:
+        fprintf(fptr, "int , I,\n");
+      break;
+      case TypeBool:
+        fprintf(fptr, "bool , B,\n");
+      break;
+      case TypeChar:
+        fprintf(fptr, "char , C,\n");
+      break;
       default:
         assert(0);//not implement;
       }
-      break;
+    break;
     default: 
       assert(0); // not implement;
     }
@@ -2391,10 +2586,135 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     break;
   }
 
-  case NODE_APPLYBODY4:
-    assert(0);
-    break;
+  case NODE_APPLYBODY4:{
+    // body+rbind+filter
+    struct nodeType *LHS = node->child;
+    struct nodeType *RBINDS = LHS->rsibling;
+    struct nodeType *rbchild = RBINDS->child;
+    struct nodeType *FREVAR = rbchild->child;
+    struct nodeType *SRCARR = FREVAR->rsibling;
+    struct nodeType *FILTER = RBINDS->rsibling; // TODO remove the pair in yacc.
+    fprintf(fptr, "{\n");
+    dumpTable(fptr, node);
+    switch(SRCARR->nodeType){
+      case NODE_TOKEN:
+      break;
+      default:
+      sqcodegen(fptr, SRCARR);
+      break;
+    }
+    switch(FREVAR->nodeType){
+      case RB_TUPLE:
+        assert(0); // TODO complex body should be transformed as a function.
+        //sqcodegen(fptr,FREVAR);
+        fprintf(fptr, "FILTER_TUPLE_%d(%s, %s,", 
+                    RBINDS->counts,node->string, FREVAR->string);
+        // FIXME dirtyway
+        fprintf(fptr, "%s, %s,", FREVAR->child->string, FREVAR->child->rsibling->string);
+        printtype(fptr, FREVAR->child);
+        fprintf(fptr, ", ");
+        printtype(fptr, FREVAR->child->rsibling);
+        fprintf(fptr, ",\n");
+        break;
+      default:
+        // generate FILTER
+        fprintf(fptr, "FILTER_%d(%s, ",RBINDS->counts,node->string );
+        
+        // generate body 
+        switch(LHS->nodeType){
+          case NODE_FUNC_CALL:
+          //TODO only simple FUNCTION call can be used.
+          assert(0);
+          break;
+          default:
+          sqcodegen(fptr, LHS);
+          fprintf(fptr, ", ");
+          break;
+        }
 
+        break;
+    }
+
+    switch(node->valueType){
+    case TypeSEQ:
+      switch(node->typeNode->child->valueType){
+      case TypeTuple:
+        printtype(fptr, node->typeNode->child);
+        fprintf(fptr, ", ");
+        gentypes(fptr, node->typeNode->child);
+        fprintf(fptr, ",\n ");
+        break; 
+      case TypeFloat:
+        fprintf(fptr, "float , F,\n");
+      break;
+      case TypeInt:
+        fprintf(fptr, "int , I,\n");
+      break;
+      case TypeBool:
+        fprintf(fptr, "bool , B,\n");
+      break;
+      case TypeChar:
+        fprintf(fptr, "char , C,\n");
+      break;
+      default:
+        assert(0);//not implement;
+      }
+    break;
+    default: 
+      assert(0); // not implement;
+    }
+
+    do{
+      while(FREVAR->nodeType == NODE_PAIR) FREVAR = FREVAR->child;
+      fprintf(fptr, "%s, %s, ", SRCARR->string, FREVAR->string);
+      switch(FREVAR->valueType){
+      case TypeSEQ:
+        switch(FREVAR->typeNode->child->valueType){
+        case TypeTuple:
+          assert(0);
+          break; 
+        default:
+          assert(0);//not implement;
+        }
+        break;
+      case TypeInt:
+        fprintf(fptr, " int, I,\n");
+        break;
+      case TypeFloat:
+        fprintf(fptr, " float, F,\n");
+        break;
+      case TypeTuple:
+        printtype(fptr, FREVAR->typeNode);
+        fprintf(fptr, ", ");
+        gentypes(fptr, FREVAR->typeNode);
+        fprintf(fptr, ",\n");
+        //assert(0);
+        break;
+      default: 
+        assert(0); // not implement;
+      }
+      rbchild = rbchild->rsibling;
+      FREVAR = rbchild->child;
+      SRCARR = FREVAR->rsibling;
+    }while(rbchild!=RBINDS->child);
+
+    fprintf(fptr, "(");
+    sqcodegen(fptr,FILTER->child);
+    fprintf(fptr, "));\n");
+    fprintf(fptr, "}\n"); 
+
+    //node->typeNode = FREVAR;
+    assert(node->typeNode); 
+ 
+    //FIXME dirty4ni~~
+    if(node->parent->nodeType == NODE_LETRET){
+      printf("boom\n");
+    }else{
+    //printAddREF(fptr, node->string, node->valueType, node);
+    }
+    
+    break;
+  }
   case NODE_RBINDS:
     //FIXME might have many children
     // has been done by the upper level apply-to-each.
