@@ -96,9 +96,17 @@ int atomicSub(int * a, int b){
 #define GET_ELEM_F(res, arr, idx) do { \
   res = ((float*)arr.ptr)[idx]; } while(0)
 
+#define GET_ELEM_TIF(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
+
 #define GET_ELEM_PAIR_IF(res, arr, idx) do { \
   res.a = ((int*)arr.ptr)[idx]; \
   res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
+
+#define GET_ELEM_TII(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((int*)arr.ptr)[arr.cap+idx]; } while(0)
 
 #define GET_ELEM_PAIR_I(res, arr, idx) do { \
   res.a = ((int*)arr.ptr)[idx]; \
@@ -130,6 +138,10 @@ int atomicSub(int * a, int b){
 
 #define SET_ELEM_PAIR(elm, arr, idx) do { \
   ((struct tuple*)arr.ptr)[idx] = elm; } while(0)
+
+#define SET_ELEM_TII(elm, arr, idx) do { \
+  ((int*)arr.ptr)[idx] = elm.a; \
+  ((int*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
 #define SET_ELEM_PAIR_I(elm, arr, idx) do { \
   ((int*)arr.ptr)[idx] = elm.a; \
@@ -193,6 +205,13 @@ int atomicSub(int * a, int b){
 
 #define DECREF_SEQ_F(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, float), 1);\
+  assert(_refcnt < 100); \
+  if(_refcnt == 1) { \
+    FREE(seq); \
+  }} while(0)
+
+#define DECREF_SEQ_TII(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct TII), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
@@ -389,6 +408,11 @@ int atomicSub(int * a, int b){
   printf("%f ",(float)a);   \
 }while(0) \
 
+#define print_TII(src) do{\
+  print_I((int)src.a);\
+  printf(", ");\
+  print_I((int)src.b);\
+}while(0)
 
 #define print_PAIR_I(src) do{\
   print_I((int)src.a);\
@@ -406,6 +430,21 @@ int atomicSub(int * a, int b){
   print_F((float)src.a);\
   printf(", ");\
   print_F((float)src.b);\
+}while(0)
+
+#define print_SEQ_TII(src)do{\
+  int _i,_len;\
+  struct Pair_I e;\
+  _len = src.len;\
+    printf("[ ");\
+  for(_i=0; _i<_len; _i++) { \
+    GET_ELEM_TII(e, src, _i); \
+    printf("( ");\
+    print_TII(e);\
+    printf("), ");\
+  }\
+    printf("] ");\
+  printf("\n"); \
 }while(0)
 
 #define print_SEQ_PAIR_I(src)do{\
