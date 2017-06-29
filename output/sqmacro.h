@@ -330,7 +330,7 @@ int atomicSub(int * a, int b){
     _i++; \
   }\
   atomicAdd(REFCNT(res, type),1);\
-  } while(0)
+} while(0)
 
 /* sequential version FILTER_1*/
 #define FILTER_1(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, predExpr) do { \
@@ -367,7 +367,7 @@ int atomicSub(int * a, int b){
     child1 = e1.a;\
     child2 = e1.b;\
     if(e1.a>100.0||e1.b>100.0||e1.a<-100.0||e1.b<-100.0)\
-          printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
+    printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
     _p = predExpr; \
     if(_p) { \
       typer _r = resExpr; \
@@ -389,7 +389,7 @@ int atomicSub(int * a, int b){
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     GET_ELEM_ ## typeMacro2(e2, s2, _i); \
     if(e1.a>100.0||e1.b>100.0||e1.a<-100.0||e1.b<-100.0)\
-      printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
+    printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
     _p = predExpr; \
     if(_p) { \
       typer _r = resExpr; \
@@ -436,14 +436,14 @@ int atomicSub(int * a, int b){
   int _i,_len;\
   struct Pair_I e;\
   _len = src.len;\
-    printf("[ ");\
+  printf("[ ");\
   for(_i=0; _i<_len; _i++) { \
     GET_ELEM_TII(e, src, _i); \
     printf("( ");\
     print_TII(e);\
     printf("), ");\
   }\
-    printf("] ");\
+  printf("] ");\
   printf("\n"); \
 }while(0)
 
@@ -451,14 +451,14 @@ int atomicSub(int * a, int b){
   int _i,_len;\
   struct Pair_I e;\
   _len = src.len;\
-    printf("[ ");\
+  printf("[ ");\
   for(_i=0; _i<_len; _i++) { \
     GET_ELEM_PAIR_I(e, src, _i); \
     printf("( ");\
     print_PAIR_I(e);\
     printf("), ");\
   }\
-    printf("] ");\
+  printf("] ");\
   printf("\n"); \
 }while(0)
 
@@ -552,7 +552,7 @@ int atomicSub(int * a, int b){
   assert(res.len == p2);\
   for(_disti=0; _disti<p2; _disti++) { \
     SET_ELEM_I(p1, res, _disti);\
-  atomicAdd(REFCNT(res, int),1);\
+    atomicAdd(REFCNT(res, int),1);\
   }\
 }while(0)
 
@@ -657,7 +657,7 @@ int isContiguousList(int start, int len, struct Sequence list){
     if(elm!=start+i){
       //printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
       noerror= 0;
-      }
+    }
   }
   if(noerror){
     printf("this is a Contiguous list.!\n");
@@ -670,7 +670,7 @@ struct Sequence genReverseList(int len){
   int i=0;
   MALLOC(res, len, int); 
   while(i<len){
-   SET_ELEM_I(len-i-1,res,i);
+    SET_ELEM_I(len-i-1,res,i);
     i++;
   }
   return res;
@@ -857,7 +857,7 @@ struct Sequence  random_points_seed(int  n){
     }
     atomicAdd(REFCNT(app5, struct Pair_F),1);
     let5 = app5;
-    
+
     //DEBUG LETRETrefaddcount:0
     //end of LETRET
     //DEBUG LETrefaddcount:1
@@ -915,7 +915,7 @@ bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
     }
   }
   if(allCorrect){
-  printf("Verify success!\n");
+    printf("Verify success!\n");
   }else{
     printf("###ERROR###\tVerify FAILED!\n");
   }

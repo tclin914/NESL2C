@@ -38,7 +38,7 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
       }
     }
   }
-  
+
   switch(type){
   case TypeSEQ:
     switch(typer->valueType){
@@ -47,21 +47,21 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
       break;
     case TypeInt:
       fprintf(fptr, "atomicAdd(REFCNT(%s, int),1);\n",string);
-    break;
+      break;
     case TypeFloat:
       fprintf(fptr, "atomicAdd(REFCNT(%s, float),1);\n",string);
-    break;
+      break;
     case TypeBool:
       fprintf(fptr, "atomicAdd(REFCNT(%s, bool),1);\n",string);
-    break;
+      break;
     case TypeChar:
       fprintf(fptr, "atomicAdd(REFCNT(%s, char),1);\n",string);
-    break;
+      break;
     case TypeTuple:
       fprintf(fptr, "atomicAdd(REFCNT(%s, ",string);
       printtype(fptr,typer); 
       fprintf(fptr, "),1);\n");
-    break;
+      break;
     default:
       assert(0);
     }
@@ -77,18 +77,18 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
     assert(node->nodeType!=NODE_PAIR);
     assert(Lchild->nodeType != NODE_PAIR);
     assert(Rchild->nodeType != NODE_PAIR);
-     
+
     if(containArray(Lchild)){
       assert(Lchild->string);
       printAddREF(fptr, Lchild->string, Lchild->valueType, Lchild);
     }
-    
+
     if(containArray(Rchild)){
       assert(Rchild->string);
       printAddREF(fptr, Rchild->string, Rchild->valueType, Rchild);
-      }
-    break;
     }
+    break;
+  }
   default:
     assert(0);
     break;
@@ -153,8 +153,8 @@ void DECREF(FILE* fptr,int n){
         // has different situation.
         struct nodeType *loopme;
         int types;
-          loopme = refTable.entries[i].link->typeNode;
-        
+        loopme = refTable.entries[i].link->typeNode;
+
         fprintf(fptr, "DECREF_SEQ");
         int x=0;
         while(loopme->valueType ==TypeSEQ){
@@ -169,9 +169,9 @@ void DECREF(FILE* fptr,int n){
           break;
         case TypeFloat:
           fprintf(fptr, "_F");
-        break;
+          break;
         default:
-        assert(0); //not implement
+          assert(0); //not implement
         }
         fprintf(fptr, "(%s);\n", refTable.entries[i].name);
         break;}
@@ -319,11 +319,11 @@ int insertapp(struct nodeType* node){
   struct SymTable *tmp = node->table;
   for(int i =0; i<=MAX; i++){
     if(appindex[i] ==0){
-        node->table = node->table->parent;
+      node->table = node->table->parent;
       sprintf(varname, "app%d",i);
       addVariable(varname, node->valueType, node,REFERENCE);
       appindex[i]=1;
-        node->table = tmp;
+      node->table = tmp;
       return i;
     }else if(i==MAX) return -1;
   }
@@ -351,23 +351,23 @@ void pfcheck(struct nodeType* node){
 
   case NODE_FUNC:{
     struct nodeType *inputParam = node->child;
-    
+
     node->isEndofFunction = 1;
     pfcheck(node->child->rsibling->rsibling);
     node->isparallel_rr = node->child->rsibling->rsibling->isparallel_rr;
-    
+
     if(node->isparallel_rr){
       struct SymTableEntry *entry = findSymbol(node->table,node->string, REFERENCE);
       assert(entry);
       entry->link->isparallel_rr = 1;
     }
-  
+
     switch(inputParam->nodeType){
     case NODE_TUPLE:
       inputParam->nodeType = FPARAM_TUPLE;
       inputParam->isParam=1;// only the top tmp var being noted.
       pfcheck(inputParam); 
-    break;
+      break;
     case NODE_TOKEN:
       inputParam->nodeType = FPARAM_TOKEN;
       break;
@@ -409,7 +409,7 @@ void pfcheck(struct nodeType* node){
       assert(0);
       break;
     }
-    
+
     break;
   }
   case NODE_IFELSE:{
@@ -590,11 +590,11 @@ void pfcheck(struct nodeType* node){
     case OP_ADD:{
 
       if(!node->infilter){
-      int index= insertadd(node);
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      sprintf(node->string, "add%d",index);
-      assert(node->string);
+        int index= insertadd(node);
+        assert(index!=-1);
+        node->string = malloc(sizeof(char)*100);
+        sprintf(node->string, "add%d",index);
+        assert(node->string);
       }
       pfcheck(LHS);
       pfcheck(RHS);
@@ -602,11 +602,11 @@ void pfcheck(struct nodeType* node){
     }case OP_SUB:{
 
       if(!node->infilter){
-      int index= insertsub(node);
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      sprintf(node->string, "sub%d",index);
-      assert(node->string);
+        int index= insertsub(node);
+        assert(index!=-1);
+        node->string = malloc(sizeof(char)*100);
+        sprintf(node->string, "sub%d",index);
+        assert(node->string);
       }
       pfcheck(LHS);
       pfcheck(RHS);
@@ -614,11 +614,11 @@ void pfcheck(struct nodeType* node){
     }case OP_MUL:{
 
       if(!node->infilter){
-      int index= insertmul(node);
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      sprintf(node->string, "mul%d",index);
-      assert(node->string);
+        int index= insertmul(node);
+        assert(index!=-1);
+        node->string = malloc(sizeof(char)*100);
+        sprintf(node->string, "mul%d",index);
+        assert(node->string);
       }
       pfcheck(LHS);
       pfcheck(RHS);
@@ -626,11 +626,11 @@ void pfcheck(struct nodeType* node){
     }case OP_DIV:{
 
       if(!node->infilter){
-      int index= insertdiv(node);
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      sprintf(node->string, "ddiv%d",index);
-      assert(node->string);
+        int index= insertdiv(node);
+        assert(index!=-1);
+        node->string = malloc(sizeof(char)*100);
+        sprintf(node->string, "ddiv%d",index);
+        assert(node->string);
       }
       pfcheck(LHS);
       pfcheck(RHS);
@@ -640,22 +640,22 @@ void pfcheck(struct nodeType* node){
     case OP_SHARP:{
 
       if(!node->infilter){
-      int index= inserttmp(node);
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      sprintf(node->string, "tmp%d",index);
-      assert(node->string);
+        int index= inserttmp(node);
+        assert(index!=-1);
+        node->string = malloc(sizeof(char)*100);
+        sprintf(node->string, "tmp%d",index);
+        assert(node->string);
       }
       pfcheck(LHS);
 
       break;}
     case OP_UPT:{
       if(!node->infilter){
-      int index= inserttmp(node);
-      assert(index!=-1);
-      node->string = malloc(sizeof(char)*100);
-      sprintf(node->string, "tmp%d",index);
-      assert(node->string);
+        int index= inserttmp(node);
+        assert(index!=-1);
+        node->string = malloc(sizeof(char)*100);
+        sprintf(node->string, "tmp%d",index);
+        assert(node->string);
       }
       pfcheck(LHS);
       pfcheck(RHS);     
@@ -714,21 +714,21 @@ void pfcheck(struct nodeType* node){
   }
   case NODE_APPLYBODY1:
     {
-    node->isEndofFunction = node->parent->isEndofFunction;
+      node->isEndofFunction = node->parent->isEndofFunction;
 
-    pfcheck(node->child);
+      pfcheck(node->child);
 
-    node->needcounter = 1;
-    node->isparallel_rr = 1;
-    if(!findSymbol(node->table,"_len", FORCEDECLARE))
-      addVariable("_len", TypeInt, node, FORCEDECLARE);
-    if(!findSymbol(node->table,"_i", FORCEDECLARE))
-      addVariable("_i", TypeInt, node, FORCEDECLARE);
-    int idx = insertapp(node); 
-    node->string = malloc(sizeof(char)*100);
-    sprintf(node->string, "app%d",idx);
-    break;  
-  }
+      node->needcounter = 1;
+      node->isparallel_rr = 1;
+      if(!findSymbol(node->table,"_len", FORCEDECLARE))
+        addVariable("_len", TypeInt, node, FORCEDECLARE);
+      if(!findSymbol(node->table,"_i", FORCEDECLARE))
+        addVariable("_i", TypeInt, node, FORCEDECLARE);
+      int idx = insertapp(node); 
+      node->string = malloc(sizeof(char)*100);
+      sprintf(node->string, "app%d",idx);
+      break;  
+    }
 
   case NODE_APPLYBODY2:{
     node->isEndofFunction = node->parent->isEndofFunction;
@@ -747,7 +747,7 @@ void pfcheck(struct nodeType* node){
     int idx = insertapp(node); 
     node->string = malloc(sizeof(char)*100);
     sprintf(node->string, "app%d",idx);
-    
+
     if(!node->child->string){
       node->child->string = malloc(sizeof(char)*100);
       strcpy(node->child->string, "tmp");
@@ -770,22 +770,22 @@ void pfcheck(struct nodeType* node){
     break;
   }
   case NODE_APPLYBODY4:
-  {
-    node->isEndofFunction = node->parent->isEndofFunction;
-    pfcheck(node->child->rsibling);
-    pfcheck(node->child->lsibling);
-    node->child->infilter =1;
-    pfcheck(node->child);
-    node->needcounter = node->child->needcounter;
-    node->isparallel_rr = node->child->isparallel_rr;
-    if(node->parent->op!=NODE_ASSIGN){
-      int idx = insertapp(node);
-      node->string = malloc(sizeof(char)*100);
-      sprintf(node->string, "app%d",idx);
+    {
+      node->isEndofFunction = node->parent->isEndofFunction;
+      pfcheck(node->child->rsibling);
+      pfcheck(node->child->lsibling);
+      node->child->infilter =1;
+      pfcheck(node->child);
+      node->needcounter = node->child->needcounter;
+      node->isparallel_rr = node->child->isparallel_rr;
+      if(node->parent->op!=NODE_ASSIGN){
+        int idx = insertapp(node);
+        node->string = malloc(sizeof(char)*100);
+        sprintf(node->string, "app%d",idx);
+      }
+      break;
     }
     break;
-  }
-  break;
   case NODE_FUNC_CALL:{
     struct nodeType *LHS = node->child;
     struct nodeType *RHS = LHS->rsibling;
@@ -811,11 +811,11 @@ void pfcheck(struct nodeType* node){
 
     entry = findSymbol(node->table, LHS->string, REFERENCE);
     if(entry){ 
-      
+
       /* annotation information*/
       if(entry->link->isparallel_rr) 
         node->isparallel_rr=1; 
-      
+
       /* link the signature with parameter */
       RHS->tuplenode = entry->link->child;
     }
@@ -843,7 +843,7 @@ void pfcheck(struct nodeType* node){
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
     sprintf(node->string, "tmp%d",index);
-    
+
     while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
     while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
     if(LHS->nodeType==NODE_TUPLE) LHS->nodeType = LHS_TUPLE;
@@ -859,7 +859,7 @@ void pfcheck(struct nodeType* node){
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
     sprintf(node->string, "tmp%d",index);
-    
+
     while(LHS->nodeType == NODE_PAIR) LHS=LHS->child;
     while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
     if(LHS->nodeType==NODE_TUPLE) LHS->nodeType = RHS_TUPLE;
@@ -873,7 +873,7 @@ void pfcheck(struct nodeType* node){
     int index = inserttmp(node);
     node->string = malloc(sizeof(char)*100);
     sprintf(node->string, "tmp%d",index);
-    
+
     node->inserttmp = 1;
     pfcheck(node->child);
     pfcheck(node->child->rsibling);
@@ -966,7 +966,7 @@ void pfcheck(struct nodeType* node){
     break;
   }
   case NODE_LETRET:{
-    
+
     //node->isEndofFunction = node->parent->isEndofFunction;
     pfcheck(node->child);
     if(node->child->isparallel_rr)
@@ -1106,13 +1106,13 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
 }
 
 void printDECREF(FILE *fptr, struct nodeType *node){
-  
+
   switch(node->valueType){
   case TypeSEQ:{
     struct nodeType *loopme;
     int types;
     loopme = node->typeNode->child;
-    
+
     /*VVVVV added for debuging */
     //struct nodeType* typer = node->child;
     //if(node->typeNode){
@@ -1167,46 +1167,46 @@ void printDECREF(FILE *fptr, struct nodeType *node){
     //RHS= LHS->rsibling;
     //}
     //else{
-      struct nodeType *nL  = newNode(NODE_TOKEN);
-      struct nodeType *nR  = newNode(NODE_TOKEN);
-      //char name[100];
-      typenode = node->typeNode;
-      nL->valueType = typenode->child->valueType;
-      nL->typeNode = typenode->child->typeNode;
-      nR->valueType = typenode->child->rsibling->valueType;
-      nR->typeNode = typenode->child->rsibling->typeNode;
-      nL->string = malloc(sizeof(char)*100);
-      nR->string = malloc(sizeof(char)*100);
-      sprintf(nL->string, "%s.a",node->string);
-      sprintf(nR->string, "%s.b",node->string);
-      LHS=nL;
-      RHS=nR;
-      //addChild(node, nL);
-      //addChild(node, nR);
-      //LHS= node->child;
-      //RHS= LHS->rsibling;
+    struct nodeType *nL  = newNode(NODE_TOKEN);
+    struct nodeType *nR  = newNode(NODE_TOKEN);
+    //char name[100];
+    typenode = node->typeNode;
+    nL->valueType = typenode->child->valueType;
+    nL->typeNode = typenode->child->typeNode;
+    nR->valueType = typenode->child->rsibling->valueType;
+    nR->typeNode = typenode->child->rsibling->typeNode;
+    nL->string = malloc(sizeof(char)*100);
+    nR->string = malloc(sizeof(char)*100);
+    sprintf(nL->string, "%s.a",node->string);
+    sprintf(nR->string, "%s.b",node->string);
+    LHS=nL;
+    RHS=nR;
+    //addChild(node, nL);
+    //addChild(node, nR);
+    //LHS= node->child;
+    //RHS= LHS->rsibling;
     //}
     switch (LHS->valueType){
-      case TypeSEQ:
-      case TypeTuple:{
-        printDECREF(fptr, LHS);
+    case TypeSEQ:
+    case TypeTuple:{
+      printDECREF(fptr, LHS);
       break;
-      }
-      default:{
-        // do nothing.
+    }
+    default:{
+      // do nothing.
       break;
-      }
+    }
     }
     switch (RHS->valueType){
-      case TypeSEQ:
-      case TypeTuple:{
-        printDECREF(fptr, RHS);
+    case TypeSEQ:
+    case TypeTuple:{
+      printDECREF(fptr, RHS);
       break;
-      }
-      default:{
-        // do nothing.
+    }
+    default:{
+      // do nothing.
       break;
-      }
+    }
     }
     break;
   }
@@ -1219,180 +1219,180 @@ void printDECREF(FILE *fptr, struct nodeType *node){
 
 void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
   switch(child->nodeType){
-        case NODE_OP:
-          switch(child->op){
-          case OP_SHARP:
-            if(child->parent->nodeType == NODE_NESL)
-              if(child->child->nodeType==NODE_TOKEN)
-              fprintf(fptr, "//opsharp\n");
-              //printDECREF(fptr,child->child);
-            break;
-          case OP_PP:
-            if(child->parent->nodeType == NODE_OP){
-              switch(child->parent->op){
-                case OP_PP:
-                  //printDECREF(fptr,child);
-                  fprintf(fptr,"\n//op_pp under op_pp\n");
-                break;
-                default: break;
-              }
-            } 
-            if(child->parent->nodeType == NODE_NESL){
-              printDECREF(fptr, child);
-            }
-            break;
-          default:
-                  fprintf(fptr,"\n//omg:op:%d\n",child->op);
-                  break;
-          }
-        break;
-        case NODE_FUNC:
-        break;
-        case NODE_SEQ_REF:
-        switch(child->parent->nodeType){
-            case NODE_NESL:
-              fprintf(fptr, "\n//here\n");
-              printDECREF(fptr, child);
-            break;
-            default:
-            break;
-          }
-        break;
-        case NODE_FUNC_CALL:
-          if(child->child->rsibling->nodeType == NODE_APPLYBODY2)
-            fprintf(fptr, "\n //burn it up\n");
-          else{
-            switch(child->parent->nodeType){
-            case NODE_NESL:
-              fprintf(fptr, "//here\n");
+  case NODE_OP:
+    switch(child->op){
+    case OP_SHARP:
+      if(child->parent->nodeType == NODE_NESL)
+        if(child->child->nodeType==NODE_TOKEN)
+          fprintf(fptr, "//opsharp\n");
+      //printDECREF(fptr,child->child);
+      break;
+    case OP_PP:
+      if(child->parent->nodeType == NODE_OP){
+        switch(child->parent->op){
+        case OP_PP:
+          //printDECREF(fptr,child);
+          fprintf(fptr,"\n//op_pp under op_pp\n");
+          break;
+        default: break;
+        }
+      } 
+      if(child->parent->nodeType == NODE_NESL){
+        printDECREF(fptr, child);
+      }
+      break;
+    default:
+      fprintf(fptr,"\n//omg:op:%d\n",child->op);
+      break;
+    }
+    break;
+  case NODE_FUNC:
+    break;
+  case NODE_SEQ_REF:
+    switch(child->parent->nodeType){
+    case NODE_NESL:
+      fprintf(fptr, "\n//here\n");
+      printDECREF(fptr, child);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NODE_FUNC_CALL:
+    if(child->child->rsibling->nodeType == NODE_APPLYBODY2)
+      fprintf(fptr, "\n //burn it up\n");
+    else{
+      switch(child->parent->nodeType){
+      case NODE_NESL:
+        fprintf(fptr, "//here\n");
 
-              if(child->valueType==TypeTuple){
-                fprintf(fptr, "//its a tuple:%s\n",child->string);
-                printDECREF(fptr, child);
-              }
-              else printDECREF(fptr, child);
-              if(containArray(child->child->rsibling)){
-                //DecRefCountForContainedArray(fptr, child->child->rsibling);
-              }
-              break;
-            case NODE_BIND:
-              {
-                struct SymTableEntry *entry;
-                entry = findSymbol(child->parent->table, child->child->string, REFERENCE);
-                assert(entry);
-                assert(entry->isParam++);
-              }
-              break;
-            default:
-              break;
-            }
-          }
-          break;
-        case PARAM_TUPLE:{
-          struct nodeType *LHS = child->child;
-          struct nodeType *RHS = child->child->rsibling;
-            //FIXME: only print once and might recycle too early.
-            if(containArray(LHS)) {
-              //DecRefCountForContainedArray(fptr, LHS);
-              if(LHS->valueType == TypeSEQ)
-                fprintf(fptr, "\n//clean the paramtuple\n");
-                printDECREF(fptr, LHS);
-            }
-            if(containArray(RHS)) {
-               if(LHS->valueType == TypeSEQ)
-                fprintf(fptr, "\n//clean the paramtuple\n");
-                printDECREF(fptr, RHS);
-               // DecRefCountForContainedArray(fptr, RHS);
-            }
-        break;  
-        }
-        case NODE_TOKEN:
-          //if(child->parent->nodeType == PARAM_TUPLE) {
-          //fprintf(fptr, "\n//oops\n");
-          //printDECREF(fptr, child);
-          //
-          //}
-        break;
-        case NODE_PATTERN:
-        case NODE_TUPLE:
-        case NODE_RBINDS:
-          break;
-        case NODE_PAIR:
-            fprintf(fptr, "\n//pair not removed\n");
-        break;
-        case NODE_IN:
-          switch(child->parent->nodeType){
-          case NODE_RBINDS:
-            printDECREF(fptr, child);
-            break;
-          default:
-            break;
-          }
-          break;
-        case NODE_NEW_SEQ:
-        case NODE_APPLYBODY1:
-        case NODE_APPLYBODY2:
-        case NODE_APPLYBODY3:
-        case NODE_APPLYBODY4:
-          switch(child->parent->nodeType){
-          case NODE_NESL:
-            //fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
-            printDECREF(fptr, child);
-            break;
-          case NODE_FUNC_CALL:
-            printDECREF(fptr, child);
-          break;
-          default:
-            printDECREF(fptr, child);
-            break;
-          }
-          break;
-        case NODE_LETRET:
-        {
-          struct nodeType *rbinds = child->child;
-          fprintf(fptr, "\n// free the children of rbinds.\n");
-          for(int i =0;i<child->table->size;i++){
-            if(child->table->entries[i].isParam == 2){
-              //fprintf(fptr, "// free %s .\n", child->table->entries[i].name);
-              printDECREF(fptr, child->table->entries[i].link);
-              child->table->entries[i].isParam -- ;
-            }
-          } 
-        break;
-        }
-        case GEN_APP3:
-        case NODE_ASSIGN:{
-          if(child->parent->nodeType == NODE_BIND){
-            struct SymTableEntry *entry;
-            entry = findSymbol(child->parent->table, child->child->string, REFERENCE);
-            assert(entry);
-            assert(entry->isParam++);
-          }
-          break;
-        }
-        case NODE_IFSTMT:
+        if(child->valueType==TypeTuple){
+          fprintf(fptr, "//its a tuple:%s\n",child->string);
           printDECREF(fptr, child);
-        break; 
-        case NODE_LET:
-          switch(child->parent->nodeType){
-
-          case NODE_TUPLE:
-          case PARAM_TUPLE:
-          case NODE_FUNC_CALL:
-          case NODE_FUNC:
-          case LHS_TUPLE:
-          case RHS_TUPLE:
-          case NODE_BIND:
-          case NODE_RBINDS:
-            break;
-          case NODE_NESL:
-          default:
-            fprintf(fptr, "\n//release(%s); %d %d\n", child->string, child->parent->nodeType, child->nodeType);
-            break;
-          }
-          break;
-        default:
-          fprintf(fptr, "\n//default child release(%s); %d %d\n", child->string, child->parent->nodeType, child->nodeType);
-          break;
         }
+        else printDECREF(fptr, child);
+        if(containArray(child->child->rsibling)){
+          //DecRefCountForContainedArray(fptr, child->child->rsibling);
+        }
+        break;
+      case NODE_BIND:
+        {
+          struct SymTableEntry *entry;
+          entry = findSymbol(child->parent->table, child->child->string, REFERENCE);
+          assert(entry);
+          assert(entry->isParam++);
+        }
+        break;
+      default:
+        break;
+      }
+    }
+    break;
+  case PARAM_TUPLE:{
+    struct nodeType *LHS = child->child;
+    struct nodeType *RHS = child->child->rsibling;
+    //FIXME: only print once and might recycle too early.
+    if(containArray(LHS)) {
+      //DecRefCountForContainedArray(fptr, LHS);
+      if(LHS->valueType == TypeSEQ)
+        fprintf(fptr, "\n//clean the paramtuple\n");
+      printDECREF(fptr, LHS);
+    }
+    if(containArray(RHS)) {
+      if(LHS->valueType == TypeSEQ)
+        fprintf(fptr, "\n//clean the paramtuple\n");
+      printDECREF(fptr, RHS);
+      // DecRefCountForContainedArray(fptr, RHS);
+    }
+    break;  
+  }
+  case NODE_TOKEN:
+    //if(child->parent->nodeType == PARAM_TUPLE) {
+    //fprintf(fptr, "\n//oops\n");
+    //printDECREF(fptr, child);
+    //
+    //}
+    break;
+  case NODE_PATTERN:
+  case NODE_TUPLE:
+  case NODE_RBINDS:
+    break;
+  case NODE_PAIR:
+    fprintf(fptr, "\n//pair not removed\n");
+    break;
+  case NODE_IN:
+    switch(child->parent->nodeType){
+    case NODE_RBINDS:
+      printDECREF(fptr, child);
+      break;
+    default:
+      break;
+    }
+    break;
+  case NODE_NEW_SEQ:
+  case NODE_APPLYBODY1:
+  case NODE_APPLYBODY2:
+  case NODE_APPLYBODY3:
+  case NODE_APPLYBODY4:
+    switch(child->parent->nodeType){
+    case NODE_NESL:
+      //fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
+      printDECREF(fptr, child);
+      break;
+    case NODE_FUNC_CALL:
+      printDECREF(fptr, child);
+      break;
+    default:
+      printDECREF(fptr, child);
+      break;
+    }
+    break;
+  case NODE_LETRET:
+    {
+      struct nodeType *rbinds = child->child;
+      fprintf(fptr, "\n// free the children of rbinds.\n");
+      for(int i =0;i<child->table->size;i++){
+        if(child->table->entries[i].isParam == 2){
+          //fprintf(fptr, "// free %s .\n", child->table->entries[i].name);
+          printDECREF(fptr, child->table->entries[i].link);
+          child->table->entries[i].isParam -- ;
+        }
+      } 
+      break;
+    }
+  case GEN_APP3:
+  case NODE_ASSIGN:{
+    if(child->parent->nodeType == NODE_BIND){
+      struct SymTableEntry *entry;
+      entry = findSymbol(child->parent->table, child->child->string, REFERENCE);
+      assert(entry);
+      assert(entry->isParam++);
+    }
+    break;
+  }
+  case NODE_IFSTMT:
+    printDECREF(fptr, child);
+    break; 
+  case NODE_LET:
+    switch(child->parent->nodeType){
+
+    case NODE_TUPLE:
+    case PARAM_TUPLE:
+    case NODE_FUNC_CALL:
+    case NODE_FUNC:
+    case LHS_TUPLE:
+    case RHS_TUPLE:
+    case NODE_BIND:
+    case NODE_RBINDS:
+      break;
+    case NODE_NESL:
+    default:
+      fprintf(fptr, "\n//release(%s); %d %d\n", child->string, child->parent->nodeType, child->nodeType);
+      break;
+    }
+    break;
+  default:
+    fprintf(fptr, "\n//default child release(%s); %d %d\n", child->string, child->parent->nodeType, child->nodeType);
+    break;
+  }
 }

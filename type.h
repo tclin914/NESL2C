@@ -130,7 +130,7 @@
 
 
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
-              TypeSEQ, TypeTuple};
+  TypeSEQ, TypeTuple};
 
 struct DataType{
   enum StdType type;
