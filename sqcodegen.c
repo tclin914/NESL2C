@@ -310,23 +310,11 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
 
       switch(RHS->nodeType){
       case NODE_APPLYBODY1:
+      case NODE_APPLYBODY2:
       case NODE_APPLYBODY3:
       case NODE_APPLYBODY4:
-        sqcodegen(fptr, RHS);
-        break;
-      case NODE_APPLYBODY2:
-        fprintf(fptr, "//BIND->APPBODY2\n");
-        sqcodegen(fptr, RHS);
-        fprintf(fptr, "//end of BIND->APPBODY2\n");
-
-        break;
       case NODE_FUNC_CALL:
-        sqcodegen (fptr,RHS);
-        break;
-      case NODE_TUPLE:
-        assert(0); // not likely happened.
-        break;
-      case NODE_TOKEN:
+        sqcodegen(fptr, RHS);
         break;
       case NODE_PAIR:{
         while(RHS->nodeType == NODE_PAIR) RHS=RHS->child;
@@ -334,7 +322,13 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         RHS= LHS->rsibling;
         break;}
       case NODE_INT:
-        
+      case NODE_FLOAT:
+      case NODE_BOOL:
+      case NODE_CHAR:
+      case NODE_TOKEN:
+      break;
+      case NODE_TUPLE:
+        assert(0); // not likely happened.
         break;
       default :
         sqcodegen(fptr, RHS);
