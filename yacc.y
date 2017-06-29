@@ -15,6 +15,8 @@
 #include "sqcodegen.h"
 #include "codegencheck.h"
 
+#define DECHEAD "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n"
+#define ENDOFMAIN "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\nmyFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n"
 int yydebug =1;
 int yyerror(const char *s);
 struct nodeType * newOpNode(int op); 
@@ -777,7 +779,7 @@ int main(int argc, char **argv){
             fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                                 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                                 tm.tm_hour, tm.tm_min, tm.tm_sec);
-            fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n");
+            fprintf(yyout, DECHEAD);
             //sqcheck(ASTRoot);
             pfcheck(ASTRoot);
         
@@ -791,12 +793,7 @@ int main(int argc, char **argv){
             fprintf(yyout, "int main(){\n");
             if (issrand)
                 fprintf(yyout, "srand(time(0));\n");
-            fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
-            fprintf(yyout, "myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
-
-
-            //pfcodegen(yyout, ASTRoot);
-            //codegen(yyout, ASTRoot);
+            fprintf(yyout, ENDOFMAIN);
             fclose(yyout);    
             break;
         }   
@@ -814,26 +811,19 @@ int main(int argc, char **argv){
           fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
-          fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pf/pf.h\"\n#include \"pfmacro.h\"\n");
-          //fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
-          //fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+          fprintf(yyout, DECHEAD);
           pfcheck(ASTRoot);
-          //refTable.size = 100;
           for (int i = 0; i < 100; i++){
               strcpy(refTable.entries[i].name, "");
           }
           // generate the needed tuple structures
           gentuple(yyout);
-          //pfcodegen(yyout, ASTRoot); 
           sqcodegen(yyout, ASTRoot); 
           fprintf(yyout, "}\n\n"); // end of myFunc();
           fprintf(yyout, "int main(){\n");
           if (issrand)
               fprintf(yyout, "srand(time(0));\n");
-          fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
-          fprintf(yyout, "myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
-
-
+          fprintf(yyout, ENDOFMAIN);
           fclose(yyout);
           break;
       }   
