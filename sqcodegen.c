@@ -3576,11 +3576,13 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_NEW_SEQ:
     //case NODE_LET:
     case PARAM_TUPLE:
+      fprintf(fptr, "//containArray(node):%d\n",node->nodeType);
         printAddREF(fptr,node->string,node->valueType,node); 
     break;
     case NODE_OP:
       switch(node->op){
       case OP_PP:
+      fprintf(fptr, "//containArray(node):%d\n",node->nodeType);
         printAddREF(fptr,node->string,node->valueType,node); 
       break;
       default:
@@ -3588,7 +3590,8 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }
     break;
     case NODE_LETRET:
-        printAddREF(fptr,node->string, node->valueType, node->child); 
+      fprintf(fptr, "//containArray(node):%d\n",node->nodeType);
+      printAddREF(fptr,node->string, node->valueType, node->child); 
     break;
     //case NODE_THENSTMT:
     //case NODE_ELSESTMT:
