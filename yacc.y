@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <getopt.h>
+#include <libgen.h>
+
 #include "lex.yy.c"
 #include "node.h"
 #include "symtab.h"
@@ -611,57 +614,99 @@ int yyerror(const char *s) {
     exit(0);
 }
 
-int main(int argc, char** argv){
-    
-    char *classname;
-    classname = (char*)malloc(sizeof(char)*100);
-    int usename=0; 
-    // extract the filename option from arguments.
-    // file.nesl -PF -
-    // 0th argument is ./NESL2C itself
-    assert(argc);
-    for(int i =0;i<argc;i++){ 
-        printf("%d: %s\n",i,argv[i]);
-        char c = argv[i][0];
-        printf("%c\n", c);
-        if(i >0){
-            //printf("%d:%c\n",i,argv[i][0]);
-            if(c== '-'){
-                // option flags.
-                if(!strcmp(argv[i], "-rev")){
-                    isrev = 1;
-                    printf("%d set rev\n",i);
-                }
-                if(!strcmp(argv[i], "-pfc")){
-                    ispfc = 1;
-                    printf("%d set pfc\n",i);
-                }
-                if(!strcmp(argv[i], "-sqc")){
-                    issqc = 1;
-                    printf("%d set sqc\n",i);
-                }
-                if(!strcmp(argv[i], "-omp")){
-                    isomp = 1;
-                    printf("%d set omp\n",i);
-                }
-                if(!strcmp(argv[i], "-o")){
-                    usename = 1;
-                    //printf("setfilename :%s\n", argv[i+1]);
-                    strcpy(classname,argv[i+1]);
-                    printf("setfilename :%s\n", classname);
-                    i++;
-                }
-            }
-            else{
-                printf("%d: %s\n",argc,argv[1]);
-                yyin = fopen(argv[i], "r");
-                /* Extract filename from argument.*/
-                classname = strtok(argv[1],"/.");
-                classname = strtok(NULL,"/.");
-            }
+#define VERSION "0.0.1"
+
+static const char *help_manual = 
+    "Usage:\n"
+    "\t./NESL2C [-h] inputfile.nesl [--rev] {--pfc, --sqc, --omp} [-o outputfile.c] [--version]\n"
+    "Optional arguments:\n"
+    "\t-h, --help        show the help message and exit.\n"
+    "\t--rev             for reverse output NESL.\n"
+    "\t--pfc             for PartialFlattening C.\n"
+    "\t--sqc             for Sequential C.\n"
+    "\t--omp             for OpenMP C.\n"
+    "\t-o outputfile.c   specific the output C file.\n"
+    "\t-v, --version     show the program's version number and exit.\n";
+
+static void Usage() {
+    fprintf(stdout, "%s\n", help_manual);
+    fflush(stdout);
+}
+
+static void Version() {
+    fprintf(stdout, "NESL2C version %s\n", VERSION);
+    fflush(stdout);
+}
+
+typedef enum {
+    PFC,
+    SQC,
+    OMP,
+    NONE
+} CodeGenMode;
+
+static struct option options[] = {
+    {"rev", optional_argument, NULL, 'r'},
+    {"pfc", optional_argument, NULL, 'p'},
+    {"sqc", optional_argument, NULL, 's'},
+    {"omp", optional_argument, NULL, 'm'},
+    {"output", required_argument, NULL, 'o'},
+    {"help", no_argument, NULL, 'h'},
+    {"version", no_argument, NULL, 'v'}
+};
+
+int main(int argc, char **argv){
+   
+    CodeGenMode codeGenMode = NONE;
+    int isRev = 0;   
+    int c;
+    char *input_file;
+    char *output_file;
+    while ((c = getopt_long(argc, argv, ":rpsmhvo:", options, NULL)) != -1) {
+        switch (c) {
+            case 'r':
+                isRev = 1;
+                break;
+            case 'p':
+                codeGenMode = PFC;
+                break;
+            case 's':
+                codeGenMode = SQC;
+                break;
+            case 'm':
+                codeGenMode = OMP;
+                break;
+            case 'o':
+                output_file = optarg;
+                break;
+            case 'v':
+                Version();
+                exit(0);
+                break;
+            case 'h':
+            case '?':
+                Usage();
+                exit(1);
+                break;
         }
     }
 
+    if ((input_file = argv[optind]) == NULL || codeGenMode == NONE) {
+        Usage();
+        exit(1);
+    }
+
+    // TODO: check the input file extension (.nesl)
+
+    // open nesl file 
+    if ((yyin = fopen(input_file, "r")) == NULL) {
+        fprintf(stderr, "Error: can not open the input file: %s\n", input_file);
+        exit(1);
+    }
+
+    char *bname = basename(input_file);
+    char *classname = bname;
+    int usename=0; 
     /**
     * Parse
     */
@@ -676,23 +721,22 @@ int main(int argc, char** argv){
     /**
     * PrintTree
     */
-    printTree(ASTRoot,0);
+    printTree(ASTRoot, 0);
     printf("************************\n");
     
     /**
     * Generate NESL to compare difference.
     */
     char *reveseNESL ;
-    reveseNESL = (char*)malloc(sizeof(char)*100);
-    if(isrev){
-        if(!usename){
-        strcpy(reveseNESL,"reverseoutput/");
-        strcat(reveseNESL, classname);
-        strcat(reveseNESL, ".nesl");
-        printf("%s\n",reveseNESL);
-        }
-        else{
-        sprintf(reveseNESL,"%s.nesl",classname);
+    reveseNESL = (char*)malloc(sizeof(char) * 100);
+    if (isrev) {
+        if (!usename) {
+            strcpy(reveseNESL,"reverseoutput/");
+            strcat(reveseNESL, classname);
+            strcat(reveseNESL, ".nesl");
+            printf("%s\n",reveseNESL);
+        } else {
+            sprintf(reveseNESL,"%s.nesl",classname);
         }
         yyout = fopen(reveseNESL,"w+");
         printNESL(ASTRoot, yyout); 
@@ -717,94 +761,100 @@ int main(int argc, char** argv){
     * Generate C file.
     */
     char *translatedC = (char*)malloc(sizeof(char)*100);
-    if(ispfc||issqc||isomp){
-      if(issqc){
-        if(!usename){
-        sprintf(translatedC, "output/%s_sqc.c",classname);
-        }else{
-        strcpy(translatedC, classname);
-        }
-        yyout = fopen(translatedC,"w+");
+
+    switch (codeGenMode) {
+        case SQC: {
+            if (!usename) {
+                sprintf(translatedC, "output/%s_sqc.c",classname);
+            } else {
+                strcpy(translatedC, classname);
+            }
+            yyout = fopen(translatedC,"w+");
         
-        // print Time information.
-        time_t t = time(NULL);
-        struct tm tm = *localtime(&t);
-        fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+            // print Time information.
+            time_t t = time(NULL);
+            struct tm tm = *localtime(&t);
+            fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+                                tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
+                                tm.tm_hour, tm.tm_min, tm.tm_sec);
+            fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n");
+            //sqcheck(ASTRoot);
+            pfcheck(ASTRoot);
+        
+            for (int i = 0; i < 100; i++){
+                strcpy(refTable.entries[i].name, "");
+            }
+            // generate the needed tuple structures
+            gentuple(yyout);
+            sqcodegen(yyout, ASTRoot);
+            fprintf(yyout, "}\n\n"); // end of myFunc();
+            fprintf(yyout, "int main(){\n");
+            if (issrand)
+                fprintf(yyout, "srand(time(0));\n");
+            fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
+            fprintf(yyout, "myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
+
+
+            //pfcodegen(yyout, ASTRoot);
+            //codegen(yyout, ASTRoot);
+            fclose(yyout);    
+            break;
+        }   
+      case PFC: {
+          if (!usename){
+              sprintf(translatedC, "output/%s_pfc.c",classname);
+          } else {
+              strcpy(translatedC, classname);
+          }
+          yyout = fopen(translatedC,"w+");
+        
+          // print Time information.
+          time_t t = time(NULL);
+          struct tm tm = *localtime(&t);
+          fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
-        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n");
-        //sqcheck(ASTRoot);
-        pfcheck(ASTRoot);
-        
-        for(int i=0;i<100;i++){
-          strcpy(refTable.entries[i].name, "");
-        }
-        // generate the needed tuple structures
-        gentuple(yyout);
-        sqcodegen(yyout, ASTRoot);
-        fprintf(yyout, "}\n\n"); // end of myFunc();
-        fprintf(yyout, "int main(){\n");
-        if(issrand)
-          fprintf(yyout, "srand(time(0));\n");
-        fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
-        fprintf(yyout,"myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
+          fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pf/pf.h\"\n#include \"pfmacro.h\"\n");
+          //fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
+          //fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
+          pfcheck(ASTRoot);
+          //refTable.size = 100;
+          for (int i = 0; i < 100; i++){
+              strcpy(refTable.entries[i].name, "");
+          }
+          // generate the needed tuple structures
+          gentuple(yyout);
+          //pfcodegen(yyout, ASTRoot); 
+          sqcodegen(yyout, ASTRoot); 
+          fprintf(yyout, "}\n\n"); // end of myFunc();
+          fprintf(yyout, "int main(){\n");
+          if (issrand)
+              fprintf(yyout, "srand(time(0));\n");
+          fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
+          fprintf(yyout, "myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
 
 
-        //pfcodegen(yyout, ASTRoot);
-        //codegen(yyout, ASTRoot);
-        fclose(yyout);    
-      }
-      if(ispfc){
-        if(!usename){
-        sprintf(translatedC, "output/%s_pfc.c",classname);
-        }else{
-        strcpy(translatedC, classname);
-        }
-        yyout = fopen(translatedC,"w+");
+          fclose(yyout);
+          break;
+      }   
+      case OMP: {
+          strcpy(translatedC, "output/");
+          strcat(translatedC, classname);
+          strcat(translatedC, "_omp");
+          strcat(translatedC, ".c");
+          yyout = fopen(translatedC, "w+");
         
-        // print Time information.
-        time_t t = time(NULL);
-        struct tm tm = *localtime(&t);
-        fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+          // print Time information.
+          time_t t = time(NULL);
+          struct tm tm = *localtime(&t);
+          fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
-        fprintf(yyout, "#include <stdio.h>\n#include <stdlib.h>\n#include \"pf/pf.h\"\n#include \"pfmacro.h\"\n");
-        //fprintf(yyout, "struct Pair_F {\n\tfloat a;\n\tfloat b;\n};\n\n");
-        //fprintf(yyout, "struct Sequence {\n\tint len;\n\tint cap;\n\tvoid *ptr;\n};\n\n");
-        pfcheck(ASTRoot);
-        //refTable.size = 100;
-        for(int i=0;i<100;i++){
-          strcpy(refTable.entries[i].name, "");
-        }
-        // generate the needed tuple structures
-        gentuple(yyout);
-        //pfcodegen(yyout, ASTRoot); 
-        sqcodegen(yyout, ASTRoot); 
-        fprintf(yyout, "}\n\n"); // end of myFunc();
-        fprintf(yyout, "int main(){\n");
-        if(issrand)
-          fprintf(yyout, "srand(time(0));\n");
-        fprintf(yyout, "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n");
-        fprintf(yyout,"myFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n");
-
-
-        fclose(yyout);
+          fclose(yyout);
+        break;
       }
-      if(isomp){
-        strcpy(translatedC, "output/");
-        strcat(translatedC, classname);
-        strcat(translatedC, "_omp");
-        strcat(translatedC,".c");
-        yyout = fopen(translatedC,"w+");
-        
-        // print Time information.
-        time_t t = time(NULL);
-        struct tm tm = *localtime(&t);
-        fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
-                            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
-                            tm.tm_hour, tm.tm_min, tm.tm_sec);
-        fclose(yyout);
-      }
+      default:
+        break;
     }
     free(translatedC);
     printf("************************\n");
