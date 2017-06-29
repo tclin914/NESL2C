@@ -699,6 +699,7 @@ int main(int argc, char **argv){
     }
 
     // TODO: check the input file extension (.nesl)
+    //for()
 
     // open nesl file 
     if ((yyin = fopen(input_file, "r")) == NULL) {
@@ -767,7 +768,7 @@ int main(int argc, char **argv){
     switch (codeGenMode) {
         case SQC: {
             if (!usename) {
-                sprintf(translatedC, "output/%s_sqc.c",classname);
+                sprintf(translatedC, "output/%s.sqc.c",classname);
             } else {
                 strcpy(translatedC, classname);
             }
@@ -799,7 +800,7 @@ int main(int argc, char **argv){
         }   
       case PFC: {
           if (!usename){
-              sprintf(translatedC, "output/%s_pfc.c",classname);
+              sprintf(translatedC, "output/%s.pfc.c",classname);
           } else {
               strcpy(translatedC, classname);
           }
@@ -830,7 +831,7 @@ int main(int argc, char **argv){
       case OMP: {
           strcpy(translatedC, "output/");
           strcat(translatedC, classname);
-          strcat(translatedC, "_omp");
+          strcat(translatedC, ".omp");
           strcat(translatedC, ".c");
           yyout = fopen(translatedC, "w+");
         
