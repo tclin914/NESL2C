@@ -552,6 +552,7 @@ int atomicSub(int * a, int b){
   assert(res.len == p2);\
   for(_disti=0; _disti<p2; _disti++) { \
     SET_ELEM_I(p1, res, _disti);\
+  atomicAdd(REFCNT(res, int),1);\
   }\
 }while(0)
 
