@@ -12,4 +12,4 @@ function qs(n):(int)->(int,float) =
 let nums = {rand(x): x in dist(100, n)};
     (res, tm) = time(quicksort(nums)); in (res[0], tm); 
 
-qs(100);
+qs(1000000);

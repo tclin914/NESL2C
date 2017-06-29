@@ -16,6 +16,7 @@ gcc $outputname -lm -o $exename
 #exenameO3="bin/"$CLASSNAME"O3"
 #gcc $outputname -lm -o $exenameO3 -O3
 #echo $outputname
-#echo $exename
-valgrind ./$exename
+echo $exename
+./$exename
+#valgrind ./$exename
 #./$exenameO3

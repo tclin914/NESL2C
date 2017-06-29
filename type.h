@@ -48,14 +48,14 @@
 #define NODE_BIND           25
 #define NODE_PATTERN        26
 #define NODE_LET            27 
-#define NODE_APPLYBODY1     28
-#define NODE_BODY           29
-#define NODE_SIEVE          30
-#define NODE_EMPSEQ         31
-#define NODE_FILTER         32  
-#define NODE_IN             33
-#define NODE_DEL            36
-#define NODE_RBINDS         37
+#define NODE_BODY           28
+#define NODE_SIEVE          29
+#define NODE_EMPSEQ         30
+#define NODE_FILTER         31  
+#define NODE_IN             32
+#define NODE_DEL            33
+#define NODE_RBINDS         36
+#define NODE_APPLYBODY1     37
 #define NODE_APPLYBODY2     38
 #define NODE_APPLYBODY3     39
 #define NODE_APPLYBODY4     40
@@ -132,6 +132,10 @@
 enum StdType {TypeInt=1, TypeFloat, TypeChar, TypeBool, 
               TypeSEQ, TypeTuple};
 
-
+struct DataType{
+  enum StdType type;
+  struct DataType* child1;
+  struct DataType* child2;
+};
 
 #endif

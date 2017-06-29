@@ -42,6 +42,7 @@ struct nodeType {
     char op;
   
     /* for codegen */
+    struct DataType type;
     enum StdType valueType;
     struct SymTableEntry *entry;
     struct SymTable *table; 
