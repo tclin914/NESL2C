@@ -1343,7 +1343,7 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
             printDECREF(fptr, child);
           break;
           default:
-            fprintf(fptr, "\n//non top-level applytoeach\n");
+            printDECREF(fptr, child);
             break;
           }
           break;
@@ -1370,10 +1370,10 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
           }
           break;
         }
-        case NODE_LET:
         case NODE_IFSTMT:
-        case NODE_THENSTMT:
-        case NODE_ELSESTMT:
+          printDECREF(fptr, child);
+        break; 
+        case NODE_LET:
           switch(child->parent->nodeType){
 
           case NODE_TUPLE:
