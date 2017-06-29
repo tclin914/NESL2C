@@ -20,8 +20,8 @@ struct RefTableEntry {
 };
 
 struct RefTable{
-  int size;
-  struct RefTableEntry entries[100];
+    int size;
+    struct RefTableEntry entries[100];
 };
 
 extern struct RefTable refTable;
