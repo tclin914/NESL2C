@@ -65,9 +65,11 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
     default:
       assert(0);
     }
-    fprintf(fptr, "printf(\"refcnt:%s:%cd\\n\",*REFCNT(%s,",string,'%',string);
+#ifdef DEBUG 
+    fprintf(fptr, "printf(\"refcnt:%s:%cd\\n\",*REFCNT(%s,",string,'%',string); 
     printtype(fptr, typer);
-    fprintf(fptr, "));\n");
+    fprintf(fptr, "));\n"); 
+#endif
     break;
   case TypeTuple:{
     struct nodeType *Lchild = node->child;
@@ -725,7 +727,8 @@ void pfcheck(struct nodeType* node){
     int idx = insertapp(node); 
     node->string = malloc(sizeof(char)*100);
     sprintf(node->string, "app%d",idx);
-    break;
+    break;  
+  }
 
   case NODE_APPLYBODY2:{
     node->isEndofFunction = node->parent->isEndofFunction;
