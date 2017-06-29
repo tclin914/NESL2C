@@ -1028,16 +1028,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         }
         fprintf(fptr, "%s = op1 + op2;\n",node->string);
         fprintf(fptr,"}\n");
-        if(node->parent->nodeType == NODE_NESL){
-          switch(node->valueType){
-          case TypeInt:
-            fprintf(fptr, "print_I(%s);\n", node->string);
-            break;
-          case TypeFloat:
-            fprintf(fptr, "print_F(%s);\n", node->string);
-            break;
-          } 
-        }
       }
       break;
     }
@@ -1098,16 +1088,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         }
         fprintf(fptr, "%s = op1 - op2;\n",node->string);
         fprintf(fptr,"}\n");
-        if(node->parent->nodeType == NODE_NESL){
-          switch(node->valueType){
-          case TypeInt:
-            fprintf(fptr, "print_I(%s);\n", node->string);
-            break;
-          case TypeFloat:
-            fprintf(fptr, "print_F(%s);\n", node->string);
-            break;
-          } 
-        }
       }
       break;
     }
@@ -1169,16 +1149,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         }
         fprintf(fptr, "%s = op1 * op2;\n",node->string);
         fprintf(fptr,"}\n");
-        if(node->parent->nodeType == NODE_NESL){
-          switch(node->valueType){
-          case TypeInt:
-            fprintf(fptr, "print_I(%s);\n", node->string);
-            break;
-          case TypeFloat:
-            fprintf(fptr, "print_F(%s);\n", node->string);
-            break;
-          } 
-        }
       }
       break;
     }    
@@ -1239,16 +1209,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         }
         fprintf(fptr, "%s = op1 / op2;\n",node->string);
         fprintf(fptr,"}\n");
-        if(node->parent->nodeType == NODE_NESL){
-          switch(node->valueType){
-          case TypeInt:
-            fprintf(fptr, "print_I(%s);\n", node->string);
-            break;
-          case TypeFloat:
-            fprintf(fptr, "print_F(%s);\n", node->string);
-            break;
-          } 
-        }
       }
       break;
     } 
@@ -1293,16 +1253,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         
         fprintf(fptr, "%s = -op1;\n",node->string);
         fprintf(fptr,"}\n");
-        if(node->parent->nodeType == NODE_NESL){
-          switch(node->valueType){
-          case TypeInt:
-            fprintf(fptr, "print_I(%s);\n", node->string);
-            break;
-          case TypeFloat:
-            fprintf(fptr, "print_F(%s);\n", node->string);
-            break;
-          } 
-        }
       }
       break;
     }
@@ -1371,16 +1321,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         if(op1->valueType == TypeInt) fprintf(fptr, "(int)");
         fprintf(fptr, " pow((float)op1, op2);\n");
         fprintf(fptr,"}\n");
-        if(node->parent->nodeType == NODE_NESL){
-          switch(node->valueType){
-          case TypeInt:
-            fprintf(fptr, "print_I(%s);\n", node->string);
-            break;
-          case TypeFloat:
-            fprintf(fptr, "print_F(%s);\n", node->string);
-            break;
-          } 
-        }
 
       }
     break;
@@ -1403,8 +1343,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
       }
 
       fprintf(fptr,"}\n");
-      //if(node->parent->nodeType == NODE_NESL)
-      //  fprintf(fptr, "print_I(%s);\n", node->string);
       break;
     }
     case OP_PP:
