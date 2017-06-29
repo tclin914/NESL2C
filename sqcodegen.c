@@ -3658,10 +3658,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     case NODE_LETRET:
         printAddREF(fptr,node->string, node->valueType, node->child); 
     break;
-    case NODE_THENSTMT:
-    case NODE_ELSESTMT:
-        printAddREF(fptr,node->string,node->valueType,node->typeNode); 
-    break;
+    //case NODE_THENSTMT:
+    //case NODE_ELSESTMT:
+    //    printAddREF(fptr,node->string,node->valueType,node->typeNode); 
+    //break;
     //case NODE_FUNC_CALL:
     //    switch(node->parent->nodeType){
     //    case NODE_LETRET:
