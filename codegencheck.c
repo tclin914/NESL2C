@@ -1331,14 +1331,9 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
     case NODE_APPLYBODY2:
     case NODE_APPLYBODY3:
     case NODE_APPLYBODY4:
-        switch(child->parent->nodeType){
-        case NODE_NESL:
-            //fprintf(fptr, "\n//release(%s); %d %d\n", child->string, node->nodeType, child->nodeType);
-            printDECREF(fptr, child);
-            break;
-        case NODE_FUNC_CALL:
-            printDECREF(fptr, child);
-            break;
+        switch(child->parent->nodeNum){
+        case NODE_FUNC:
+        break;
         default:
             printDECREF(fptr, child);
             break;
