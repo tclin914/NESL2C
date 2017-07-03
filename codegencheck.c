@@ -24,6 +24,7 @@ int fclindex[MAX];
 
 void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
     //insertREF(string, type, node);
+    printf("addnodetype=%d\n", node->nodeType);
     assert(string);
     struct nodeType* typer = node->child;
     if(node->typeNode){
@@ -32,9 +33,6 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
             typer = node->typeNode->child;
             if(node->typeNode->child->typeNode){
                 typer = node->typeNode->child->typeNode;
-                //if(node->typeNode->child->typeNode->child){
-                //  typer = node->typeNode->child->typeNode->child;
-                //}
             }
         }
     }

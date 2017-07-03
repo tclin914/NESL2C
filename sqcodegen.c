@@ -3568,45 +3568,28 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
      */
     if(containArray(node)){
         switch(node->nodeType){
-        case NODE_APPLYBODY1:
-        case NODE_APPLYBODY2:
-        case NODE_APPLYBODY3:
-        case NODE_APPLYBODY4:
-        case GEN_APP3:
-        case NODE_NEW_SEQ:
-            //case NODE_LET:
-        case PARAM_TUPLE:
-            fprintf(fptr, "//containArray(node):%d\n",node->nodeType);
-            printAddREF(fptr,node->string,node->valueType,node); 
-            break;
+        case FPARAM_TOKEN: 
+        case FPARAM_TUPLE:
+        case NODE_TOKEN: 
+        case NODE_THENSTMT:
+        case NODE_ELSESTMT:
+        case NODE_FUNC:
+        case NODE_FUNC_CALL:
+        case NODE_ASSIGN:
+        break;
         case NODE_OP:
             switch(node->op){
             case OP_PP:
-                fprintf(fptr, "//containArray(node):%d\n",node->nodeType);
+                fprintf(fptr, "//OP_PP\n");
                 printAddREF(fptr,node->string,node->valueType,node); 
                 break;
             default:
                 break; 
             }
             break;
-        case NODE_LETRET:
-            fprintf(fptr, "//containArray(node):%d\n",node->nodeType);
-            printAddREF(fptr,node->string, node->valueType, node->child); 
-            break;
-            //case NODE_THENSTMT:
-            //case NODE_ELSESTMT:
-            //    printAddREF(fptr,node->string,node->valueType,node->typeNode); 
-            //break;
-            //case NODE_FUNC_CALL:
-            //    switch(node->parent->nodeType){
-            //    case NODE_LETRET:
-            //    break;
-            //    default:
-            //    printAddREF(fptr,node->string,node->valueType,node); 
-            //    break;
-            //    }
-            //break;
         default:
+            fprintf(fptr, "//containArray nodeType = %d\n",node->nodeType);
+            printAddREF(fptr,node->string,node->valueType,node); 
             break;
         }
     }
