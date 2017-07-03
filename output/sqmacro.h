@@ -96,9 +96,17 @@ int atomicSub(int * a, int b){
 #define GET_ELEM_F(res, arr, idx) do { \
   res = ((float*)arr.ptr)[idx]; } while(0)
 
+#define GET_ELEM_TIF(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
+
 #define GET_ELEM_PAIR_IF(res, arr, idx) do { \
   res.a = ((int*)arr.ptr)[idx]; \
   res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
+
+#define GET_ELEM_TII(res, arr, idx) do { \
+  res.a = ((int*)arr.ptr)[idx]; \
+  res.b = ((int*)arr.ptr)[arr.cap+idx]; } while(0)
 
 #define GET_ELEM_PAIR_I(res, arr, idx) do { \
   res.a = ((int*)arr.ptr)[idx]; \
@@ -130,6 +138,10 @@ int atomicSub(int * a, int b){
 
 #define SET_ELEM_PAIR(elm, arr, idx) do { \
   ((struct tuple*)arr.ptr)[idx] = elm; } while(0)
+
+#define SET_ELEM_TII(elm, arr, idx) do { \
+  ((int*)arr.ptr)[idx] = elm.a; \
+  ((int*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
 #define SET_ELEM_PAIR_I(elm, arr, idx) do { \
   ((int*)arr.ptr)[idx] = elm.a; \
@@ -193,6 +205,13 @@ int atomicSub(int * a, int b){
 
 #define DECREF_SEQ_F(seq) do { \
   int _refcnt = atomicSub(REFCNT(seq, float), 1);\
+  assert(_refcnt < 100); \
+  if(_refcnt == 1) { \
+    FREE(seq); \
+  }} while(0)
+
+#define DECREF_SEQ_TII(seq) do { \
+  int _refcnt = atomicSub(REFCNT(seq, struct TII), 1);\
   assert(_refcnt < 100); \
   if(_refcnt == 1) { \
     FREE(seq); \
@@ -311,7 +330,7 @@ int atomicSub(int * a, int b){
     _i++; \
   }\
   atomicAdd(REFCNT(res, type),1);\
-  } while(0)
+} while(0)
 
 /* sequential version FILTER_1*/
 #define FILTER_1(res, resExpr, typer, typeMacror, s1, e1, type1, typeMacro1, predExpr) do { \
@@ -348,7 +367,7 @@ int atomicSub(int * a, int b){
     child1 = e1.a;\
     child2 = e1.b;\
     if(e1.a>100.0||e1.b>100.0||e1.a<-100.0||e1.b<-100.0)\
-          printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
+    printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
     _p = predExpr; \
     if(_p) { \
       typer _r = resExpr; \
@@ -370,7 +389,7 @@ int atomicSub(int * a, int b){
     GET_ELEM_ ## typeMacro1(e1, s1, _i); \
     GET_ELEM_ ## typeMacro2(e2, s2, _i); \
     if(e1.a>100.0||e1.b>100.0||e1.a<-100.0||e1.b<-100.0)\
-      printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
+    printf("i:%d,j:%d,e1.a:%f, e1.b:%f\n",_i,_j,e1.a,e1.b);\
     _p = predExpr; \
     if(_p) { \
       typer _r = resExpr; \
@@ -389,6 +408,11 @@ int atomicSub(int * a, int b){
   printf("%f ",(float)a);   \
 }while(0) \
 
+#define print_TII(src) do{\
+  print_I((int)src.a);\
+  printf(", ");\
+  print_I((int)src.b);\
+}while(0)
 
 #define print_PAIR_I(src) do{\
   print_I((int)src.a);\
@@ -408,18 +432,33 @@ int atomicSub(int * a, int b){
   print_F((float)src.b);\
 }while(0)
 
+#define print_SEQ_TII(src)do{\
+  int _i,_len;\
+  struct Pair_I e;\
+  _len = src.len;\
+  printf("[ ");\
+  for(_i=0; _i<_len; _i++) { \
+    GET_ELEM_TII(e, src, _i); \
+    printf("( ");\
+    print_TII(e);\
+    printf("), ");\
+  }\
+  printf("] ");\
+  printf("\n"); \
+}while(0)
+
 #define print_SEQ_PAIR_I(src)do{\
   int _i,_len;\
   struct Pair_I e;\
   _len = src.len;\
-    printf("[ ");\
+  printf("[ ");\
   for(_i=0; _i<_len; _i++) { \
     GET_ELEM_PAIR_I(e, src, _i); \
     printf("( ");\
     print_PAIR_I(e);\
     printf("), ");\
   }\
-    printf("] ");\
+  printf("] ");\
   printf("\n"); \
 }while(0)
 
@@ -513,6 +552,7 @@ int atomicSub(int * a, int b){
   assert(res.len == p2);\
   for(_disti=0; _disti<p2; _disti++) { \
     SET_ELEM_I(p1, res, _disti);\
+    atomicAdd(REFCNT(res, int),1);\
   }\
 }while(0)
 
@@ -617,7 +657,7 @@ int isContiguousList(int start, int len, struct Sequence list){
     if(elm!=start+i){
       //printf("!!ERROR!! elm = %d, start:%d, i=%d\n",elm,start,i);
       noerror= 0;
-      }
+    }
   }
   if(noerror){
     printf("this is a Contiguous list.!\n");
@@ -630,7 +670,7 @@ struct Sequence genReverseList(int len){
   int i=0;
   MALLOC(res, len, int); 
   while(i<len){
-   SET_ELEM_I(len-i-1,res,i);
+    SET_ELEM_I(len-i-1,res,i);
     i++;
   }
   return res;
@@ -817,7 +857,7 @@ struct Sequence  random_points_seed(int  n){
     }
     atomicAdd(REFCNT(app5, struct Pair_F),1);
     let5 = app5;
-    
+
     //DEBUG LETRETrefaddcount:0
     //end of LETRET
     //DEBUG LETrefaddcount:1
@@ -875,7 +915,7 @@ bool verifyQHull(int numPoints, struct Sequence H_Hull ) {
     }
   }
   if(allCorrect){
-  printf("Verify success!\n");
+    printf("Verify success!\n");
   }else{
     printf("###ERROR###\tVerify FAILED!\n");
   }

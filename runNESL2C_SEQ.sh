@@ -4,19 +4,16 @@ BASEDIR=$(dirname $0)
 PWD=$(pwd)
 input=${@:1}
 CLASSNAME=$(echo $input| cut -d '/' -f 2)
-CLASSNAME=$(echo $CLASSNAME | cut -d '.' -f 1)
 #echo $PWD ${@:1} $CLASSNAME
 
-./NESL2C ${@:1} -sqc 
+./NESL2C ${@:1} --sqc 
 
-echo $CLASSNAME 
-outputname="output/"$CLASSNAME"_sqc.c"
+echo [runNESL2C] class name $CLASSNAME 
+outputname="output/"$CLASSNAME".sqc.c"
 exename="bin/"$CLASSNAME
+
+echo [runNESL2C] outputname $outputname 
 gcc $outputname -lm -o $exename
-#exenameO3="bin/"$CLASSNAME"O3"
-#gcc $outputname -lm -o $exenameO3 -O3
-#echo $outputname
-echo $exename
+
+echo [runNESL2C] exename $exename 
 ./$exename
-#valgrind ./$exename
-#./$exenameO3

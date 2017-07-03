@@ -10,34 +10,34 @@ struct nodeType {
     struct nodeType *child;
     struct nodeType *lsibling;
     struct nodeType *rsibling;
-
+  
     /* Attribute for NODE_TOKEN */
     int tokenType;
-
+  
     /* items for Array */
     int counts;
     int idxstart;
     int idxend;
     int arraydepth;
     struct nodeType *arraynext;
-
+  
     /*param & typeDef*/
     int paramcount;
     int declarecount;
-
+  
     /* Tuple */
     int isvisited;
     int tuplecount;
     int childcount;
     struct nodeType * tuplenode;
-
+  
     /* Values for general use */
     int iValue;
     double rValue;
     char valueValid;
     char *string;
     struct nodeType * typeNode;
-    
+  
     /* Indicates which OP */
     char op;
   
@@ -52,7 +52,7 @@ struct nodeType {
     int inserttmp;
     int infilter;
     int isParam;
-
+  
     /*for variable declaration*/
     int mode;
 };
