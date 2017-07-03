@@ -1165,7 +1165,7 @@ void typeAnalysis( struct nodeType *node) {
             RHS->paramcount = 1;
             typeAnalysis(RHS);
             assert(LHS->dataType.type == RHS->dataType.type);
-            node->counts = 1+RHS->counts;
+            node->counts = 1 + RHS->counts;
         }
         else{
             if(RHS->nodeNum == NODE_PAIR && RHS->child->nodeNum == NODE_TUPLE) {
@@ -1204,7 +1204,13 @@ void typeAnalysis( struct nodeType *node) {
         }
         break;
     }
-
+    case NODE_EMPSEQ:{
+        struct nodeType *child = node->child;
+        typeAnalysis(child);
+        assert(child->dataType.type);
+        node->dataType.type = child->dataType.type;
+        break;
+    }
     case NODE_SEQ_TUPLE:{
         struct nodeType* LHS = node->child;
         struct nodeType* RHS = node->child->rsibling;

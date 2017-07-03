@@ -1665,7 +1665,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             break;
         }
 
-        fprintf(fptr, "MALLOC(%s,1,",node->string);
+        fprintf(fptr, "MALLOC(%s, 1,",node->string);
 
         switch(LHS->dataType.type){
         case TYPEINT:
@@ -1693,23 +1693,19 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         }
         fprintf(fptr,");\n");
 
-        switch(node->dataType.type){
-        case TYPESEQ:
-            switch(node->typeNode->dataType.type){
-            case TYPETUPLE:
-                //TODO
-                fprintf(fptr, "SET_ELEM_");
-                gentypes(fptr, node->typeNode);
-                fprintf(fptr, "(");
-                break;
-            default: 
-                assert(0);
-                break;
-            }
-            break;
-        default:
-            assert(0);
-        }
+        /* SET_ELEMENT */
+        //switch(node->typeNode->dataType.type){
+        //case TYPETUPLE:
+        //    //TODO
+            fprintf(fptr, "SET_ELEM_");
+            gentypes(fptr, node->child);
+            fprintf(fptr, "(");
+        //    break;
+        //default: 
+        //    assert(0);
+        //    break;
+        //}
+        
         switch(LHS->nodeNum){
         case NODE_INT:
         case NODE_BOOL:
@@ -3410,56 +3406,7 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }// end of NODE_FUNC_CALL
     case NODE_TOKEN:
 
-        if(node->parent->nodeNum == NODE_NESL){
-            switch(node->dataType.type){
-                struct nodeType *loopme; int x;
-            case TYPETUPLE:
-                fprintf(fptr, "print_Tuple(%s,", node->string);
-                switch(node->typeNode->child->dataType.type){
-                case TYPESEQ:
-                    loopme = node->typeNode->child; 
-                    x=0;
-                    while(loopme->dataType.type ==TYPESEQ){
-                        fprintf(fptr, "SEQ_");
-                        loopme = loopme->typeNode;
-                        assert(loopme);
-                        if(x++==10) abort();//error;
-                    }
-                    switch(loopme->dataType.type){
-                    case TYPESEQ:  
-                        assert(0);//not implement;
-                        break;
-                    case TYPEFLOAT:
-                        fprintf(fptr, "F");
-                        break;
-                    case TYPETUPLE:
-                        //TODO 
-                        assert(0);
-                        break;
-                    default:
-                        assert(0); //not implement
-                    }
-                    fprintf(fptr, ", F);\n");
-                    break;
-                default:
-                    assert(0);
-                }
-                break;
-            case TYPEINT:
-                fprintf(fptr, "print_I(%s);\n", node->string);
-                break;
-            case TYPEFLOAT:
-                fprintf(fptr, "print_F(%s);\n", node->string);
-                break;
-            case TYPESEQ:
-                //TODO fprintf(fptr, "print_SEQ_I(%s);\n", node->string);
-                assert(0);
-                break;
-            default:
-                assert(0);
-                break;
-            }
-        }else{
+        if(node->parent->nodeNum != NODE_NESL){
             switch(node->token){
             case TOKE_ID:{
                 struct SymTableEntry* entry = findSymbol(node->table, node->string, REFERENCE);
@@ -3476,7 +3423,10 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     default:
         break;
     }// switch node->nodeNum
-
+    
+    /**
+    * print the result value
+    */
     if(node->parent){
         if(node->parent->nodeNum == NODE_NESL 
            &&node->nodeNum!=NODE_FUNC

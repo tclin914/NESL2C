@@ -124,6 +124,10 @@ void printTree(struct nodeType *node, int ident) {
         printf("%sNODE_TYPE_PAIR\n", blank);
         ident++;
         break;
+    case NODE_EMPSEQ:
+        printf("%sNODE_EMPSEQ\n", blank);
+        ident++;
+        break;
     case NODE_TYPE_SEQ:
         printf("%sTYPE_SEQ\n", blank);
         ident++;

@@ -155,6 +155,12 @@ int atomicSub(int * a, int b){
   ((float*)arr.ptr)[idx] = elm.a; \
   ((float*)arr.ptr)[arr.cap+idx] = elm.b; } while(0)
 
+#define SET_ELEM_SI(elm, arr, idx) do { \
+  int _refcnt = atomicAdd(REFCNT(elm, int), 1); \
+  assert(_refcnt > 0); \
+  ((struct Sequence*)arr.ptr)[idx] = elm; \
+} while(0)
+
 #define SET_ELEM_SEQ_I(elm, arr, idx) do { \
   int _refcnt = atomicAdd(REFCNT(elm, int), 1); \
   assert(_refcnt > 0); \
@@ -534,6 +540,19 @@ int atomicSub(int * a, int b){
   print_##type2(res1.b); \
   printf("\n"); \
 }while(0) 
+
+#define print_SEQ_SEQ_I(src) do{ \
+  int i,_len; \
+  printf("printSEQ %s, len=%d: {\n",#src,src.len); \
+  _len = src.len;\
+  for(i=0; i<_len; i++) { \
+    struct Sequence e;\
+    GET_ELEM_SI(e, src, i); \
+    print_SEQ_I(e);\
+    printf(",\n ");\
+  }\
+  printf("}\n"); \
+}while(0)
 
 #define NESLDIST_F(res, p1, p2)  do{\
   int _disti;\

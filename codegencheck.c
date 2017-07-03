@@ -890,6 +890,7 @@ void pfcheck(struct nodeType* node){
         pfcheck(RHS);
         break;
     }
+    case NODE_EMPSEQ:
     case NODE_SEQ:{
         pfcheck(node->child); 
         int idx = inserttmp(node);
@@ -897,6 +898,7 @@ void pfcheck(struct nodeType* node){
         sprintf(node->string, "tmp%d",idx);
         node->counts = 1; // only one child;
     }
+    
     case NODE_NEW_SEQ:{
         struct nodeType *LHS = node->child;
         struct nodeType *RHS = node->child->rsibling;
