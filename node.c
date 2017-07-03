@@ -5,7 +5,7 @@
 
 struct nodeType* newNode(int type) {
     struct nodeType *node = (struct nodeType*)malloc(sizeof(struct nodeType));
-    node->nodeType = type;
+    node->nodeNum = type;
     node->valueValid = VALUE_INVALID;
     node->string = NULL;
     node->parent = NULL;
@@ -52,7 +52,7 @@ void printTree(struct nodeType *node, int ident) {
         blank[i] = ' ';
     blank[ident] = 0;
 
-    switch(node->nodeType) {
+    switch(node->nodeNum) {
     case NODE_TOKEN:
         printf("%s%s\n", blank, node->string);
         ident++;
@@ -299,7 +299,7 @@ void printTree(struct nodeType *node, int ident) {
         ident++;
         break;
     default:
-        printf("%sdefault:%d\n", blank, node->nodeType);
+        printf("%sdefault:%d\n", blank, node->nodeNum);
         break;
     }
 

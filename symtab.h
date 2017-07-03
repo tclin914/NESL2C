@@ -5,6 +5,7 @@
 #include "node.h"
 #include "type.h"
 
+// indicates operating mode on symboltable.
 #define REFERENCE 0
 #define FORCEDECLARE 1
 #define NOROOT 2
