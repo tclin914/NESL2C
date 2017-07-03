@@ -121,8 +121,8 @@ TopLevel
         ;
 
 FunId   : ID{
-            /* if(tokenType!=TOKE_STRING) yyerror();*/
-            switch($1->token){
+            /* if (tokenType!=TOKE_STRING) yyerror();*/
+            switch($1->token) {
             case TOKE_INT:
             case TOKE_FLOAT:
             case TOKE_BOOL:
@@ -151,7 +151,7 @@ FunTypeDef : TypeExp RARROW TypeExp{
         ;
 
 TypeExp : ID {  
-            switch($1->token){
+            switch($1->token) {
                 case TOKE_INT:
                     $1->dataType.type = TYPEINT;
                     break;
@@ -220,13 +220,13 @@ Exp : IfOrLetExp {
     }
     | TupleExp {
        /* 
-        if($1->child->child == NULL){
+        if ($1->child->child == NULL) {
             $$->nodeNum = NODE_TUPLE_HEAD;
             $$ = $1->child;
         }
         */
         /*
-        if($1->nodeNum!=NODE_OP){   
+        if ($1->nodeNum!=NODE_OP) {   
         $$ = newNode(NODE_TUPLE_HEAD);
         addChild($$,$1);
         }
@@ -433,7 +433,7 @@ AtomicExp
         $$ = $2;
     }
     | '{' ApplyBody '|' Exp '}' {
-        if($2->nodeNum == NODE_APPLYBODY1){
+        if ($2->nodeNum == NODE_APPLYBODY1) {
             $2->nodeNum =NODE_APPLYBODY3;
             //addChild($2,$4);
         }
@@ -452,7 +452,7 @@ AtomicExp
         addChild($$,$1);
     }
     | '[' Exp SequenceTail ']'{
-        if($2->nodeNum!=NODE_TUPLE){
+        if ($2->nodeNum!=NODE_TUPLE) {
         $$ = newNode(NODE_SEQ);
         addChild($$,$2);
         //addChild($$,$3);   
@@ -461,7 +461,7 @@ AtomicExp
             $$ =$2;
             $$->nodeNum=NODE_NEW_SEQ;
         }
-        if($3->nodeNum!=NODE_EMPTY)
+        if ($3->nodeNum!=NODE_EMPTY)
           addChild($$,$3);   
     }
     | '(' Exp ')' {
@@ -471,7 +471,7 @@ AtomicExp
 
     }
     | ID {
-       switch($1->token){
+       switch($1->token) {
        case TOKE_INT:
        case TOKE_FLOAT:
        case TOKE_BOOL:
@@ -485,7 +485,7 @@ AtomicExp
     | ID '(' Exp ')'{
             //FIXME float, int ... is also token ID
             // but different tokenType
-        switch($1->token){
+        switch($1->token) {
          case TOKE_INT:
          case TOKE_BOOL:
          case TOKE_CHAR: 
@@ -537,7 +537,7 @@ RBinds
     
 RBind
     : ID {
-        switch($1->token){
+        switch($1->token) {
          case TOKE_INT:
          case TOKE_FLOAT:
          case TOKE_BOOL:
@@ -595,7 +595,7 @@ Const
 
 extern void removePair(struct nodeType *node);
 extern void printNESL(struct nodeType *node, FILE* yyout);
-extern void semanticPass( struct nodeType *node);
+extern void semanticPass(struct nodeType *node);
 
 int ispfc=0;
 int issqc=0;
@@ -657,7 +657,7 @@ static struct option options[] = {
     {"version", no_argument, NULL, 'v'}
 };
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
    
     CodeGenMode codeGenMode = NONE;
     int isRev = 0;   
@@ -699,7 +699,7 @@ int main(int argc, char **argv){
     }
 
     // TODO: check the input file extension (.nesl)
-    //for()
+    //for ()
 
     // open nesl file 
     if ((yyin = fopen(input_file, "r")) == NULL) {
@@ -768,7 +768,7 @@ int main(int argc, char **argv){
     switch (codeGenMode) {
         case SQC: {
             if (!usename) {
-                sprintf(translatedC, "output/%s.sqc.c",classname);
+                sprintf(translatedC, "output/%s.sqc.c", classname);
             } else {
                 strcpy(translatedC, classname);
             }
@@ -777,21 +777,21 @@ int main(int argc, char **argv){
             // print Time information.
             time_t t = time(NULL);
             struct tm tm = *localtime(&t);
-            fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+            fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n", classname, 
                                 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                                 tm.tm_hour, tm.tm_min, tm.tm_sec);
             fprintf(yyout, DECHEAD);
             //sqcheck(ASTRoot);
             pfcheck(ASTRoot);
         
-            for (int i = 0; i < 100; i++){
+            for (int i = 0; i < 100; i++) {
                 strcpy(refTable.entries[i].name, "");
             }
             // generate the needed tuple structures
             gentuple(yyout);
             sqcodegen(yyout, ASTRoot);
             fprintf(yyout, "}\n\n"); // end of myFunc();
-            fprintf(yyout, "int main(){\n");
+            fprintf(yyout, "int main() {\n");
             if (issrand)
                 fprintf(yyout, "srand(time(0));\n");
             fprintf(yyout, ENDOFMAIN);
@@ -799,8 +799,8 @@ int main(int argc, char **argv){
             break;
         }   
       case PFC: {
-          if (!usename){
-              sprintf(translatedC, "output/%s.pfc.c",classname);
+          if (!usename) {
+              sprintf(translatedC, "output/%s.pfc.c", classname);
           } else {
               strcpy(translatedC, classname);
           }
@@ -809,19 +809,19 @@ int main(int argc, char **argv){
           // print Time information.
           time_t t = time(NULL);
           struct tm tm = *localtime(&t);
-          fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+          fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n", classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
           fprintf(yyout, DECHEAD);
           pfcheck(ASTRoot);
-          for (int i = 0; i < 100; i++){
+          for (int i = 0; i < 100; i++) {
               strcpy(refTable.entries[i].name, "");
           }
           // generate the needed tuple structures
           gentuple(yyout);
           sqcodegen(yyout, ASTRoot); 
           fprintf(yyout, "}\n\n"); // end of myFunc();
-          fprintf(yyout, "int main(){\n");
+          fprintf(yyout, "int main() {\n");
           if (issrand)
               fprintf(yyout, "srand(time(0));\n");
           fprintf(yyout, ENDOFMAIN);
@@ -838,7 +838,7 @@ int main(int argc, char **argv){
           // print Time information.
           time_t t = time(NULL);
           struct tm tm = *localtime(&t);
-          fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n",classname, 
+          fprintf(yyout, "/** \n* genereated by NESL2C from %s.nesl:\n* GMT+8: %d-%d-%d %d:%d:%d\n*/\n\n", classname, 
                             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, 
                             tm.tm_hour, tm.tm_min, tm.tm_sec);
           fclose(yyout);

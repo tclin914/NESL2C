@@ -7,10 +7,10 @@
 #include "codegen.h"
 #define help(s) {printf("\thelp: %s\n",s);}
 
-int countlayers(struct nodeType *node){
+int countlayers(struct nodeType *node) {
     int lcount=0;
     int rcount=0;
-    switch(node->dataType.type){
+    switch (node->dataType.type) {
     case TYPEINT:
     case TYPEFLOAT:
     case TYPEBOOL:
@@ -28,16 +28,16 @@ int countlayers(struct nodeType *node){
 }
 
 /*generate needed tuple structure*/
-void gentuple(FILE* fptr){
+void gentuple(FILE* fptr) {
     struct nodeType *link;
     /* sorting */
 
-    for(int i =0; i<typeTable->size;i++) {
+    for (int i =0; i<typeTable->size;i++) {
         link = typeTable->link[i];
         countlayers(link);
     } 
-    for(int i =0; i<typeTable->size;i++) {
-        for(int j =i+1; j<typeTable->size; j++) {
+    for (int i =0; i<typeTable->size;i++) {
+        for (int j =i+1; j<typeTable->size; j++) {
             if(typeTable->link[i] > typeTable->link[j]) {
                 link = typeTable->link[j];
                 typeTable->link[j] = typeTable->link[i];
@@ -47,9 +47,9 @@ void gentuple(FILE* fptr){
     }
 
     /* generate */
-    for(int i =0; i<typeTable->size;i++){
+    for (int i =0; i<typeTable->size;i++) {
         link = typeTable->link[i];
-        switch(link->dataType.type){
+        switch (link->dataType.type) {
         case TYPETUPLE:
             fprintf(fptr, "struct ");
             gentypes(fptr, link);
@@ -75,13 +75,13 @@ void gentuple(FILE* fptr){
     }
 }
 
-void printNESL(struct nodeType *node, FILE* yyout){
-    switch(node->nodeNum){
+void printNESL(struct nodeType *node, FILE* yyout) {
+    switch (node->nodeNum) {
     case NODE_NESL:
     case NODE_LIST:{
         int count = 0;
         struct nodeType *child = node->child;
-        if(child!=0){
+        if(child!=0) {
             do{
                 count++;
                 printNESL(child, yyout);
@@ -110,7 +110,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
         //fprintf(yyout,"(");
         printNESL(child, yyout);
         child = child->rsibling;
-        while(child!=node->child){
+        while(child!=node->child) {
             fprintf(yyout,",");
             printNESL(child, yyout);
             child = child->rsibling;
@@ -125,7 +125,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
         fprintf(yyout,"(");
         printNESL(child, yyout);
         child = child->rsibling;
-        while(child!=node->child){
+        while(child!=node->child) {
             fprintf(yyout,",");
             printNESL(child, yyout);
             child = child->rsibling;
@@ -140,7 +140,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
         break;
     }
     case NODE_OP:{
-        switch(node->op){
+        switch (node->op) {
         case OP_BIND:
             assert(0);
             printNESL(node->child, yyout);
@@ -272,7 +272,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
         break;
     }
     case NODE_TOKEN:{
-        switch(node->token){
+        switch (node->token) {
         case TOKE_ID:
             fprintf(yyout,"%s",node->string);
             break;
@@ -299,7 +299,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
     case NODE_PATTERN:
     case NODE_EXP:{
         struct nodeType *child = node->child;
-        if(child!=0){
+        if(child!=0) {
             do{
                 printNESL(child, yyout);
                 child = child->rsibling;
@@ -310,7 +310,7 @@ void printNESL(struct nodeType *node, FILE* yyout){
     case NODE_BIND:{
         struct nodeType *child = node->child;
         int counts=0;
-        if(child!=0){
+        if(child!=0) {
             do{
                 counts++;
                 printNESL(child, yyout);
@@ -389,10 +389,10 @@ void printNESL(struct nodeType *node, FILE* yyout){
     case NODE_SEQ:{
         struct nodeType *child = node->child;
         fprintf(yyout,"[");
-        if(child!=0){
+        if(child!=0) {
             printNESL(child, yyout);
             child = child->rsibling;
-            while(child!=node->child){
+            while(child!=node->child) {
                 fprintf(yyout,", ");
                 printNESL(child, yyout);
                 child = child->rsibling;
@@ -425,10 +425,10 @@ void printNESL(struct nodeType *node, FILE* yyout){
     }
     case NODE_RBINDS:{
         struct nodeType * child = node->child;
-        if(child!=0){
+        if(child!=0) {
             printNESL(child, yyout);
             child=child->rsibling;
-            while(child!=node->child){
+            while(child!=node->child) {
                 fprintf(yyout,";");
                 printNESL(child, yyout);
 
@@ -455,13 +455,13 @@ void printNESL(struct nodeType *node, FILE* yyout){
     }// End of Switch
 }// End of printNESL
 
-void dumpTable(FILE *fptr, struct nodeType* node){
+void dumpTable(FILE *fptr, struct nodeType* node) {
     struct SymTable * table = node->table;
-    for(int i = 0; i<table->size ; i++){
+    for (int i = 0; i<table->size ; i++) {
         if(table->entries[i].link->nodeNum!=NODE_FUNC 
-           && table->entries[i].isParam!=1){
+           && table->entries[i].isParam!=1) {
             table->entries[i].isParam=1;// ensure every symbol printed onetime.
-            switch(table->entries[i].type){
+            switch (table->entries[i].type) {
             case TYPEINT :
                 fprintf(fptr, "int %s;\n",table->entries[i].name);
                 break;
@@ -497,13 +497,13 @@ void dumpTable(FILE *fptr, struct nodeType* node){
                 fclose(fptr);
                 assert(0);//not implement;
                 break;
-            }//end of switch(entry->type)
+            }//end of switch (entry->type)
         }//end of if
     }//end of for.
 }// end of dumpTable.
 
-void printType(FILE *fptr, struct nodeType *node){
-    switch(node->dataType.type){
+void printType(FILE *fptr, struct nodeType *node) {
+    switch (node->dataType.type) {
     case TYPEINT:
         fprintf(fptr,"I");
         break;
@@ -531,17 +531,17 @@ void printType(FILE *fptr, struct nodeType *node){
     }
 }
 
-void printtupleparam(FILE *fptr, struct nodeType* node){
-    if(node->nodeNum == NODE_TUPLE){
+void printtupleparam(FILE *fptr, struct nodeType* node) {
+    if(node->nodeNum == NODE_TUPLE) {
         printtupleparam(fptr, node->child);
         printtupleparam(fptr, node->child->rsibling);
 
-    }else if(node->nodeNum == NODE_PAIR){
+    }else if(node->nodeNum == NODE_PAIR) {
         printtupleparam(fptr, node->child);
         return;
     }
     else {
-        switch(node->dataType.type){
+        switch (node->dataType.type) {
         case TYPEFLOAT:
             fprintf(fptr, "%f;\n", node->rValue);
             break;
@@ -570,8 +570,8 @@ void printtupleparam(FILE *fptr, struct nodeType* node){
 }
 
 
-void printparam(FILE *fptr, struct nodeType* node){
-    switch(node->nodeNum){
+void printparam(FILE *fptr, struct nodeType* node) {
+    switch (node->nodeNum) {
     case NODE_TUPLE:
         printparam(fptr, node->child);
         fprintf(fptr, ", ");
@@ -587,7 +587,7 @@ void printparam(FILE *fptr, struct nodeType* node){
         struct SymTableEntry *entry;
         //struct nodeType *refNode = node->typeNode;
         //printparam(fptr, refNode);
-        switch(node->dataType.type){
+        switch (node->dataType.type) {
         case TYPESEQ:
             fprintf(fptr, "struct Sequence ");
             break;
@@ -619,7 +619,7 @@ void printparam(FILE *fptr, struct nodeType* node){
         break;
     }
     case NODE_TYPE_SEQ:{
-        switch(node->dataType.type){
+        switch (node->dataType.type) {
         case TYPESEQ:
             fprintf(fptr, "struct Sequence");
             break;
@@ -633,11 +633,11 @@ void printparam(FILE *fptr, struct nodeType* node){
 
 }
 
-void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
+void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2) {
     assert(node1); assert(node2);
     struct nodeType *child1 = node1->child;
     struct nodeType *child2 = node2->child;
-    switch(node1->nodeNum){
+    switch (node1->nodeNum) {
     case NODE_PATTERN:
         printBindTuple(fptr, child1, node2);
         return;
@@ -646,7 +646,7 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
         return;
 
     }
-    switch(node2->nodeNum){
+    switch (node2->nodeNum) {
     case NODE_PATTERN:
         printBindTuple(fptr, node1, child2);
         return;
@@ -658,10 +658,10 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
         return;
     }
 
-    switch(node1->nodeNum){
+    switch (node1->nodeNum) {
     case NODE_TOKEN:
         fprintf(fptr, "%s = ",node1->string);  
-        switch(node2->nodeNum){
+        switch (node2->nodeNum) {
         case NODE_TOKEN: //not likely happened.
             fprintf(fptr, "%s;\n",node2->string);
             break;
@@ -671,7 +671,7 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
         }
         break;
     case NODE_TUPLE:
-        switch(node2->nodeNum){
+        switch (node2->nodeNum) {
         case NODE_TOKEN:
 
             assert(node2->dataType.type == TYPETUPLE);
@@ -689,16 +689,16 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
             while(child2->nodeNum==NODE_PAIR)
                 child2=child2->child;
 
-            if(node1->dataType.type == TYPETUPLE){
+            if(node1->dataType.type == TYPETUPLE) {
                 ; 
             }else{
                 fprintf(fptr, "%s = %s.a;\n",child1->string, node1->string);
                 fprintf(fptr, "%s = %s.b;\n",child2->string, node1->string);
             }
-            if(child1->dataType.type == TYPETUPLE){ 
+            if(child1->dataType.type == TYPETUPLE) { 
                 printBindTuple(fptr, child1, refnode);
             }
-            if(child2->dataType.type == TYPETUPLE){ 
+            if(child2->dataType.type == TYPETUPLE) { 
                 printBindTuple(fptr, child2, refnode);
             }
             free(refnode);
@@ -708,8 +708,8 @@ void printBindTuple(FILE *fptr, struct nodeType *node1, struct nodeType *node2){
     }// end of switch node1->nodeNum
 }// end of printBindTuple
 
-void gentypes(FILE *fptr, struct nodeType *type){
-    switch(type->dataType.type){
+void gentypes(FILE *fptr, struct nodeType *type) {
+    switch (type->dataType.type) {
     case TYPEINT:
         fprintf(fptr,"I");
         break;
@@ -734,8 +734,8 @@ void gentypes(FILE *fptr, struct nodeType *type){
     }
 }
 
-void printtype(FILE *fptr, struct nodeType *type){
-    switch(type->dataType.type){
+void printtype(FILE *fptr, struct nodeType *type) {
+    switch (type->dataType.type) {
     case TYPEINT:
         fprintf(fptr,"int");
         break;
@@ -761,7 +761,7 @@ void printtype(FILE *fptr, struct nodeType *type){
     }
 }
 
-void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node2){
+void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node2) {
     assert(node1->nodeNum==NODE_TUPLE);
     assert(node2->string);
     struct nodeType *L1 = node1->child; 
@@ -769,7 +769,7 @@ void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node
     struct nodeType *R1 = L1->rsibling; 
 
     // TODO make it more general.
-    switch(L1->nodeNum){
+    switch (L1->nodeNum) {
     case NODE_TOKEN:
         fprintf(fptr,"%s",L1->string); 
         break;
@@ -778,7 +778,7 @@ void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node
     }
 
     fprintf(fptr,"=%s.a;\n",node1->string);
-    switch(R1->nodeNum){
+    switch (R1->nodeNum) {
     case NODE_TOKEN:
         fprintf(fptr,"%s",R1->string); 
         break;
@@ -788,11 +788,11 @@ void printEXPBINDTUPLE(FILE *fptr, struct nodeType* node1, struct nodeType *node
     fprintf(fptr,"=%s.b;\n",node1->string);
 }
 
-int containArray(struct nodeType *node){
+int containArray(struct nodeType *node) {
     if(node->nodeNum == NODE_OP && node->op == OP_SHARP) return  1;
     if(node->dataType.type<TYPESEQ) return 0;
     else if(node->dataType.type==TYPESEQ) return 1;
-    else if(node->dataType.type == TYPETUPLE){
+    else if(node->dataType.type == TYPETUPLE) {
         struct nodeType* Lchild = node->typeNode->child;
         struct nodeType* Rchild = node->typeNode->child->rsibling;
         assert(Lchild);
