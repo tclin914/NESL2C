@@ -1208,7 +1208,9 @@ void typeAnalysis( struct nodeType *node) {
         struct nodeType *child = node->child;
         typeAnalysis(child);
         assert(child->dataType.type);
-        node->dataType.type = child->dataType.type;
+        node->dataType.type = TYPESEQ;
+        node->dataType.child1 = &child->dataType;
+        node->typeNode = node;
         break;
     }
     case NODE_SEQ_TUPLE:{
