@@ -40,10 +40,8 @@ extern struct nodeType* ASTRoot;
 %token <ivalue> boolconst
 %token <string> stringconst
 %token <string> ID
-
 %token <tokenval> DATATYPE NUMBER ORDINAL LOGICAL ANY
 %token <tokenval> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
-
 
 %type <node> id 
 %type <node> goal TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
