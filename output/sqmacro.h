@@ -120,6 +120,10 @@ int atomicSub(int * a, int b){
   res.a = ((float*)arr.ptr)[idx]; \
   res.b = ((float*)arr.ptr)[arr.cap+idx]; } while(0)
 
+#define GET_ELEM_SI(res, arr, idx) do { \
+  res = ((struct Sequence*)arr.ptr)[idx]; \
+} while(0)
+
 #define GET_ELEM_SEQ_I(res, arr, idx) do { \
   res = ((struct Sequence*)arr.ptr)[idx]; \
 } while(0)
@@ -546,9 +550,9 @@ int atomicSub(int * a, int b){
   printf("printSEQ %s, len=%d: {\n",#src,src.len); \
   _len = src.len;\
   for(i=0; i<_len; i++) { \
-    struct Sequence e;\
-    GET_ELEM_SI(e, src, i); \
-    print_SEQ_I(e);\
+    struct Sequence subs;\
+    GET_ELEM_SI(subs, src, i); \
+    print_SEQ_I(subs);\
     printf(",\n ");\
   }\
   printf("}\n"); \

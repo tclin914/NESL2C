@@ -79,7 +79,7 @@ TopLevel
             //addChild($$,pattern);
             addChild($$,$3);
             
-            struct nodeType *types = newNode(NODE_FUNC_TYPE);
+            //struct nodeType *types = newNode(NODE_FUNC_TYPE);
             //addChild(types, $5);
             //addChild($$,types);
             

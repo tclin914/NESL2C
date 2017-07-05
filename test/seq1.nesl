@@ -1,9 +1,12 @@
-a=[1,2,3,4,5,6,7,8,9];
+%a=[1,2,3,4,5,6,7,8,9];
 a;
 b = [] int;
 c = [1];
-% problem in printing SEQ_SEQ_I
+b;
+c;
+problem in printing SEQ_SEQ_I
+%
 cd = [{x+1:x in [1,2,3]}];
-cd;%
-cd = b ++ [2,3];
+cd;
+%cd = b ++ [2,3];%
 

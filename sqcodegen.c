@@ -1480,19 +1480,6 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
         }
         break;
     }
-    case GEN_SEQ_REF:
-        //sqcodegen(fptr, node->child);
-        switch(node->dataType.type){
-        case TYPEINT:
-            fprintf(fptr, "GET_ELEM_I(%s,%s,",node->string, node->child->rsibling->child->string);
-            sqcodegen(fptr, node->child->rsibling->child->rsibling); // print index.
-            fprintf(fptr, ");\n");
-            break;
-        default:
-            assert(0);//not implemented.
-            break;
-        }
-        break;
     case PARAM_TUPLE:{
         struct nodeType *LHS=node->child;
         struct nodeType *RHS = node->child->rsibling;
@@ -1647,80 +1634,110 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
     }// end of NODE_SEQ_TUPLE
 
     case NODE_SEQ:{
-        struct nodeType *LHS = node->child;
+        struct nodeType *child = node->child;
         int deccount =0; 
+        if(child){
+            do{
+                switch(child->nodeNum){
+                case NODE_INT:
+                case NODE_BOOL:
+                case NODE_CHAR:
+                case NODE_FLOAT:
+                case NODE_TOKEN:
+                    break;
+                default:
+                    while(child->nodeNum == NODE_PAIR) child=child->child;
+                    sqcodegen(fptr,child);
+                    assert(child->string);
+                    child = node->child;
+                    break;
+                }
+                child = child->rsibling;
+            }while(child != node->child);
 
-        switch(LHS->nodeNum){
-        case NODE_INT:
-        case NODE_BOOL:
-        case NODE_CHAR:
-        case NODE_FLOAT:
-        case NODE_TOKEN:
-            break;
-        default:
-            while(LHS->nodeNum == NODE_PAIR) LHS=LHS->child;
-            sqcodegen(fptr,LHS);
-            assert(LHS->string);
-            LHS = node->child;
-            break;
+            fprintf(fptr, "MALLOC(%s, %d, ", node->string, node->counts);
+
+            switch(child->dataType.type){
+            case TYPEINT:
+                fprintf(fptr, "int");
+                break;
+            case TYPEFLOAT:
+                fprintf(fptr, "float");
+                break;
+            case TYPEBOOL:
+                fprintf(fptr, "bool");
+                break;
+            case TYPECHAR:
+                fprintf(fptr, "char");
+                break;
+            case TYPESEQ:
+                fprintf(fptr, "struct Sequence");
+                break;
+            case TYPETUPLE:
+                fprintf(fptr, "struct t_");
+                assert(0);// not implement;
+                break;
+            default:
+                assert(0);
+                break;
+            }
+            fprintf(fptr,");\n");
+
+            do{
+                fprintf(fptr, "SET_ELEM_");
+                gentypes(fptr, node->child);
+                fprintf(fptr, "(");
+
+                switch(child->nodeNum){
+                case NODE_INT:
+                case NODE_BOOL:
+                case NODE_CHAR:
+                case NODE_FLOAT:
+                case NODE_TOKEN:
+                    sqcodegen(fptr, child);
+                    break;
+                default:
+                    while(child->nodeNum == NODE_PAIR) child = child->child;
+                    fprintf(fptr, "%s",child->string);
+                    child = node->child;
+                    break;
+                }
+                fprintf(fptr, ", %s, %d);\n", node->string, child->paramcount);
+
+                child = child->rsibling;
+            }while(child != node->child);
+        }else{
+            /* empty sequence */
+            fprintf(fptr, "MALLOC(%s, %d, ", node->string, node->counts);
+
+            switch(node->dataType.child1->type){
+            case TYPEINT:
+                fprintf(fptr, "int");
+                break;
+            case TYPEFLOAT:
+                fprintf(fptr, "float");
+                break;
+            case TYPEBOOL:
+                fprintf(fptr, "bool");
+                break;
+            case TYPECHAR:
+                fprintf(fptr, "char");
+                break;
+            case TYPESEQ:
+                fprintf(fptr, "struct Sequence");
+                break;
+            case TYPETUPLE:
+                fprintf(fptr, "struct t_");
+                assert(0);// not implement;
+                break;
+            default:
+                assert(0);
+                break;
+            }
+            fprintf(fptr,");\n");
+
+
         }
-
-        fprintf(fptr, "MALLOC(%s, 1,",node->string);
-
-        switch(LHS->dataType.type){
-        case TYPEINT:
-            fprintf(fptr, "int");
-            break;
-        case TYPEFLOAT:
-            fprintf(fptr, "float");
-            break;
-        case TYPEBOOL:
-            fprintf(fptr, "bool");
-            break;
-        case TYPECHAR:
-            fprintf(fptr, "char");
-            break;
-        case TYPESEQ:
-            fprintf(fptr, "struct Sequence");
-            break;
-        case TYPETUPLE:
-            fprintf(fptr, "struct t_");
-            assert(0);// not implement;
-            break;
-        default:
-            assert(0);
-            break;
-        }
-        fprintf(fptr,");\n");
-
-        /* SET_ELEMENT */
-        //switch(node->typeNode->dataType.type){
-        //case TYPETUPLE:
-        //    //TODO
-            fprintf(fptr, "SET_ELEM_");
-            gentypes(fptr, node->child);
-            fprintf(fptr, "(");
-        //    break;
-        //default: 
-        //    assert(0);
-        //    break;
-        //}
-        
-        switch(LHS->nodeNum){
-        case NODE_INT:
-        case NODE_BOOL:
-        case NODE_CHAR:
-        case NODE_FLOAT:
-        case NODE_TOKEN:
-            sqcodegen(fptr, LHS);
-            break;
-        default:
-            while(LHS->nodeNum == NODE_PAIR) LHS=LHS->child;
-            fprintf(fptr, "%s",LHS->string);
-            LHS = node->child;
-            break;
-        }
-        fprintf(fptr, ",%s,0);\n",node->string);
         break;
     }// end of NODE_SEQ
 
@@ -3476,34 +3493,42 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
                 break;
             }
             case TYPESEQ:{
-                fprintf(fptr, "print_SEQ_");
-                loopme = node->typeNode->child; 
-                x=0;
-                while(loopme->dataType.type ==TYPESEQ){
-                    fprintf(fptr, "SEQ_");
-                    loopme = loopme->typeNode->child;
-                    assert(loopme);
-                    if(x++==10) abort();//error;
-                }
-                switch(loopme->dataType.type){
-                case TYPESEQ:  
-                    fprintf(fptr, "SEQ_");
-                    //assert(0);//not implement;
-                    break;
-                case TYPEINT:
-                    fprintf(fptr, "I");
-                    break;
-                case TYPEFLOAT:
-                    fprintf(fptr, "F");
-                    break;
-                case TYPETUPLE:
-                    gentypes(fptr, loopme);
-                    //fprintf(fptr, "T_");
-                    break;
-                default:
-                    assert(0); //not implement
-                }
-                fprintf(fptr, "(%s);\n", node->string);
+                //int type; 
+                //fprintf(fptr, "print_SEQ_");
+                //loopme = node->typeNode->child; 
+                //// FIXME use node->dataType.child1->type
+                //if(loopme){
+                //    type = loopme->dataType.type;
+                //}else{
+                //    type = node->dataType.child1->type;
+                //}
+
+                //x=0;
+                //while(type == TYPESEQ){
+                //    fprintf(fptr, "SEQ_");
+                //    loopme = loopme->typeNode->child;
+                //    assert(loopme);
+                //    if(x++ == 10) abort();//error;
+                //}
+                //switch(type){
+                //case TYPESEQ:  
+                //    fprintf(fptr, "SEQ_");
+                //    //assert(0);//not implement;
+                //    break;
+                //case TYPEINT:
+                //    fprintf(fptr, "I");
+                //    break;
+                //case TYPEFLOAT:
+                //    fprintf(fptr, "F");
+                //    break;
+                //case TYPETUPLE:
+                //    gentypes(fptr, loopme);
+                //    //fprintf(fptr, "T_");
+                //    break;
+                //default:
+                //    assert(0); //not implement
+                //}
+                //fprintf(fptr, "(%s);\n", node->string);
                 break;
             }
             default:

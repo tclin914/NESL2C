@@ -616,6 +616,7 @@ void typeAnalysis( struct nodeType *node) {
         }
 
         LHS->dataType.type = RHS->dataType.type;
+        LHS->dataType = RHS->dataType;
         LHS->typeNode = RHS->typeNode;
 
         /*Remove Pattern*/
@@ -688,9 +689,11 @@ void typeAnalysis( struct nodeType *node) {
             typeAnalysis(RHS);
         switch(node->op) {
         case OP_ADD:
+            assert(LHS->dataType.type <= TYPEFLOAT);
+            assert(RHS->dataType.type <= TYPEFLOAT);
             assert(LHS->dataType.type == RHS->dataType.type);
             node->dataType.type = RHS->dataType.type;
-            assert(node->dataType.type<=TYPEFLOAT);
+            assert(node->dataType.type <= TYPEFLOAT);
             break;
         case OP_SUB:
             assert(LHS->dataType.type == RHS->dataType.type);
@@ -1033,9 +1036,10 @@ void typeAnalysis( struct nodeType *node) {
         case TOKE_ID:{
             struct SymTableEntry* entry = findSymbol(node->table, node->string, REFERENCE);
             if(entry) {
-                node->dataType.type = entry->type; 
+                node->dataType = entry->link->dataType;
+                //node->dataType.type = entry->type; 
                 node->typeNode = entry->link->typeNode;
-
+                
                 if(node->dataType.type == TYPESEQ) {
                     node->typeNode = entry->link->typeNode;
                 }
@@ -1160,9 +1164,9 @@ void typeAnalysis( struct nodeType *node) {
         // below consider no pair_node in tree 
         typeAnalysis(LHS);
         LHS->paramcount = 0;
+        RHS->paramcount = 1;
         if(RHS->nodeNum == NODE_TUPLE) {
             RHS->nodeNum = NODE_SEQ_TUPLE;
-            RHS->paramcount = 1;
             typeAnalysis(RHS);
             assert(LHS->dataType.type == RHS->dataType.type);
             node->counts = 1 + RHS->counts;
@@ -1189,7 +1193,7 @@ void typeAnalysis( struct nodeType *node) {
                 RHS = LHS->rsibling;
             }
             typeAnalysis(RHS);
-            RHS->paramcount = 1;
+            node->counts = 2;
         }// end of else.
 
         switch(LHS->dataType.type) {
@@ -1202,6 +1206,37 @@ void typeAnalysis( struct nodeType *node) {
             node->typeNode = node;
             break;
         }
+        
+        node->nodeNum = NODE_SEQ;
+        /* remove tuple and make the tree into a list */    
+        if(node->counts > 2 && (RHS->nodeNum == NODE_SEQ_TUPLE)) {
+            struct nodeType *Rtuple = RHS;
+            struct nodeType *child1;
+            struct nodeType *child2;
+            struct nodeType *last;
+            LHS->rsibling = LHS;
+            LHS->lsibling = LHS;
+            while(Rtuple->nodeNum == NODE_SEQ_TUPLE) {
+                child1 = Rtuple->child;
+                child2 = child1->rsibling;
+                last = LHS->lsibling;
+                child1->parent = node;
+                child2->parent = node;
+                last->rsibling = child1;
+                LHS->lsibling = child1;
+                child1->rsibling = LHS;
+                child1->lsibling = last;
+                last = child1;
+                if(child2->nodeNum != NODE_SEQ_TUPLE) {
+                    last->rsibling = child2;
+                    LHS->lsibling = child2;
+                    child2->rsibling = LHS;
+                    child2->lsibling = last;
+                }
+                Rtuple = child2;
+            }
+            printTree(node,0);
+        }
         break;
     }
     case NODE_EMPSEQ:{
@@ -1211,6 +1246,9 @@ void typeAnalysis( struct nodeType *node) {
         node->dataType.type = TYPESEQ;
         node->dataType.child1 = &child->dataType;
         node->typeNode = node;
+        node->counts = 0;
+        node->nodeNum = NODE_SEQ;
+        node->child = 0;
         break;
     }
     case NODE_SEQ_TUPLE:{
@@ -1282,6 +1320,8 @@ void typeAnalysis( struct nodeType *node) {
         struct nodeType * child= node->child;
         assert(child);
         typeAnalysis(child);
+        child->paramcount = 0;
+        node->counts = 1;
         switch(child->dataType.type) {
         case TYPEINT:
         case TYPEFLOAT:

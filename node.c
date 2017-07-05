@@ -96,22 +96,6 @@ void printTree(struct nodeType *node, int ident) {
         printf("%sNODE_RBINDS\n", blank);
         ident++;
         break;
-    case NODE_FreeVars:
-        printf("%sNODE_FreeVars\n", blank);
-        ident++;
-        break;
-    case NODE_DEL:
-        printf("%sNODE_DEL\n", blank);
-        ident++;
-        break;
-    case NODE_FUNC_TYPE:
-        printf("%sTYPE_DEFS:\n", blank);
-        ident++;
-        break;
-    case NODE_FUNC_INPUT:
-        printf("%sINPUTS\n", blank);
-        ident++;
-        break;
     case NODE_FUNC_CALL:
         printf("%sNODE_FUNC_CALL\n", blank);
         ident++;
@@ -138,14 +122,6 @@ void printTree(struct nodeType *node, int ident) {
         break;
     case GEN_APP3:
         printf("%sGEN_APP3\n", blank);
-        ident++;
-        break;
-    case GEN_APP2:
-        printf("%sGEN_APP2\n", blank);
-        ident++;
-        break;
-    case GEN_SEQ_REF:
-        printf("%sGEN_SEQ_REF\n", blank);
         ident++;
         break;
     case NODE_SEQ_REF:
@@ -225,10 +201,6 @@ void printTree(struct nodeType *node, int ident) {
         printf("%sNODE_BIND\n", blank);
         ident++;
         break;
-    case NODE_APPEACH :
-        printf("%sApply to each\n", blank);
-        ident++;
-        break;
     case NODE_IFELSE  :
         printf("%sIFELSE\n", blank);
         ident++;
@@ -243,15 +215,6 @@ void printTree(struct nodeType *node, int ident) {
         break;
     case NODE_ELSESTMT:
         printf("%sELSE\n", blank);
-        ident++;
-        break;
-
-    case NODE_TYPEEXP:
-        printf("%sNODE_TYPEEXP\n", blank);
-        ident++;
-        break;
-    case NODE_INFER:
-        printf("%sNODE_INFER\n", blank);
         ident++;
         break;
     case NODE_NESL:
@@ -283,9 +246,6 @@ void printTree(struct nodeType *node, int ident) {
         printf("%sLIST\n", blank);
         ident++;
         break;
-    case NODE_ERROR:
-        printf("%sERROR\n", blank);
-        break;
     case NODE_FUNC:
         printf("%sFUNC: %s\n", blank, node->string);
         ident++;
@@ -296,10 +256,6 @@ void printTree(struct nodeType *node, int ident) {
         break;
     case NODE_TYPE_FLOAT:
         printf("%sTYPE_REAL\n", blank);
-        ident++;
-        break;
-    case NODE_SYM_REF:
-        printf("%sSYM_REF %s\n", blank, node->string);
         ident++;
         break;
     default:

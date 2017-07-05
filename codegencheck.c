@@ -304,7 +304,7 @@ int inserttmp(struct nodeType* node){
     for(int i =0; i<=MAX; i++){
         if(tmpindex[i] ==0){
             sprintf(varname, "tmp%d",i);
-            addVariable(varname, node->dataType.type, node,REFERENCE);
+            addVariable(varname, node->dataType.type, node, REFERENCE);
             tmpindex[i]=1;
             return i;
         }else if(i==MAX) return -1;
@@ -891,12 +891,21 @@ void pfcheck(struct nodeType* node){
         break;
     }
     case NODE_EMPSEQ:
+        assert(0);
+        break;
     case NODE_SEQ:{
-        pfcheck(node->child); 
+        // might have empty sequence
+        if(node->child){
+            struct nodeType *child = node->child;
+            do{
+                pfcheck(node->child);
+                child = child->rsibling;
+            }while(child!=node->child);
+        }
         int idx = inserttmp(node);
         node->string = malloc(sizeof(char)*100);
-        sprintf(node->string, "tmp%d",idx);
-        node->counts = 1; // only one child;
+        sprintf(node->string, "tmp%d", idx);
+        break;
     }
     
     case NODE_NEW_SEQ:{
