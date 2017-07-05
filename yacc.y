@@ -29,7 +29,9 @@ extern struct nodeType* ASTRoot;
     char * string;
 }
 
-%token <node> FUNCTION DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
+%token <tokenval> FUNCTION
+
+%token <node> DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
 %token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
 %token <node> intconst floatconst ID boolconst stringconst TIME 
 %token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|' '$'
