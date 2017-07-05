@@ -20,9 +20,9 @@ struct nodeType* newTokenNode(int tokenType);
 [ \n]*
 "%"[^%]*"%" 
 
-"$"    {yylval.node = newTokenNode(NODE_MARK); token('$');     }   
-"#"    {yylval.node = newTokenNode(NODE_MARK); token('#');     }
-"@"    {yylval.node = newTokenNode(NODE_MARK); token('@');     }
+"$"    { return '$';}   
+"#"    { return '#';}
+"@"    { return '@';}
 "^"    {yylval.node = newTokenNode(NODE_MARK); token('^');     }
 "|"    {yylval.node = newTokenNode(NODE_MARK); token('|');     }
 ">"    {yylval.node = newTokenNode(NODE_MARK); token('>');     }
@@ -50,8 +50,9 @@ struct nodeType* newTokenNode(int tokenType);
 ">="   {yylval.node = newTokenNode(NODE_MARK); token(GE);      }
 
 "FUNCTION" {
-    yylval.node = newTokenNode(FUNCTION);
-    token(FUNCTION);    
+    /* yylval.node = newTokenNode(FUNCTION); */
+    /* token(FUNCTION);     */
+    return FUNCTION;
 }
 "DATATYPE" {
     yylval.node = newTokenNode(DATATYPE);
@@ -148,6 +149,7 @@ struct nodeType* newTokenNode(int tokenType) {
     return node;
 }
 int yywrap(){
-    return(1);
-    }
+    
+    return 1;
+}
 
