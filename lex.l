@@ -60,24 +60,6 @@ struct nodeType* newTokenNode(int tokenType);
 "ORDINAL"   { return ORDINAL;}
 "LOGICAL"   { return LOGICAL;}
 "ANY"       { return ANY;}
-"INT"       {
-                yylval.tokentype = TOKE_INT;
-                yylval.string = (char*)malloc(yyleng+1);
-                strcpy(yylval.string, yytext);
-                return ID;
-            }
-"BOOL"  {
-        yylval.string = (char*)malloc(yyleng+1);
-        strcpy(yylval.string, yytext);
-        return BOOL;
-        
-        }
-"FLOAT" {
-        yylval.string = (char*)malloc(yyleng+1);
-        strcpy(yylval.string, yytext);
-        token(ID);
-        }
-"CHAR"  { return TOKE_CHAR;} 
 "IN"    { return IN;   }
 "IF"    { return IF;   }
 "ELSE"  { return ELSE; }
@@ -101,18 +83,33 @@ struct nodeType* newTokenNode(int tokenType);
     yylval.rvalue = atof(yytext);
     return floatconst;
 }
-"T" {       /* not decided whether use ivalue or string to present boolean */
+"T" {                   
             yylval.ivalue = 1;
-            yylval.string = (char*)malloc(yyleng+1);
-            strcpy(yylval.string, yytext);
             return boolconst;
 }
 "F" {
             yylval.ivalue = 0;
-            yylval.string = (char*)malloc(yyleng+1);
-            strcpy(yylval.string, yytext);
             return boolconst;
 }
+
+"INT"   {
+            yylval.tokenval = TOKE_INT;
+            return T_INT;
+        }
+"BOOL"  {
+            yylval.tokenval = TOKE_BOOL;
+            return T_BOOL;
+        }
+"FLOAT" {
+            yylval.tokenval = TOKE_FLOAT;
+            return T_FLOAT;
+        }
+"CHAR"  { 
+            yylval.tokenval = TOKE_CHAR; 
+            return T_CHAR;
+        } 
+
+
 [_a-z0-9]+  {
             yylval.string = (char*)malloc(yyleng+1);
             strcpy(yylval.string, yytext);
