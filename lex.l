@@ -61,25 +61,21 @@ struct nodeType* newTokenNode(int tokenType);
 "LOGICAL"   { return LOGICAL;}
 "ANY"       { return ANY;}
 "INT"       {
-                yylval.node = newTokenNode(TOKE_INT);
-                yylval.node->string = (char*)malloc(yyleng+1);
-                strcpy(yylval.node->string, yytext);
-                token(ID);
+                yylval.tokentype = TOKE_INT;
+                yylval.string = (char*)malloc(yyleng+1);
+                strcpy(yylval.string, yytext);
+                return ID;
             }
-"BOOL"        {
-        yylval.node = newTokenNode(TOKE_BOOL); 
-        yylval.node->string = (char*)malloc(yyleng+1);
-        strcpy(yylval.node->string, yytext);
-        token(BOOL);
+"BOOL"  {
+        yylval.string = (char*)malloc(yyleng+1);
+        strcpy(yylval.string, yytext);
+        return BOOL;
         
         }
-"FLOAT"         {
-        yylval.node = newTokenNode(TOKE_FLOAT); /*token(FLOAT);*/ 
-        yylval.node->string = (char*)malloc(yyleng+1);
-        strcpy(yylval.node->string, yytext);
+"FLOAT" {
+        yylval.string = (char*)malloc(yyleng+1);
+        strcpy(yylval.string, yytext);
         token(ID);
-        
-/*"TIME"            {yylval.node = newTokenNode(TIME); token(TIME);} */
         }
 "CHAR"  { return TOKE_CHAR;} 
 "IN"    { return IN;   }
