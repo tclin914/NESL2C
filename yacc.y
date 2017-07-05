@@ -19,7 +19,7 @@
 #define ENDOFMAIN "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\nmyFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n"
 int yydebug =1;
 int yyerror(const char *s);
-struct nodeType * newOpNode(int op); 
+struct nodeType * newOpNode(enum OpType op); 
 extern struct nodeType* ASTRoot;
 %}
 
@@ -70,18 +70,18 @@ TopLevel
         : FUNCTION FunId Exp ':' FunTypeDef '=' Exp EndMark
         {
             $$=$1;
-            $$->nodeType = NODE_FUNC;
+            $$->nodeNum = NODE_FUNC;
             $1->string =  (char*)malloc(sizeof(strlen($2->string)));
             strcpy($$->string, $2->string);
-            $6->nodeType = NODE_ASSIGN;
+            $6->nodeNum = NODE_ASSIGN;
             
             //struct nodeType *pattern = newNode(NODE_PATTERN);
             //addChild(pattern,$3);
-            //$3->nodeType = NODE_PATTERN;
+            //$3->nodeNum = NODE_PATTERN;
             //addChild($$,pattern);
             addChild($$,$3);
             
-            struct nodeType *types = newNode(NODE_FUNC_TYPE);
+            //struct nodeType *types = newNode(NODE_FUNC_TYPE);
             //addChild(types, $5);
             //addChild($$,types);
             
@@ -93,10 +93,10 @@ TopLevel
         }
         | FUNCTION FunId Exp '=' Exp EndMark{
             $$ = $1;
-            $$->nodeType = NODE_FUNC;
+            $$->nodeNum = NODE_FUNC;
             $1->string =  (char*)malloc(sizeof(strlen($2->string)));
             strcpy($$->string, $2->string);
-            $4->nodeType = NODE_ASSIGN;
+            $4->nodeNum = NODE_ASSIGN;
             
             addChild($$, $3);
             
@@ -105,7 +105,7 @@ TopLevel
         }
         | DATATYPE ID '(' TypeList ')' EndMark{
             $$ = $1;
-            $$->nodeType = NODE_DATATYPE;
+            $$->nodeNum = NODE_DATATYPE;
             addChild($$,$2);
             addChild($$,$4);
             deleteNode($6);
@@ -123,8 +123,8 @@ TopLevel
         ;
 
 FunId   : ID{
-            /* if(tokenType!=TOKE_STRING) yyerror();*/
-            switch($1->tokenType){
+            /* if (tokenType!=TOKE_STRING) yyerror();*/
+            switch($1->token) {
             case TOKE_INT:
             case TOKE_FLOAT:
             case TOKE_BOOL:
@@ -145,7 +145,7 @@ EndMark : ';'
 
 FunTypeDef : TypeExp RARROW TypeExp{   
             $$ = $2; 
-            $$->nodeType = NODE_OP;
+            $$->nodeNum = NODE_OP;
             $$->op = OP_RARROW;
             addChild($$,$1); 
             addChild($$,$3);
@@ -153,18 +153,18 @@ FunTypeDef : TypeExp RARROW TypeExp{
         ;
 
 TypeExp : ID {  
-            switch($1->tokenType){
+            switch($1->token) {
                 case TOKE_INT:
-                    $1->valueType = TypeInt;
+                    $1->dataType.type = TYPEINT;
                     break;
                 case TOKE_FLOAT:
-                    $1->valueType = TypeFloat;
+                    $1->dataType.type = TYPEFLOAT;
                     break;
                 case TOKE_BOOL:
-                    $1->valueType = TypeBool;
+                    $1->dataType.type = TYPEBOOL;
                     break;
                 case TOKE_CHAR:
-                    $1->valueType = TypeChar;
+                    $1->dataType.type = TYPECHAR;
                     break;
                 default:
                     break;
@@ -188,7 +188,7 @@ TypeExp : ID {
 
 PairTypes : TypeExp ',' PairTypes{
             //$$ = $1;
-            //$2->nodeType = NODE_TOKEN;
+            //$2->nodeNum = NODE_TOKEN;
             //$2->string = ",";
             ////addChild($$,$2);
             //addChild($$,$3);
@@ -222,13 +222,13 @@ Exp : IfOrLetExp {
     }
     | TupleExp {
        /* 
-        if($1->child->child == NULL){
-            $$->nodeType = NODE_TUPLE_HEAD;
+        if ($1->child->child == NULL) {
+            $$->nodeNum = NODE_TUPLE_HEAD;
             $$ = $1->child;
         }
         */
         /*
-        if($1->nodeType!=NODE_OP){   
+        if ($1->nodeNum!=NODE_OP) {   
         $$ = newNode(NODE_TUPLE_HEAD);
         addChild($$,$1);
         }
@@ -246,9 +246,9 @@ IfOrLetExp
         addChild($$,$1);
         addChild($$,$3);
         addChild($$,$5);
-        $1->nodeType = NODE_IFSTMT;
-        $3->nodeType = NODE_THENSTMT;
-        $5->nodeType = NODE_ELSESTMT;
+        $1->nodeNum = NODE_IFSTMT;
+        $3->nodeNum = NODE_THENSTMT;
+        $5->nodeNum = NODE_ELSESTMT;
         addChild($1,$2);
         addChild($3,$4);
         addChild($5,$6);
@@ -284,7 +284,7 @@ ExpBinds
 ExpBind
     : Exp '=' Exp{
         $$ = $2;
-        $$->nodeType = NODE_ASSIGN;
+        $$->nodeNum = NODE_ASSIGN;
         struct nodeType *pattern = newNode(NODE_PATTERN);
         addChild($$,pattern);
         addChild(pattern, $1);
@@ -324,9 +324,9 @@ OrExp
     }
     ;
 
-OrOp: OR  { $$=$1; $$->nodeType = NODE_OP; $$->op=OP_OR;  }
-    | NOR { $$=$1; $$->nodeType = NODE_OP; $$->op=OP_NOR;  }
-    | XOR { $$=$1; $$->nodeType = NODE_OP; $$->op=OP_XOR;  } ;
+OrOp: OR  { $$=$1; $$->nodeNum = NODE_OP; $$->op=OP_OR;  }
+    | NOR { $$=$1; $$->nodeNum = NODE_OP; $$->op=OP_NOR;  }
+    | XOR { $$=$1; $$->nodeNum = NODE_OP; $$->op=OP_XOR;  } ;
 
 AndExp
     : RelExp {$$=$1;}
@@ -338,8 +338,8 @@ AndExp
     ;
 
 AndOp
-    : AND  {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_AND;}
-    | NAND {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_NAND;}
+    : AND  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_AND;}
+    | NAND {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_NAND;}
     ;
 
 RelExp
@@ -352,12 +352,12 @@ RelExp
     ;
 
 RelOp
-    :  EQ {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_EQ;}
-    | NE  {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_NE;}
-    | '<' {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_LT;}
-    | '>' {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_GT;}
-    | LE  {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_LE;}
-    | GE  {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_GE;}
+    :  EQ {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_EQ;}
+    | NE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_NE;}
+    | '<' {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LT;}
+    | '>' {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_GT;}
+    | LE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LE;}
+    | GE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_GE;}
     ;
 
 AddExp
@@ -370,10 +370,10 @@ AddExp
     ;
 
 AddOp
-    : '+'     {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_ADD;}
-    | '-'     {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_SUB ;}
-    | PP      {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_PP ;}
-    | LARROW  {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_LARROW ;}
+    : '+'     {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_ADD;}
+    | '-'     {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_SUB ;}
+    | PP      {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_PP ;}
+    | LARROW  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LARROW ;}
     ;
 
 MulExp
@@ -386,16 +386,16 @@ MulExp
     ;
 
 MulOp 
-    : '*'    {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_MUL; } 
-    | '/'    {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_DIV; } 
-    | RARROW {$$=$1; $$->nodeType = NODE_OP; $$->op = OP_RARROW; }  
+    : '*'    {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_MUL; } 
+    | '/'    {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_DIV; } 
+    | RARROW {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_RARROW; }  
     ;
 
 ExpExp 
     : UnExp { $$=$1;}
     | ExpExp '^' UnExp {
         $$ = $2; 
-        $$->nodeType = NODE_OP; $$->op = OP_UPT;
+        $$->nodeNum = NODE_OP; $$->op = OP_UPT;
         addChild($$,$1);
         addChild($$,$3);
     }
@@ -407,9 +407,9 @@ UnExp
     ;
 
 UnOp
-    : '#'{$$=$1; $$->nodeType = NODE_OP; $$->op = OP_SHARP;}
-    | '@'{$$=$1; $$->nodeType = NODE_OP; $$->op = OP_AT;}
-    | '-'{$$=$1; $$->nodeType = NODE_OP; $$->op = OP_UMINUS;} 
+    : '#'{$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_SHARP;}
+    | '@'{$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_AT;}
+    | '-'{$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_UMINUS;} 
     ;
 
 SubscriptExp
@@ -435,12 +435,12 @@ AtomicExp
         $$ = $2;
     }
     | '{' ApplyBody '|' Exp '}' {
-        if($2->nodeType == NODE_APPLYBODY1){
-            $2->nodeType =NODE_APPLYBODY3;
+        if ($2->nodeNum == NODE_APPLYBODY1) {
+            $2->nodeNum =NODE_APPLYBODY3;
             //addChild($2,$4);
         }
         else {
-            $2->nodeType =NODE_APPLYBODY4;
+            $2->nodeNum =NODE_APPLYBODY4;
            //` addChild($2,$4);
         }
         $$ = $2;
@@ -454,16 +454,16 @@ AtomicExp
         addChild($$,$1);
     }
     | '[' Exp SequenceTail ']'{
-        if($2->nodeType!=NODE_TUPLE){
+        if ($2->nodeNum!=NODE_TUPLE) {
         $$ = newNode(NODE_SEQ);
         addChild($$,$2);
         //addChild($$,$3);   
         }
         else{ 
             $$ =$2;
-            $$->nodeType=NODE_NEW_SEQ;
+            $$->nodeNum=NODE_NEW_SEQ;
         }
-        if($3->nodeType!=NODE_EMPTY)
+        if ($3->nodeNum!=NODE_EMPTY)
           addChild($$,$3);   
     }
     | '(' Exp ')' {
@@ -473,7 +473,7 @@ AtomicExp
 
     }
     | ID {
-       switch($1->tokenType){
+       switch($1->token) {
        case TOKE_INT:
        case TOKE_FLOAT:
        case TOKE_BOOL:
@@ -487,7 +487,7 @@ AtomicExp
     | ID '(' Exp ')'{
             //FIXME float, int ... is also token ID
             // but different tokenType
-        switch($1->tokenType){
+        switch($1->token) {
          case TOKE_INT:
          case TOKE_BOOL:
          case TOKE_CHAR: 
@@ -506,7 +506,7 @@ AtomicExp
 SpecialId
     : ANY {
         $$ = $1; 
-        $$->nodeType = NOTE_IMPLEMENT;
+        $$->nodeNum = NOTE_IMPLEMENT;
         yyerror("not implemented");
     }
     ;
@@ -539,7 +539,7 @@ RBinds
     
 RBind
     : ID {
-        switch($1->tokenType){
+        switch($1->token) {
          case TOKE_INT:
          case TOKE_FLOAT:
          case TOKE_BOOL:
@@ -551,8 +551,8 @@ RBind
     }
     | Exp IN Exp{
         $$ = $2;
-        $$->nodeType = NODE_IN;
-        //$1->nodeType = NODE_TOKEN;
+        $$->nodeNum = NODE_IN;
+        //$1->nodeNum = NODE_TOKEN;
         addChild($$,$1);
         addChild($$,$3);
     }
@@ -561,7 +561,7 @@ RBind
 SequenceTail
     : ':' Exp {
         $$ = $2;
-        $$->nodeType = NODE_SEQTAIL;
+        $$->nodeNum = NODE_SEQTAIL;
     }
     | ':' Exp ':' Exp {
         $$ = $2; 
@@ -576,20 +576,20 @@ SequenceTail
 Const
     : intconst{
         $$ = $1;
-        $$->nodeType = NODE_INT;
+        $$->nodeNum = NODE_INT;
     }
     | floatconst{
         $$ = $1;
-        $$->nodeType = NODE_FLOAT;
+        $$->nodeNum = NODE_FLOAT;
     }
     | boolconst{
         $$ = $1;
-        $$->nodeType = NODE_BOOL;
+        $$->nodeNum = NODE_BOOL;
     }
     | stringconst{
         $$ = $1;
-        $$->nodeType = NODE_STRING;
-        $$->valueType = TypeSEQ;
+        $$->nodeNum = NODE_STRING;
+        $$->dataType.type = TYPESEQ;
     }
     ;
 
@@ -597,7 +597,7 @@ Const
 
 extern void removePair(struct nodeType *node);
 extern void printNESL(struct nodeType *node, FILE* yyout);
-extern void semanticPass( struct nodeType *node);
+extern void semanticPass(struct nodeType *node);
 
 int ispfc=0;
 int issqc=0;
@@ -605,7 +605,7 @@ int isomp=0;
 int isrev=0;
 
 struct nodeType *ASTRoot;
-struct nodeType * newOpNode(int op) {
+struct nodeType * newOpNode(enum OpType op) {
     struct nodeType *node = newNode(NODE_OP);
     node -> op = op;
     return node;
@@ -662,7 +662,7 @@ static struct option options[] = {
     {"version", no_argument, NULL, 'v'}
 };
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
    
     CodeGenMode codeGenMode = NONE;
     int isRev = 0;   
@@ -704,7 +704,8 @@ int main(int argc, char **argv){
     }
 
     // TODO: check the input file extension (.nesl)
-    
+    //for ()
+
     // open nesl file 
     if ((yyin = fopen(input_file, "r")) == NULL) {
         fprintf(stderr, "Error: can not open the input file: %s\n", input_file);
@@ -808,19 +809,19 @@ int main(int argc, char **argv){
             //sqcheck(ASTRoot);
             pfcheck(ASTRoot);
         
-            for (int i = 0; i < 100; i++){
+            for (int i = 0; i < 100; i++) {
                 strcpy(refTable.entries[i].name, "");
             }
             // generate the needed tuple structures
             gentuple(yyout);
             sqcodegen(yyout, ASTRoot);
             fprintf(yyout, "}\n\n"); // end of myFunc();
-            fprintf(yyout, "int main(){\n");
+            fprintf(yyout, "int main() {\n");
             if (issrand)
                 fprintf(yyout, "srand(time(0));\n");
             fprintf(yyout, ENDOFMAIN);
             break;
-        }   
+        }
       
         case PFC: {
             pfcheck(ASTRoot);

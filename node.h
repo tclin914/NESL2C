@@ -5,21 +5,29 @@ struct nodeType;
 #include "type.h"
 #include "symtab.h"
 struct nodeType {
-    int nodeType;
     struct nodeType *parent;
     struct nodeType *child;
     struct nodeType *lsibling;
     struct nodeType *rsibling;
   
-    /* Attribute for NODE_TOKEN */
-    int tokenType;
+    /* node attribute */
+    enum NodeNum nodeNum;
+    struct DataType dataType;
+    struct nodeType *typeNode;
+    enum TokenNum token;
+    enum OpType op;
+  
+    /* node value */
+    int iValue;
+    double rValue;
+    char valueValid;
+    char *string;
   
     /* items for Array */
     int counts;
     int idxstart;
     int idxend;
     int arraydepth;
-    struct nodeType *arraynext;
   
     /*param & typeDef*/
     int paramcount;
@@ -31,19 +39,8 @@ struct nodeType {
     int childcount;
     struct nodeType * tuplenode;
   
-    /* Values for general use */
-    int iValue;
-    double rValue;
-    char valueValid;
-    char *string;
-    struct nodeType * typeNode;
-  
-    /* Indicates which OP */
-    char op;
-  
     /* for codegen */
     struct DataType type;
-    enum StdType valueType;
     struct SymTableEntry *entry;
     struct SymTable *table; 
     int isEndofFunction;

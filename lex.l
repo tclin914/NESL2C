@@ -96,7 +96,6 @@ struct nodeType* newTokenNode(int tokenType);
 "XOR"               {yylval.node = newTokenNode(XOR); token(XOR);}
 "OR"      {yylval.node = newTokenNode(OR); token(OR);  }
 "PI"    {yylval.node = newTokenNode(floatconst);
-         yylval.node->valueValid = VALUE_R_VALID;
          yylval.node->rValue = 3.141592653589793;
          token(floatconst);
         }
@@ -109,7 +108,6 @@ struct nodeType* newTokenNode(int tokenType);
 }
 [0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
     yylval.node = newTokenNode(floatconst);
-    yylval.node->valueValid = VALUE_R_VALID;
     yylval.node->rValue = atof(yytext);
     token(floatconst);
 }
@@ -146,7 +144,7 @@ struct nodeType* newTokenNode(int tokenType);
 %%
 struct nodeType* newTokenNode(int tokenType) {
     struct nodeType *node = newNode(NODE_TOKEN);
-    node->tokenType = tokenType;
+    node->token = tokenType;
 
     return node;
 }
