@@ -25,8 +25,12 @@ extern struct nodeType* ASTRoot;
 
 %union {
     struct nodeType *node;
-    int number ;
-    char * string;
+    int number;
+    int toketype;
+    int ivalue;
+    float rvalue;
+    char *string;
+
 }
 
 %token <tokenval> FUNCTION
@@ -352,12 +356,12 @@ RelExp
     ;
 
 RelOp
-    :  EQ {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_EQ;}
-    | NE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_NE;}
-    | '<' {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LT;}
-    | '>' {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_GT;}
-    | LE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LE;}
-    | GE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_GE;}
+    :  EQ {$$=newNode(NODE_OP); $$->op = OP_EQ;}
+    | NE  {$$=newNode(NODE_OP); $$->op = OP_NE;}
+    | '<' {$$=newNode(NODE_OP); $$->op = OP_LT;}
+    | '>' {$$=newNode(NODE_OP); $$->op = OP_GT;}
+    | LE  {$$=newNode(NODE_OP); $$->op = OP_LE;}
+    | GE  {$$=newNode(NODE_OP); $$->op = OP_GE;}
     ;
 
 AddExp
@@ -370,10 +374,10 @@ AddExp
     ;
 
 AddOp
-    : '+'     {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_ADD;}
-    | '-'     {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_SUB ;}
-    | PP      {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_PP ;}
-    | LARROW  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LARROW ;}
+    : '+'     {$$=newNode(NODE_OP); $$->op = OP_ADD;}
+    | '-'     {$$=newNode(NODE_OP); $$->op = OP_SUB;}
+    | PP      {$$=newNode(NODE_OP); $$->op = OP_PP;}
+    | LARROW  {$$=newNode(NODE_OP); $$->op = OP_LARROW ;}
     ;
 
 MulExp
@@ -386,15 +390,15 @@ MulExp
     ;
 
 MulOp 
-    : '*'    {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_MUL; } 
-    | '/'    {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_DIV; } 
-    | RARROW {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_RARROW; }  
+    : '*'    {$$=newNode(NODE_OP); $$->op = OP_MUL; } 
+    | '/'    {$$=newNode(NODE_OP); $$->op = OP_DIV; } 
+    | RARROW {$$=newNode(NODE_OP); $$->op = OP_RARROW; }  
     ;
 
 ExpExp 
     : UnExp { $$=$1;}
     | ExpExp '^' UnExp {
-        $$ = $2; 
+        $$ = newNode(NODE_OP); 
         $$->nodeNum = NODE_OP; $$->op = OP_UPT;
         addChild($$,$1);
         addChild($$,$3);
@@ -436,12 +440,10 @@ AtomicExp
     }
     | '{' ApplyBody '|' Exp '}' {
         if ($2->nodeNum == NODE_APPLYBODY1) {
-            $2->nodeNum =NODE_APPLYBODY3;
-            //addChild($2,$4);
+            $2->nodeNum = NODE_APPLYBODY3;
         }
         else {
-            $2->nodeNum =NODE_APPLYBODY4;
-           //` addChild($2,$4);
+            $2->nodeNum = NODE_APPLYBODY4;
         }
         $$ = $2;
         struct nodeType* filter = newNode(NODE_FILTER);
