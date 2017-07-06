@@ -22,24 +22,24 @@ int _ppindex[MAX];
 int iftindex[MAX];
 int fclindex[MAX];
 
-void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node){
+void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* node) {
     //insertREF(string, type, node);
-    printf("addnodetype=%d\n", node->nodeType);
+    printf("addnodetype=%d\n", node->nodeNum);
     assert(string);
     struct nodeType* typer = node->child;
-    if(node->typeNode){
+    if(node->typeNode) {
         typer = node->child;
-        if(node->typeNode->child){
+        if(node->typeNode->child) {
             typer = node->typeNode->child;
-            if(node->typeNode->child->typeNode){
+            if(node->typeNode->child->typeNode) {
                 typer = node->typeNode->child->typeNode;
             }
         }
     }
 
-    switch(type){
+    switch(type) {
     case TYPESEQ:
-        switch(typer->dataType.type){
+        switch(typer->dataType.type) {
         case TYPESEQ:
             fprintf(fptr, "atomicAdd(REFCNT(%s, struct Sequence),1);\n",string);
             break;
@@ -76,12 +76,12 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
         assert(Lchild->nodeNum != NODE_PAIR);
         assert(Rchild->nodeNum != NODE_PAIR);
 
-        if(containArray(Lchild)){
+        if(containArray(Lchild)) {
             assert(Lchild->string);
             printAddREF(fptr, Lchild->string, Lchild->dataType.type, Lchild);
         }
 
-        if(containArray(Rchild)){
+        if(containArray(Rchild)) {
             assert(Rchild->string);
             printAddREF(fptr, Rchild->string, Rchild->dataType.type, Rchild);
         }
@@ -93,7 +93,7 @@ void printAddREF(FILE *fptr, char* string, enum StdType type, struct nodeType* n
     }
 }
 
-void insertREF(char *s, enum StdType type, struct nodeType *link){
+void insertREF(char *s, enum StdType type, struct nodeType *link) {
     int index = refTable.size++;
     strcpy(refTable.entries[index].name, s);
     refTable.entries[index].type = type;
@@ -103,9 +103,9 @@ void insertREF(char *s, enum StdType type, struct nodeType *link){
 
 }
 
-int findREF(char *s){
+int findREF(char *s) {
     struct RefTableEntry *entry ;
-    for(int i=refTable.size;i>=0;i--){
+    for(int i=refTable.size;i>=0;i--) {
         entry = &refTable.entries[i];
         if(strcmp(s,entry->name)==0)
             return i;
@@ -113,17 +113,17 @@ int findREF(char *s){
     return -1;
 }
 
-void deleteREF(int start, int end){
+void deleteREF(int start, int end) {
 
-    for(int i =start;i<end ; i++){
+    for(int i =start;i<end ; i++) {
         strcpy(refTable.entries[i].name, "");
         refTable.entries[i].type = 0;
         refTable.entries[i].link = 0;
-        for(int j = i+1; j<end; j++){
+        for(int j = i+1; j<end; j++) {
             strcpy(refTable.entries[j-1].name, refTable.entries[j].name);
             refTable.entries[j-1].type = refTable.entries[j].type;
             refTable.entries[j-1].link = refTable.entries[j].link;
-            if(j= end -1){
+            if(j= end -1) {
                 strcpy(refTable.entries[j].name, "");
                 refTable.entries[j].type = 0;
                 refTable.entries[j].link = 0;
@@ -133,20 +133,20 @@ void deleteREF(int start, int end){
     }
 }
 
-void dumprefTable(){
-    for(int i =0;i<refTable.size;i++){
-        if(strcmp("",refTable.entries[i].name)){
+void dumprefTable() {
+    for(int i =0;i<refTable.size;i++) {
+        if(strcmp("",refTable.entries[i].name)) {
             printf("%d, %s\n",i,refTable.entries[i].name); 
         }
     }
 }
 
-void DECREF(FILE* fptr,int n){
+void DECREF(FILE* fptr,int n) {
     int end = refTable.size;
     assert(end>=n);
-    for(int i =refTable.size-n;i<end;i++){
-        if(strcmp("",refTable.entries[i].name)&&refTable.entries[i].link->isEndofFunction!=1){
-            switch(refTable.entries[i].type){
+    for(int i =refTable.size-n;i<end;i++) {
+        if(strcmp("",refTable.entries[i].name)&&refTable.entries[i].link->isEndofFunction!=1) {
+            switch(refTable.entries[i].type) {
             case TYPESEQ:{
                 // has different situation.
                 struct nodeType *loopme;
@@ -155,13 +155,13 @@ void DECREF(FILE* fptr,int n){
 
                 fprintf(fptr, "DECREF_SEQ");
                 int x=0;
-                while(loopme->dataType.type ==TYPESEQ){
+                while(loopme->dataType.type ==TYPESEQ) {
                     fprintf(fptr, "_SEQ");
                     loopme = loopme->typeNode;
                     assert(loopme);
                     if(x++==10) abort();//error;
                 }
-                switch(loopme->dataType.type){
+                switch(loopme->dataType.type) {
                 case TYPESEQ:  
                     assert(0);//not implement;
                     break;
@@ -178,17 +178,17 @@ void DECREF(FILE* fptr,int n){
                 break;
             }
         }
-        if(refTable.entries[i].link->isEndofFunction){
+        if(refTable.entries[i].link->isEndofFunction) {
             refTable.entries[i].link->isEndofFunction=0;
         }
     }
     deleteREF(end-n,refTable.size);
 }
 
-int insertadd(struct nodeType* node){
+int insertadd(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(addindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(addindex[i] ==0) {
             sprintf(varname, "add%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             addindex[i]=1;
@@ -197,10 +197,10 @@ int insertadd(struct nodeType* node){
     }
 }
 
-int insertsub(struct nodeType* node){
+int insertsub(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(subindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(subindex[i] ==0) {
             sprintf(varname, "sub%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             subindex[i]=1;
@@ -209,10 +209,10 @@ int insertsub(struct nodeType* node){
     }
 }
 
-int insertmul(struct nodeType* node){
+int insertmul(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(mulindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(mulindex[i] ==0) {
             sprintf(varname, "mul%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             mulindex[i]=1;
@@ -221,10 +221,10 @@ int insertmul(struct nodeType* node){
     }
 }
 
-int insertdiv(struct nodeType* node){
+int insertdiv(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(divindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(divindex[i] ==0) {
             sprintf(varname, "ddiv%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             divindex[i]=1;
@@ -233,10 +233,10 @@ int insertdiv(struct nodeType* node){
     }
 }
 
-int insertlet(struct nodeType* node){
+int insertlet(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(letindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(letindex[i] ==0) {
             sprintf(varname, "let%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             letindex[i]=1;
@@ -244,10 +244,10 @@ int insertlet(struct nodeType* node){
         }else if(i==MAX) return -1;
     }
 }
-int insertfcl(struct nodeType* node){
+int insertfcl(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(fclindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(fclindex[i] ==0) {
             sprintf(varname, "fcl%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             fclindex[i]=1;
@@ -255,10 +255,10 @@ int insertfcl(struct nodeType* node){
         }else if(i==MAX) return -1;
     }
 }
-int insertift(struct nodeType* node){
+int insertift(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(iftindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(iftindex[i] ==0) {
             sprintf(varname, "ift%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             iftindex[i]=1;
@@ -266,10 +266,10 @@ int insertift(struct nodeType* node){
         }else if(i==MAX) return -1;
     }
 }
-int insert_pp(struct nodeType* node){
+int insert_pp(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(_ppindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(_ppindex[i] ==0) {
             sprintf(varname, "_pp%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             _ppindex[i]=1;
@@ -277,10 +277,10 @@ int insert_pp(struct nodeType* node){
         }else if(i==MAX) return -1;
     }
 }
-int insertbol(struct nodeType* node){
+int insertbol(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(bolindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(bolindex[i] ==0) {
             sprintf(varname, "bol%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             bolindex[i]=1;
@@ -288,10 +288,10 @@ int insertbol(struct nodeType* node){
         }else if(i==MAX) return -1;
     }
 }
-int insertelm(struct nodeType* node){
+int insertelm(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<MAX; i++){
-        if(elmindex[i] ==0){
+    for(int i =0; i<MAX; i++) {
+        if(elmindex[i] ==0) {
             sprintf(varname, "elm%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
             elmindex[i]=1;
@@ -300,10 +300,10 @@ int insertelm(struct nodeType* node){
     }
 }
 
-int inserttmp(struct nodeType* node){
+int inserttmp(struct nodeType* node) {
     char varname[100];
-    for(int i =0; i<=MAX; i++){
-        if(tmpindex[i] ==0){
+    for(int i =0; i<=MAX; i++) {
+        if(tmpindex[i] ==0) {
             sprintf(varname, "tmp%d",i);
             addVariable(varname, node->dataType.type, node, REFERENCE);
             tmpindex[i]=1;
@@ -312,11 +312,11 @@ int inserttmp(struct nodeType* node){
     }
 }
 
-int insertapp(struct nodeType* node){
+int insertapp(struct nodeType* node) {
     char varname[100];
     struct SymTable *tmp = node->table;
-    for(int i =0; i<=MAX; i++){
-        if(appindex[i] ==0){
+    for(int i =0; i<=MAX; i++) {
+        if(appindex[i] ==0) {
             node->table = node->table->parent;
             sprintf(varname, "app%d",i);
             addVariable(varname, node->dataType.type, node,REFERENCE);
@@ -327,7 +327,7 @@ int insertapp(struct nodeType* node){
     }
 }
 
-int insertres(struct nodeType* node){
+int insertres(struct nodeType* node) {
     if(addVariable("res", node->dataType.type, node,REFERENCE))
         return 1;
     else 
@@ -340,12 +340,12 @@ int insertres(struct nodeType* node){
  * 2. label out the EXP that is return value of function.
  * 3. make the etc...
  */
-void pfcheck(struct nodeType* node){
+void pfcheck(struct nodeType* node) {
 
     struct nodeType *child;
     if(node->child)
         child = node->child;
-    switch(node->nodeNum){
+    switch(node->nodeNum) {
 
     case NODE_FUNC:{
         struct nodeType *inputParam = node->child;
@@ -354,13 +354,13 @@ void pfcheck(struct nodeType* node){
         pfcheck(node->child->rsibling->rsibling);
         node->isparallel_rr = node->child->rsibling->rsibling->isparallel_rr;
 
-        if(node->isparallel_rr){
+        if(node->isparallel_rr) {
             struct SymTableEntry *entry = findSymbol(node->table,node->string, REFERENCE);
             assert(entry);
             entry->link->isparallel_rr = 1;
         }
 
-        switch(inputParam->nodeNum){
+        switch(inputParam->nodeNum) {
         case NODE_TUPLE:
             inputParam->nodeNum = FPARAM_TUPLE;
             inputParam->isParam=1;// only the top tmp var being noted.
@@ -383,7 +383,7 @@ void pfcheck(struct nodeType* node){
         node->string = malloc(sizeof(char)*100);
         sprintf(node->string, "tmp%d",index);
         node->isvisited = 0;
-        switch(LHS->nodeNum){
+        switch(LHS->nodeNum) {
         case NODE_TUPLE:
             LHS->nodeNum= FPARAM_TUPLE;
             pfcheck(LHS);
@@ -395,7 +395,7 @@ void pfcheck(struct nodeType* node){
             assert(0);
             break;
         }
-        switch(RHS->nodeNum){
+        switch(RHS->nodeNum) {
         case NODE_TUPLE:
             RHS->nodeNum = FPARAM_TUPLE;
             pfcheck(RHS);
@@ -465,14 +465,14 @@ void pfcheck(struct nodeType* node){
         LHS->infilter = node->infilter;
         RHS = LHS->rsibling;
         RHS->infilter = node->infilter;
-        if(node->parent->isEndofFunction){
+        if(node->parent->isEndofFunction) {
             node->isEndofFunction = node->parent->isEndofFunction;
             LHS->isEndofFunction = node->isEndofFunction;
             RHS->isEndofFunction = node->isEndofFunction;
         }
         while(RHS->nodeNum == NODE_PAIR) RHS= RHS->child;
         while(LHS->nodeNum == NODE_PAIR) LHS= LHS->child;
-        switch(RHS->nodeNum){
+        switch(RHS->nodeNum) {
         case NODE_APPLYBODY1:
             pfcheck(RHS);
             node->isparallel_rr = RHS->isparallel_rr;
@@ -495,11 +495,11 @@ void pfcheck(struct nodeType* node){
             node->string = malloc(sizeof(char)*100);
             node->dataType.type = RHS->dataType.type;
             node->typeNode = RHS->typeNode;
-            switch(LHS->nodeNum){
+            switch(LHS->nodeNum) {
             case NODE_PATTERN:{
                 struct SymTableEntry *ent = findSymbol(node->table, LHS->child->string, REFERENCE);
-                if(ent){
-                    if(ent->link->typeNode){
+                if(ent) {
+                    if(ent->link->typeNode) {
                         ent->link->typeNode = RHS->typeNode;
                     }
                 }
@@ -526,9 +526,9 @@ void pfcheck(struct nodeType* node){
             pfcheck(LHS);
             pfcheck(RHS);
             if(LHS->isparallel_rr || RHS->isparallel_rr)node->isparallel_rr=1;
-            if(LHS->nodeNum == NODE_TOKEN){
+            if(LHS->nodeNum == NODE_TOKEN) {
                 assert(LHS->string);
-                if(!findSymbol(node->table, LHS->string, REFERENCE)){
+                if(!findSymbol(node->table, LHS->string, REFERENCE)) {
                     addVariable(LHS->string, LHS->dataType.type, LHS,REFERENCE);
                 }
             }
@@ -537,7 +537,7 @@ void pfcheck(struct nodeType* node){
 
         while(LHS->nodeNum == NODE_PATTERN) LHS= LHS->child;
         while(LHS->nodeNum == NODE_PAIR) LHS= LHS->child;
-        switch(LHS->nodeNum){
+        switch(LHS->nodeNum) {
         case NODE_TUPLE:  
             LHS->nodeNum = LHS_TUPLE;
             pfcheck(LHS);
@@ -562,19 +562,19 @@ void pfcheck(struct nodeType* node){
         LHS->infilter = node->infilter;
         RHS = LHS->rsibling;
         RHS->infilter = node->infilter;
-        if(node->parent->isEndofFunction){
+        if(node->parent->isEndofFunction) {
             node->isEndofFunction = node->parent->isEndofFunction;
             LHS->isEndofFunction = node->isEndofFunction;
             RHS->isEndofFunction = node->isEndofFunction;
         }
-        switch(node->op){
+        switch(node->op) {
         case OP_LT:
         case OP_LE:
         case OP_EQ:
         case OP_NE:
         case OP_GT:
         case OP_GE:{
-            if(!node->infilter){
+            if(!node->infilter) {
                 int index= insertbol(node);
                 assert(index!=-1);
                 node->string = malloc(sizeof(char)*100);
@@ -587,7 +587,7 @@ void pfcheck(struct nodeType* node){
             break;}
         case OP_ADD:{
 
-            if(!node->infilter){
+            if(!node->infilter) {
                 int index= insertadd(node);
                 assert(index!=-1);
                 node->string = malloc(sizeof(char)*100);
@@ -599,7 +599,7 @@ void pfcheck(struct nodeType* node){
             break;
         }case OP_SUB:{
 
-            if(!node->infilter){
+            if(!node->infilter) {
                 int index= insertsub(node);
                 assert(index!=-1);
                 node->string = malloc(sizeof(char)*100);
@@ -611,7 +611,7 @@ void pfcheck(struct nodeType* node){
             break;
         }case OP_MUL:{
 
-            if(!node->infilter){
+            if(!node->infilter) {
                 int index= insertmul(node);
                 assert(index!=-1);
                 node->string = malloc(sizeof(char)*100);
@@ -623,7 +623,7 @@ void pfcheck(struct nodeType* node){
             break;
         }case OP_DIV:{
 
-            if(!node->infilter){
+            if(!node->infilter) {
                 int index= insertdiv(node);
                 assert(index!=-1);
                 node->string = malloc(sizeof(char)*100);
@@ -637,7 +637,7 @@ void pfcheck(struct nodeType* node){
         case OP_UMINUS:
         case OP_SHARP:{
 
-            if(!node->infilter){
+            if(!node->infilter) {
                 int index= inserttmp(node);
                 assert(index!=-1);
                 node->string = malloc(sizeof(char)*100);
@@ -648,7 +648,7 @@ void pfcheck(struct nodeType* node){
 
             break;}
         case OP_UPT:{
-            if(!node->infilter){
+            if(!node->infilter) {
                 int index= inserttmp(node);
                 assert(index!=-1);
                 node->string = malloc(sizeof(char)*100);
@@ -665,11 +665,11 @@ void pfcheck(struct nodeType* node){
                 pfcheck(LHS);
             pfcheck(RHS);
 
-            if(LHS->op == OP_PP){
+            if(LHS->op == OP_PP) {
                 LHS->inserttmp = 1;
                 LHS->isEndofFunction = 0;
             }
-            if(RHS->op == OP_PP){
+            if(RHS->op == OP_PP) {
                 RHS->inserttmp = 1;
                 RHS->isEndofFunction=0;
             }
@@ -695,7 +695,7 @@ void pfcheck(struct nodeType* node){
         //if there is another tuple, transform and pfcheck it.
         struct nodeType *child = node->child;
         do{
-            if(child->nodeNum == NODE_TUPLE){
+            if(child->nodeNum == NODE_TUPLE) {
                 child->nodeNum = NODE_ACTION_TUPLE;
                 pfcheck(child);
             }
@@ -746,7 +746,7 @@ void pfcheck(struct nodeType* node){
         node->string = malloc(sizeof(char)*100);
         sprintf(node->string, "app%d",idx);
 
-        if(!node->child->string){
+        if(!node->child->string) {
             node->child->string = malloc(sizeof(char)*100);
             strcpy(node->child->string, "tmp");
             addVariable(node->child->string, node->child->dataType.type, node->child, FORCEDECLARE);
@@ -760,7 +760,7 @@ void pfcheck(struct nodeType* node){
         pfcheck(node->child->rsibling);
         node->needcounter = node->child->needcounter;
         node->isparallel_rr = node->child->isparallel_rr;
-        if(node->parent->op!=NODE_ASSIGN){
+        if(node->parent->op!=NODE_ASSIGN) {
             int idx = insertapp(node);
             node->string = malloc(sizeof(char)*100);
             sprintf(node->string, "app%d",idx);
@@ -776,7 +776,7 @@ void pfcheck(struct nodeType* node){
             pfcheck(node->child);
             node->needcounter = node->child->needcounter;
             node->isparallel_rr = node->child->isparallel_rr;
-            if(node->parent->op!=NODE_ASSIGN){
+            if(node->parent->op!=NODE_ASSIGN) {
                 int idx = insertapp(node);
                 node->string = malloc(sizeof(char)*100);
                 sprintf(node->string, "app%d",idx);
@@ -797,7 +797,7 @@ void pfcheck(struct nodeType* node){
 
         node->isEndofFunction = node->parent->isEndofFunction;
 
-        if(!strcmp(LHS->string,"dist")||node->parent->nodeNum == NODE_NESL){
+        if(!strcmp(LHS->string,"dist")||node->parent->nodeNum == NODE_NESL) {
             issrand = 1;
         }
 
@@ -808,7 +808,7 @@ void pfcheck(struct nodeType* node){
         if(LHS->isparallel_rr || RHS->isparallel_rr ) node->isparallel_rr=1;
 
         entry = findSymbol(node->table, LHS->string, REFERENCE);
-        if(entry){ 
+        if(entry) { 
 
             /* annotation information*/
             if(entry->link->isparallel_rr) 
@@ -840,7 +840,7 @@ void pfcheck(struct nodeType* node){
 
         int index = inserttmp(node);
         node->string = malloc(sizeof(char)*100);
-        sprintf(node->string, "tmp%d",index);
+        sprintf(node->string, "tmp%d", index);
 
         while(LHS->nodeNum == NODE_PAIR) LHS=LHS->child;
         while(RHS->nodeNum == NODE_PAIR) RHS=RHS->child;
@@ -856,7 +856,7 @@ void pfcheck(struct nodeType* node){
 
         int index = inserttmp(node);
         node->string = malloc(sizeof(char)*100);
-        sprintf(node->string, "tmp%d",index);
+        sprintf(node->string, "tmp%d", index);
 
         while(LHS->nodeNum == NODE_PAIR) LHS=LHS->child;
         while(RHS->nodeNum == NODE_PAIR) RHS=RHS->child;
@@ -870,7 +870,7 @@ void pfcheck(struct nodeType* node){
     case NODE_TUPLE:{
         int index = inserttmp(node);
         node->string = malloc(sizeof(char)*100);
-        sprintf(node->string, "tmp%d",index);
+        sprintf(node->string, "tmp%d", index);
 
         node->inserttmp = 1;
         pfcheck(node->child);
@@ -884,7 +884,7 @@ void pfcheck(struct nodeType* node){
         node->string = malloc(sizeof(char)*100);
         strcpy(node->string, node->parent->string);
 
-        //if(RHS->nodeNum == NODE_SEQ_TUPLE){
+        //if(RHS->nodeNum == NODE_SEQ_TUPLE) {
         //  pfcheck(RHS);
         //}
         pfcheck(LHS);
@@ -896,7 +896,7 @@ void pfcheck(struct nodeType* node){
         break;
     case NODE_SEQ:{
         // might have empty sequence
-        if(node->child){
+        if(node->child) {
             struct nodeType *child = node->child;
             do{
                 pfcheck(node->child);
@@ -908,18 +908,18 @@ void pfcheck(struct nodeType* node){
         sprintf(node->string, "tmp%d", idx);
         break;
     }
-    
+
     case NODE_NEW_SEQ:{
         struct nodeType *LHS = node->child;
         struct nodeType *RHS = node->child->rsibling;
 
         int idx = inserttmp(node);
         node->string = malloc(sizeof(char)*100);
-        sprintf(node->string, "tmp%d",idx);
+        sprintf(node->string, "tmp%d", idx);
 
         LHS->paramcount = 0;
         RHS->paramcount = 1;
-        if(RHS->nodeNum == NODE_SEQ_TUPLE){
+        if(RHS->nodeNum == NODE_SEQ_TUPLE) {
             //pfcheck(RHS);
             node->counts = RHS->counts+1;
         }
@@ -936,7 +936,7 @@ void pfcheck(struct nodeType* node){
         pfcheck(node->child);
         pfcheck(node->child->rsibling);
 
-        if(node->child->rsibling->nodeNum == NODE_NEW_SEQ ){
+        if(node->child->rsibling->nodeNum == NODE_NEW_SEQ ) {
             assert(node->child->rsibling->string);
             node->string = malloc(sizeof(char)*100);
             strcpy(node->string, node->child->rsibling->string);
@@ -963,7 +963,7 @@ void pfcheck(struct nodeType* node){
     case NODE_BIND:{
         struct nodeType *child = node->child;
         int counts=0;
-        if(child!=0){
+        if(child!=0) {
             do{
                 counts++;
                 pfcheck(child);
@@ -987,14 +987,14 @@ void pfcheck(struct nodeType* node){
         node->table = table;
         assert(index!=-1);
         node->string = malloc(sizeof(char)*100);
-        sprintf(node->string, "let%d",index);
+        sprintf(node->string, "let%d", index);
         assert(node->string);
         break;
     }
     case NODE_SEQ_REF:{
         int index = insertelm(node);
         node->string = malloc(sizeof(char)*100);
-        sprintf(node->string, "elm%d",index);
+        sprintf(node->string, "elm%d", index);
         assert(node->string);
         pfcheck(node->child);
         assert(node->child->string);
@@ -1022,12 +1022,12 @@ void pfcheck(struct nodeType* node){
         struct nodeType* child = node->child;
         int count=0;
 
-        if(node->parent && node->child){
+        if(node->parent && node->child) {
             node->isEndofFunction = node->parent->isEndofFunction;
             if(node->isEndofFunction)
                 node->child->lsibling->isEndofFunction = 1;
         }
-        if(child){
+        if(child) {
             do{
                 count++;
                 pfcheck(child);
@@ -1045,12 +1045,12 @@ void pfcheck(struct nodeType* node){
         node->child->infilter =1;   
     default:{
         struct nodeType* child = node->child;
-        if(node->parent && node->child){
+        if(node->parent && node->child) {
             node->isEndofFunction = node->parent->isEndofFunction;
             if(node->isEndofFunction)
                 node->child->lsibling->isEndofFunction = 1;
         }
-        if(child){
+        if(child) {
             do{
                 pfcheck(child);
                 if(child->needcounter)
@@ -1064,20 +1064,20 @@ void pfcheck(struct nodeType* node){
     }
 
     }// end of switch node->nodeNum
-}
+}// end of pfcheck
 
 /*declare global variables.*/
-void printGlobalVar(FILE *fptr, struct nodeType* node){
-    switch(node->nodeNum){
+void printGlobalVar(FILE *fptr, struct nodeType* node) {
+    switch(node->nodeNum) {
     case NODE_TOKEN:
-        if(node->token == TOKE_ID){
-            switch( node->dataType.type){
+        if(node->token == TOKE_ID) {
+            switch( node->dataType.type) {
             case TYPEINT:{
                 assert(node->string);
-                struct SymTableEntry *entry = findSymbol(node->table,node->string, REFERENCE);
+                struct SymTableEntry *entry = findSymbol(node->table, node->string, REFERENCE);
                 fprintf(fptr, "int %s;\n", node->string);
-                if(entry){
-                    entry->isParam =1; 
+                if(entry) {
+                    entry->isParam = 1; 
                 }
                 else assert(0);// semantic check pass error
                 break;}
@@ -1088,7 +1088,7 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
         }
         break;
     case NODE_OP:{
-        switch(node->op){
+        switch(node->op) {
         case OP_BIND:
             printGlobalVar(fptr, node->child);
             break;
@@ -1100,12 +1100,12 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
         break;
     }
     case NODE_TUPLE:{
-        switch (node->dataType.type){
+        switch (node->dataType.type) {
         case TYPETUPLE: 
             //fprintf(fptr, "struct Tuple %s;\n", node->string); 
             assert(0);
-            printGlobalVar(fptr,node->child);
-            printGlobalVar(fptr,node->child->rsibling);
+            printGlobalVar(fptr, node->child);
+            printGlobalVar(fptr, node->child->rsibling);
             break;
         }
         break;
@@ -1114,9 +1114,9 @@ void printGlobalVar(FILE *fptr, struct nodeType* node){
     }
 }
 
-void printDECREF(FILE *fptr, struct nodeType *node){
+void printDECREF(FILE *fptr, struct nodeType *node) {
 
-    switch(node->dataType.type){
+    switch(node->dataType.type) {
     case TYPESEQ:{
         struct nodeType *loopme;
         int types;
@@ -1124,32 +1124,32 @@ void printDECREF(FILE *fptr, struct nodeType *node){
 
         /*VVVVV added for debuging */
         //struct nodeType* typer = node->child;
-        //if(node->typeNode){
+        //if(node->typeNode) {
         //  typer = node->child;
-        //  if(node->typeNode->child){
+        //  if(node->typeNode->child) {
         //    typer = node->typeNode->child;
-        //    if(node->typeNode->child->typeNode){
+        //    if(node->typeNode->child->typeNode) {
         //      typer = node->typeNode->child->typeNode;
-        //      //if(node->typeNode->child->typeNode->child){
+        //      //if(node->typeNode->child->typeNode->child) {
         //      //  typer = node->typeNode->child->typeNode->child;
         //      //}
         //    }
         //  }
         //}
-        //fprintf(fptr, "printf(\"***DECREF refcnt:%s:%cd\\n\",*REFCNT(%s,",node->string,'%',node->string); 
+        //fprintf(fptr, "printf(\"***DECREF refcnt:%s:%cd\\n\", *REFCNT(%s, ", node->string, '%', node->string); 
         //printtype(fptr, typer);
         //fprintf(fptr, "));\n"); 
         /*^^^^^ added for debuging */
 
         fprintf(fptr, "DECREF_SEQ_");
-        int x=0;
-        while(loopme->dataType.type ==TYPESEQ){
+        int x = 0;
+        while(loopme->dataType.type == TYPESEQ) {
             fprintf(fptr, "S");
             loopme = loopme->typeNode->child;
             assert(loopme);
             if(x++==10) abort();//error;
         }
-        switch(loopme->dataType.type){
+        switch(loopme->dataType.type) {
         case TYPESEQ:  
             assert(0);//not implement;
             break;
@@ -1171,13 +1171,13 @@ void printDECREF(FILE *fptr, struct nodeType *node){
         struct nodeType *typenode = node;
         struct nodeType *LHS,*RHS;
         //if(node->typeNode) typenode = node->typeNode;
-        //if(typenode->child){
+        //if(typenode->child) {
         //LHS= typenode->child;
         //RHS= LHS->rsibling;
         //}
         //else{
-        struct nodeType *nL  = newNode(NODE_TOKEN);
-        struct nodeType *nR  = newNode(NODE_TOKEN);
+        struct nodeType *nL = newNode(NODE_TOKEN);
+        struct nodeType *nR = newNode(NODE_TOKEN);
         //char name[100];
         typenode = node->typeNode;
         nL->dataType.type = typenode->child->dataType.type;
@@ -1186,8 +1186,8 @@ void printDECREF(FILE *fptr, struct nodeType *node){
         nR->typeNode = typenode->child->rsibling->typeNode;
         nL->string = malloc(sizeof(char)*100);
         nR->string = malloc(sizeof(char)*100);
-        sprintf(nL->string, "%s.a",node->string);
-        sprintf(nR->string, "%s.b",node->string);
+        sprintf(nL->string, "%s.a", node->string);
+        sprintf(nR->string, "%s.b", node->string);
         LHS=nL;
         RHS=nR;
         //addChild(node, nL);
@@ -1195,7 +1195,7 @@ void printDECREF(FILE *fptr, struct nodeType *node){
         //LHS= node->child;
         //RHS= LHS->rsibling;
         //}
-        switch (LHS->dataType.type){
+        switch (LHS->dataType.type) {
         case TYPESEQ:
         case TYPETUPLE:{
             printDECREF(fptr, LHS);
@@ -1206,7 +1206,7 @@ void printDECREF(FILE *fptr, struct nodeType *node){
             break;
         }
         }
-        switch (RHS->dataType.type){
+        switch (RHS->dataType.type) {
         case TYPESEQ:
         case TYPETUPLE:{
             printDECREF(fptr, RHS);
@@ -1226,39 +1226,39 @@ void printDECREF(FILE *fptr, struct nodeType *node){
     }
 }
 
-void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
-    switch(child->nodeNum){
+void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child) {
+    switch(child->nodeNum) {
     case NODE_OP:
-        switch(child->op){
+        switch(child->op) {
         case OP_SHARP:
             if(child->parent->nodeNum == NODE_NESL)
-                if(child->child->nodeNum==NODE_TOKEN)
+                if(child->child->nodeNum == NODE_TOKEN)
                     fprintf(fptr, "//opsharp\n");
             //printDECREF(fptr,child->child);
             break;
         case OP_PP:
-            if(child->parent->nodeNum == NODE_OP){
-                switch(child->parent->op){
+            if(child->parent->nodeNum == NODE_OP) {
+                switch(child->parent->op) {
                 case OP_PP:
                     //printDECREF(fptr,child);
-                    fprintf(fptr,"\n//op_pp under op_pp\n");
+                    fprintf(fptr, "\n//op_pp under op_pp\n");
                     break;
                 default: break;
                 }
             } 
-            if(child->parent->nodeNum == NODE_NESL){
+            if(child->parent->nodeNum == NODE_NESL) {
                 printDECREF(fptr, child);
             }
             break;
         default:
-            fprintf(fptr,"\n//omg:op:%d\n",child->op);
+            fprintf(fptr, "\n//omg:op:%d\n", child->op);
             break;
         }
         break;
     case NODE_FUNC:
         break;
     case NODE_SEQ_REF:
-        switch(child->parent->nodeNum){
+        switch(child->parent->nodeNum) {
         case NODE_NESL:
             fprintf(fptr, "\n//here\n");
             printDECREF(fptr, child);
@@ -1271,16 +1271,16 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         if(child->child->rsibling->nodeNum == NODE_APPLYBODY2)
             fprintf(fptr, "\n //burn it up\n");
         else{
-            switch(child->parent->nodeNum){
+            switch(child->parent->nodeNum) {
             case NODE_NESL:
                 fprintf(fptr, "//here\n");
 
-                if(child->dataType.type==TYPETUPLE){
-                    fprintf(fptr, "//its a tuple:%s\n",child->string);
+                if(child->dataType.type == TYPETUPLE) {
+                    fprintf(fptr, "//its a tuple:%s\n", child->string);
                     printDECREF(fptr, child);
                 }
                 else printDECREF(fptr, child);
-                if(containArray(child->child->rsibling)){
+                if(containArray(child->child->rsibling)) {
                     //DecRefCountForContainedArray(fptr, child->child->rsibling);
                 }
                 break;
@@ -1330,7 +1330,7 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         fprintf(fptr, "\n//pair not removed\n");
         break;
     case NODE_IN:
-        switch(child->parent->nodeNum){
+        switch(child->parent->nodeNum) {
         case NODE_RBINDS:
             printDECREF(fptr, child);
             break;
@@ -1343,7 +1343,7 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
     case NODE_APPLYBODY2:
     case NODE_APPLYBODY3:
     case NODE_APPLYBODY4:
-        switch(child->parent->nodeNum){
+        switch(child->parent->nodeNum) {
         case NODE_FUNC:
         break;
         default:
@@ -1355,8 +1355,8 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         {
             struct nodeType *rbinds = child->child;
             fprintf(fptr, "\n// free the children of rbinds.\n");
-            for(int i =0;i<child->table->size;i++){
-                if(child->table->entries[i].isParam == 2){
+            for(int i =0; i<child->table->size; i++) {
+                if(child->table->entries[i].isParam == 2) {
                     //fprintf(fptr, "// free %s .\n", child->table->entries[i].name);
                     printDECREF(fptr, child->table->entries[i].link);
                     child->table->entries[i].isParam -- ;
@@ -1366,7 +1366,7 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         }
     case GEN_APP3:
     case NODE_ASSIGN:{
-        if(child->parent->nodeNum == NODE_BIND){
+        if(child->parent->nodeNum == NODE_BIND) {
             struct SymTableEntry *entry;
             entry = findSymbol(child->parent->table, child->child->string, REFERENCE);
             assert(entry);
@@ -1378,7 +1378,7 @@ void DecRefCountForContainedArray(FILE* fptr, struct nodeType *child){
         printDECREF(fptr, child);
         break; 
     case NODE_LET:
-        switch(child->parent->nodeNum){
+        switch(child->parent->nodeNum) {
 
         case NODE_TUPLE:
         case PARAM_TUPLE:

@@ -3581,10 +3581,9 @@ void sqcodegen(FILE *fptr, struct nodeType* node){
             //    break;
             //    }
             //break;
->>>>>>> 490995f16a11f239d2ad6bd024595a4136160489
         default:
-            fprintf(fptr, "//containArray nodeType = %d\n",node->nodeType);
-            printAddREF(fptr,node->string,node->valueType,node); 
+            fprintf(fptr, "//containArray nodeType = %d\n",node->nodeNum);
+            printAddREF(fptr,node->string,node->dataType.type,node); 
             break;
         }
     }

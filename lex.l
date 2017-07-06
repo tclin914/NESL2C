@@ -23,118 +23,103 @@ struct nodeType* newTokenNode(int tokenType);
 "$"    { return '$';}   
 "#"    { return '#';}
 "@"    { return '@';}
-"^"    {yylval.node = newTokenNode(NODE_MARK); token('^');     }
-"|"    {yylval.node = newTokenNode(NODE_MARK); token('|');     }
-">"    {yylval.node = newTokenNode(NODE_MARK); token('>');     }
-"<"    {yylval.node = newTokenNode(NODE_MARK); token('<');     }
-","    {yylval.node = newTokenNode(NODE_MARK); token(',');     }
-"("    {yylval.node = newTokenNode(NODE_MARK); token('(');     }
-")"    {yylval.node = newTokenNode(NODE_MARK); token(')');     }
-"+"    {yylval.node = newTokenNode(NODE_MARK); token('+');     }
-"-"    {yylval.node = newTokenNode(NODE_MARK); token('-');     }
-"*"    {yylval.node = newTokenNode(NODE_MARK); token('*');     }
-":"    {yylval.node = newTokenNode(NODE_MARK); token(':');     }
-"/"    {yylval.node = newTokenNode(NODE_MARK); token('/');     }
-"["    {yylval.node = newTokenNode(NODE_MARK); token('[');     }
-"]"    {yylval.node = newTokenNode(NODE_MARK); token(']');     }
-"{"    {yylval.node = newTokenNode(NODE_MARK); token('{');     }
-"}"    {yylval.node = newTokenNode(NODE_MARK); token('}');     }
-";"    {yylval.node = newTokenNode(NODE_MARK); token(';');     }
-"="    {yylval.node = newTokenNode(NODE_MARK); token('=');     }
-"++"   {yylval.node = newTokenNode(NODE_MARK); token(PP);      }
-"->"   {yylval.node = newTokenNode(NODE_MARK); token(RARROW);  }
-"<-"   {yylval.node = newTokenNode(NODE_MARK); token(LARROW);  }
-"=="   {yylval.node = newTokenNode(NODE_MARK); token(EQ);      }
-"/="   {yylval.node = newTokenNode(NODE_MARK); token(NE);      }
-"<="   {yylval.node = newTokenNode(NODE_MARK); token(LE);      }
-">="   {yylval.node = newTokenNode(NODE_MARK); token(GE);      }
+"^"    { return '^';}
+"|"    { return '|';}
+">"    { return '>';}
+"<"    { return '<';}
+","    { return ',';}
+"("    { return '(';}
+")"    { return ')';}
+"+"    { return '+';}
+"-"    { return '-';}
+"*"    { return '*';}
+":"    { return ':';}
+"/"    { return '/';}
+"["    { return '[';}
+"]"    { return ']';}
+"{"    { return '{';}
+"}"    { return '}';}
+";"    { return ';';}
+"="    { return '=';}
+"++"   { return PP;}
+"->"   { return RARROW;}
+"<-"   { return LARROW;}
+"=="   { return EQ;}
+"/="   { return NE;}
+"<="   { return LE;}
+">="   { return GE;}
 
 "FUNCTION" {
-    /* yylval.node = newTokenNode(FUNCTION); */
-    /* token(FUNCTION);     */
     return FUNCTION;
 }
 "DATATYPE" {
-    yylval.node = newTokenNode(DATATYPE);
-    token(DATATYPE);
+    return DATATYPE;
 }
 
-"NUMBER"      {yylval.node = newTokenNode(NUMBER); token(NUMBER);  }
-"ORDINAL"   {yylval.node = newTokenNode(ORDINAL); token(ORDINAL); }
-"LOGICAL"   {yylval.node = newTokenNode(LOGICAL); token(LOGICAL); }
-"ANY"               {yylval.node = newTokenNode(ANY); token(ANY);}
-"INT"       {
-                yylval.node = newTokenNode(TOKE_INT);
-                yylval.node->string = (char*)malloc(yyleng+1);
-                strcpy(yylval.node->string, yytext);
-                token(ID);
-            }
-"BOOL"        {
-        yylval.node = newTokenNode(TOKE_BOOL); 
-        yylval.node->string = (char*)malloc(yyleng+1);
-        strcpy(yylval.node->string, yytext);
-        token(BOOL);
-        
-        }
-"FLOAT"         {
-        yylval.node = newTokenNode(TOKE_FLOAT); /*token(FLOAT);*/ 
-        yylval.node->string = (char*)malloc(yyleng+1);
-        strcpy(yylval.node->string, yytext);
-        token(ID);
-        
-/*"TIME"            {yylval.node = newTokenNode(TIME); token(TIME);} */
-        }
-"CHAR"            {yylval.node = newTokenNode(TOKE_CHAR); token(CHAR);}
-"IN"                  {yylval.node = newTokenNode(IN); token(IN);}
-"IF"                  {yylval.node = newTokenNode(IF); token(IF);}
-"ELSE"            {yylval.node = newTokenNode(ELSE); token(ELSE);}
-"THEN"            {yylval.node = newTokenNode(THEN); token(THEN);}
-"LET"               {yylval.node = newTokenNode(LET); token(LET);}
-"AND"               {yylval.node = newTokenNode(AND); token(AND);}
-"NAND"               {yylval.node = newTokenNode(NAND); token(NAND);}
-"NOR"               {yylval.node = newTokenNode(NOR); token(NOR);}
-"XOR"               {yylval.node = newTokenNode(XOR); token(XOR);}
-"OR"      {yylval.node = newTokenNode(OR); token(OR);  }
-"PI"    {yylval.node = newTokenNode(floatconst);
-         yylval.node->rValue = 3.141592653589793;
-         token(floatconst);
+"NUMBER"      { return NUMBER;}
+"ORDINAL"   { return ORDINAL;}
+"LOGICAL"   { return LOGICAL;}
+"ANY"       { return ANY;}
+"IN"    { return IN;   }
+"IF"    { return IF;   }
+"ELSE"  { return ELSE; }
+"THEN"  { return THEN; }
+"LET"   { return LET;  }
+"AND"   { return AND;  }
+"NAND"  { return NAND; }
+"NOR"   { return NOR;  }
+"XOR"   { return XOR;  }
+"OR"    { return OR;   }
+"PI"    {
+         yylval.rvalue = 3.141592653589793;
+         return floatconst;
         }
 
 [0-9]+ { 
-    yylval.node = newTokenNode(intconst);
-    yylval.node->valueValid = VALUE_I_VALID;
-    yylval.node->iValue = atoi(yytext);
-    token(intconst); 
+    yylval.ivalue = atoi(yytext);
+    return intconst;
 }
 [0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
-    yylval.node = newTokenNode(floatconst);
-    yylval.node->rValue = atof(yytext);
-    token(floatconst);
+    yylval.rvalue = atof(yytext);
+    return floatconst;
 }
-"T"        {
-            yylval.node = newTokenNode(NODE_BOOL);
-            yylval.node->string = (char*)malloc(yyleng+1);
-            strcpy(yylval.node->string, yytext);
-            token(boolconst);
+"T" {                   
+            yylval.ivalue = 1;
+            return boolconst;
 }
 "F" {
-            yylval.node = newTokenNode(NODE_BOOL);
-            yylval.node->string = (char*)malloc(yyleng+1);
-            strcpy(yylval.node->string, yytext);
-            token(boolconst);
-}
-[_a-z0-9]+  {
-            yylval.node = newTokenNode(TOKE_ID);
-            yylval.node->string = (char*)malloc(yyleng+1);
-            strcpy(yylval.node->string, yytext);
-            token(ID);
+            yylval.ivalue = 0;
+            return boolconst;
 }
 
-\"[^"]*\"     {
-            yylval.node = newTokenNode(TOKE_STRING);
-            yylval.node->string = (char*)malloc(yyleng+1);
-            strcpy(yylval.node->string, yytext);
-            token(stringconst);
+"INT"   {
+            yylval.tokenval = TOKE_INT;
+            return T_INT;
+        }
+"BOOL"  {
+            yylval.tokenval = TOKE_BOOL;
+            return T_BOOL;
+        }
+"FLOAT" {
+            yylval.tokenval = TOKE_FLOAT;
+            return T_FLOAT;
+        }
+"CHAR"  { 
+            yylval.tokenval = TOKE_CHAR; 
+            return T_CHAR;
+        } 
+
+
+[_a-z0-9]+  {
+            yylval.string = (char*)malloc(yyleng+1);
+            strcpy(yylval.string, yytext);
+            return ID;
+}
+
+\"[^"]*\"   {
+            yylval.string = (char*)malloc(yyleng+1);
+            strcpy(yylval.string, yytext);
+            return stringconst;
 }
 
 "//".*"\n"  {                           //string value

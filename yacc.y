@@ -25,27 +25,31 @@ extern struct nodeType* ASTRoot;
 
 %union {
     struct nodeType *node;
-    int number ;
-    char * string;
+    int number;
+    int tokenval;
+    int ivalue;
+    float rvalue;
+    char *string;
+
 }
 
 %token <tokenval> FUNCTION
+%token <tokenval> T_INT T_BOOL T_FLOAT T_CHAR 
+%token <ivalue> intconst
+%token <rvalue> floatconst
+%token <ivalue> boolconst
+%token <string> stringconst
+%token <string> ID
+%token <tokenval> DATATYPE NUMBER ORDINAL LOGICAL ANY
+%token <tokenval> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
 
-%token <node> DATATYPE NUMBER ORDINAL LOGICAL ANY INT BOOL FLOAT CHAR 
-%token <node> IF THEN ELSE LET IN OR NOR XOR AND NAND RARROW LARROW NE EQ LE GE
-%token <node> intconst floatconst ID boolconst stringconst TIME 
-%token <node> '{' '}' '(' ')' ';' '=' ',' '[' ']' ':' '|' '$'
-
-
-%type <node> goal TopLevel FunId EndMark FunTypeDef TypeExp PairTypes TypeList
+%type <node> id 
+%type <node> goal TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
 %type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp OrOp 
 %type <node> AndExp AndOp RelExp RelOp AddExp AddOp MulExp MulOp ExpExp UnExp 
 %type <node> UnOp SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
 %type <node> SequenceTail Const 
 
-%type <node> '<' '>' '+' '-' PP 
-
-%type <node> '*' '/' '^' '#' '@' 
 
 
 %left ','
@@ -69,73 +73,39 @@ goal: TopLevel {ASTRoot=newNode(NODE_NESL);addChild(ASTRoot,$1);$$=ASTRoot; }
 TopLevel 
         : FUNCTION FunId Exp ':' FunTypeDef '=' Exp EndMark
         {
-            $$=$1;
-            $$->nodeNum = NODE_FUNC;
-            $1->string =  (char*)malloc(sizeof(strlen($2->string)));
+            $$ = newNode(NODE_FUNC);
+            $$->string =  (char*)malloc(sizeof(strlen($2->string)));
             strcpy($$->string, $2->string);
-            $6->nodeNum = NODE_ASSIGN;
-            
-            //struct nodeType *pattern = newNode(NODE_PATTERN);
-            //addChild(pattern,$3);
-            //$3->nodeNum = NODE_PATTERN;
-            //addChild($$,pattern);
             addChild($$,$3);
-            
-            //struct nodeType *types = newNode(NODE_FUNC_TYPE);
-            //addChild(types, $5);
-            //addChild($$,types);
-            
             addChild($$,$5);
-            //addChild($6,$7);
-            //addChild($$,$6);
             addChild($$,$7);
-            deleteNode($8);
         }
         | FUNCTION FunId Exp '=' Exp EndMark{
-            $$ = $1;
-            $$->nodeNum = NODE_FUNC;
-            $1->string =  (char*)malloc(sizeof(strlen($2->string)));
-            strcpy($$->string, $2->string);
-            $4->nodeNum = NODE_ASSIGN;
-            
-            addChild($$, $3);
-            
-            addChild($$,$5);
-            deleteNode($6);
+            yyerror( "function type definition not declared");
         }
         | DATATYPE ID '(' TypeList ')' EndMark{
-            $$ = $1;
-            $$->nodeNum = NODE_DATATYPE;
-            addChild($$,$2);
+            $$ = newNode(NODE_DATATYPE);
+            struct nodeType *idname = newTokenNode(TOKE_ID);
+            idname->string = malloc(sizeof(char)*strlen($2));
+            addChild($$,idname);
             addChild($$,$4);
-            deleteNode($6);
         }
         | Exp '=' Exp EndMark {
             $$ = newNode(NODE_ASSIGN);
             addChild($$,$1);
             addChild($$,$3);
-            deleteNode($4);
         }
         | Exp EndMark {
             $$ = $1;
-            deleteNode($2);
         }
         ;
 
-FunId   : ID{
-            /* if (tokenType!=TOKE_STRING) yyerror();*/
-            switch($1->token) {
-            case TOKE_INT:
-            case TOKE_FLOAT:
-            case TOKE_BOOL:
-            case TOKE_CHAR: 
-              yyerror($1->string); 
-            break;
-            }
-            $$=$1;
+FunId   : ID    {
+            $$ = newTokenNode(TOKE_ID);
+            $$->string = malloc(sizeof(char)*strlen($1));
         }
         | SpecialId{
-            $$=$1;
+            $$ = $1;
         }
         ;
 
@@ -144,15 +114,13 @@ EndMark : ';'
         ;
 
 FunTypeDef : TypeExp RARROW TypeExp{   
-            $$ = $2; 
-            $$->nodeNum = NODE_OP;
-            $$->op = OP_RARROW;
+            $$ = newOpNode(OP_RARROW);
             addChild($$,$1); 
             addChild($$,$3);
         }
         ;
 
-TypeExp : ID {  
+TypeExp : id {  
             switch($1->token) {
                 case TOKE_INT:
                     $1->dataType.type = TYPEINT;
@@ -167,12 +135,15 @@ TypeExp : ID {
                     $1->dataType.type = TYPECHAR;
                     break;
                 default:
+                    yyerror("TypeExp error"); 
                     break;
             } 
             $$ = $1;  
         }
         | ID '(' TypeList ')' {
-            $$=$1;
+            $$ = newTokenNode(TOKE_ID);
+            $$->string = (char*)malloc(sizeof(char)*strlen($1));
+            strcpy($$->string, $1);
             addChild($$,$3);
         }
         | '[' TypeExp ']' {
@@ -209,7 +180,6 @@ TypeList : TypeList ',' TypeExp {
             $$ = newNode(NODE_LIST);
             addChild($$,$1);
             addChild($$,$3);
-            deleteNode($2);
         }
         | TypeExp{
             $$ = $1;
@@ -243,15 +213,15 @@ Exp : IfOrLetExp {
 IfOrLetExp
     : IF Exp THEN Exp ELSE Exp {
         $$ = newNode(NODE_IFELSE);
-        addChild($$,$1);
-        addChild($$,$3);
-        addChild($$,$5);
-        $1->nodeNum = NODE_IFSTMT;
-        $3->nodeNum = NODE_THENSTMT;
-        $5->nodeNum = NODE_ELSESTMT;
-        addChild($1,$2);
-        addChild($3,$4);
-        addChild($5,$6);
+        struct nodeType *n1 = newNode(NODE_IFSTMT);
+        struct nodeType *n3 = newNode(NODE_THENSTMT);
+        struct nodeType *n5 = newNode(NODE_ELSESTMT);
+        addChild($$, n1);
+        addChild($$, n3);
+        addChild($$, n5);
+        addChild(n1,$2);
+        addChild(n3,$4);
+        addChild(n5,$6);
     }
     | LET ExpBinds ';' IN Exp {
         $$= newNode(NODE_LET);
@@ -277,18 +247,14 @@ ExpBinds
     | ExpBinds ';' ExpBind { 
         $$ = $1; 
         addChild($$,$3); 
-        deleteNode($2); 
     }
     ;
 
 ExpBind
     : Exp '=' Exp{
-        $$ = $2;
-        $$->nodeNum = NODE_ASSIGN;
-        struct nodeType *pattern = newNode(NODE_PATTERN);
-        addChild($$,pattern);
-        addChild(pattern, $1);
-        addChild($$,$3);
+        $$ = newNode(NODE_ASSIGN);
+        addChild($$, $1);
+        addChild($$, $3);
     }
     ;
 
@@ -324,9 +290,9 @@ OrExp
     }
     ;
 
-OrOp: OR  { $$=$1; $$->nodeNum = NODE_OP; $$->op=OP_OR;  }
-    | NOR { $$=$1; $$->nodeNum = NODE_OP; $$->op=OP_NOR;  }
-    | XOR { $$=$1; $$->nodeNum = NODE_OP; $$->op=OP_XOR;  } ;
+OrOp: OR  { $$ = newOpNode(OP_OR);  }
+    | NOR { $$ = newOpNode(OP_NOR);  }
+    | XOR { $$ = newOpNode(OP_XOR);  } ;
 
 AndExp
     : RelExp {$$=$1;}
@@ -338,8 +304,8 @@ AndExp
     ;
 
 AndOp
-    : AND  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_AND;}
-    | NAND {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_NAND;}
+    : AND  {$$ = newOpNode(OP_AND);}
+    | NAND {$$ = newOpNode(OP_NAND);}
     ;
 
 RelExp
@@ -352,12 +318,12 @@ RelExp
     ;
 
 RelOp
-    :  EQ {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_EQ;}
-    | NE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_NE;}
-    | '<' {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LT;}
-    | '>' {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_GT;}
-    | LE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LE;}
-    | GE  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_GE;}
+    :  EQ {$$=newNode(NODE_OP); $$->op = OP_EQ;}
+    | NE  {$$=newNode(NODE_OP); $$->op = OP_NE;}
+    | '<' {$$=newNode(NODE_OP); $$->op = OP_LT;}
+    | '>' {$$=newNode(NODE_OP); $$->op = OP_GT;}
+    | LE  {$$=newNode(NODE_OP); $$->op = OP_LE;}
+    | GE  {$$=newNode(NODE_OP); $$->op = OP_GE;}
     ;
 
 AddExp
@@ -370,10 +336,10 @@ AddExp
     ;
 
 AddOp
-    : '+'     {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_ADD;}
-    | '-'     {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_SUB ;}
-    | PP      {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_PP ;}
-    | LARROW  {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_LARROW ;}
+    : '+'     {$$=newNode(NODE_OP); $$->op = OP_ADD;}
+    | '-'     {$$=newNode(NODE_OP); $$->op = OP_SUB;}
+    | PP      {$$=newNode(NODE_OP); $$->op = OP_PP;}
+    | LARROW  {$$=newNode(NODE_OP); $$->op = OP_LARROW ;}
     ;
 
 MulExp
@@ -386,16 +352,15 @@ MulExp
     ;
 
 MulOp 
-    : '*'    {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_MUL; } 
-    | '/'    {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_DIV; } 
-    | RARROW {$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_RARROW; }  
+    : '*'    {$$=newOpNode(OP_MUL); } 
+    | '/'    {$$=newOpNode(OP_DIV); } 
+    | RARROW {$$=newOpNode(OP_RARROW); }  
     ;
 
 ExpExp 
-    : UnExp { $$=$1;}
+    : UnExp { $$ = $1;}
     | ExpExp '^' UnExp {
-        $$ = $2; 
-        $$->nodeNum = NODE_OP; $$->op = OP_UPT;
+        $$ = newOpNode(OP_UPT); 
         addChild($$,$1);
         addChild($$,$3);
     }
@@ -407,9 +372,9 @@ UnExp
     ;
 
 UnOp
-    : '#'{$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_SHARP;}
-    | '@'{$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_AT;}
-    | '-'{$$=$1; $$->nodeNum = NODE_OP; $$->op = OP_UMINUS;} 
+    : '#'{$$=newOpNode(OP_SHARP);}
+    | '@'{$$=newOpNode(OP_AT);}
+    | '-'{$$=newOpNode(OP_UMINUS);} 
     ;
 
 SubscriptExp
@@ -430,18 +395,15 @@ AtomicExp
     | SpecialId '(' Exp ')' {
        $$ = newNode(NOTE_IMPLEMENT); 
     }
-/*  TODO extract TIME(EXP) FLOAT(EXP) */
     | '{' ApplyBody '}' {
         $$ = $2;
     }
     | '{' ApplyBody '|' Exp '}' {
         if ($2->nodeNum == NODE_APPLYBODY1) {
-            $2->nodeNum =NODE_APPLYBODY3;
-            //addChild($2,$4);
+            $2->nodeNum = NODE_APPLYBODY3;
         }
         else {
-            $2->nodeNum =NODE_APPLYBODY4;
-           //` addChild($2,$4);
+            $2->nodeNum = NODE_APPLYBODY4;
         }
         $$ = $2;
         struct nodeType* filter = newNode(NODE_FILTER);
@@ -451,7 +413,7 @@ AtomicExp
     | '[' ']' TypeExp {
         //Empty Sequence
         $$ = newNode(NODE_EMPSEQ);
-        addChild($$,$1);
+        addChild($$, $3);
     }
     | '[' Exp SequenceTail ']'{
         if ($2->nodeNum!=NODE_TUPLE) {
@@ -473,28 +435,30 @@ AtomicExp
 
     }
     | ID {
-       switch($1->token) {
-       case TOKE_INT:
-       case TOKE_FLOAT:
-       case TOKE_BOOL:
-       case TOKE_CHAR: 
-         yyerror($1->string); 
-       break;
-       }
-       
-       $$ = $1;
+        $$ = newTokenNode(TOKE_ID);
+        $$->string = (char*)malloc(sizeof(char)*strlen($1));
+        strcpy($$->string, $1);
     }
-    | ID '(' Exp ')'{
+    | id '(' Exp ')'{
             //FIXME float, int ... is also token ID
             // but different tokenType
         switch($1->token) {
          case TOKE_INT:
          case TOKE_BOOL:
          case TOKE_CHAR: 
-           yyerror($1->string); 
+            yyerror($1->string); 
+         break;
+         case TOKE_FLOAT:
+            $1->token = TOKE_ID;
+            $1->string = (char*)malloc(sizeof(char)*6);
+            strcpy($1->string, "float");
+         break;
+         case TOKE_ID:
+         break;
+         default:
+            yyerror("id error in id(exp)");
          break;
          }
-        
         $$ = newNode(NODE_FUNC_CALL);
         addChild($$,$1);
         struct nodeType *pair = newNode(NODE_PAIR);
@@ -505,8 +469,7 @@ AtomicExp
 
 SpecialId
     : ANY {
-        $$ = $1; 
-        $$->nodeNum = NOTE_IMPLEMENT;
+        $$ = newNode(NOTE_IMPLEMENT);
         yyerror("not implemented");
     }
     ;
@@ -528,7 +491,6 @@ RBinds
     : RBinds ';' RBind{
         $$ = $1; 
         addChild($$,$3);
-        deleteNode($2);
     
     }
     | RBind {
@@ -539,23 +501,26 @@ RBinds
     
 RBind
     : ID {
-        switch($1->token) {
-         case TOKE_INT:
-         case TOKE_FLOAT:
-         case TOKE_BOOL:
-         case TOKE_CHAR: 
-           yyerror($1->string); 
-         break;
-         }
-        $$ = $1;
+        $$ = newTokenNode(TOKE_ID);
+        $$->string = (char*)malloc(sizeof(char)*strlen($1));
+        strcpy($$->string, $1);
     }
     | Exp IN Exp{
-        $$ = $2;
-        $$->nodeNum = NODE_IN;
-        //$1->nodeNum = NODE_TOKEN;
+        $$ = newNode(NODE_IN);
         addChild($$,$1);
         addChild($$,$3);
     }
+    ;
+
+id :    ID      {
+                    $$ = newTokenNode(TOKE_ID);
+                    $$->string = (char*)malloc(sizeof(char)*strlen($1));
+                    strcpy($$->string, $1);
+                } 
+    |   T_INT   {$$ = newTokenNode(TOKE_INT);}
+    |   T_FLOAT {$$ = newTokenNode(TOKE_FLOAT);}
+    |   T_BOOL  {$$ = newTokenNode(TOKE_BOOL);}
+    |   T_CHAR  {$$ = newTokenNode(TOKE_CHAR);}
     ;
 
 SequenceTail
@@ -575,21 +540,26 @@ SequenceTail
 
 Const
     : intconst{
-        $$ = $1;
-        $$->nodeNum = NODE_INT;
+        $$ = newNode(NODE_INT);
+        $$->iValue = $1;
     }
     | floatconst{
-        $$ = $1;
-        $$->nodeNum = NODE_FLOAT;
+        $$ = newNode(NODE_FLOAT);
+        $$->rValue = $1;
     }
     | boolconst{
-        $$ = $1;
-        $$->nodeNum = NODE_BOOL;
+        $$ = newNode(NODE_BOOL);
+        $$->iValue = $1;
     }
     | stringconst{
-        $$ = $1;
-        $$->nodeNum = NODE_STRING;
+        $$ = newNode(NODE_STRING);
+        $$->string = malloc(sizeof(char)*strlen($1));
+        strcpy($$->string, $1);
         $$->dataType.type = TYPESEQ;
+        struct nodeType *c1 = newNode(NODE_TYPE_CHAR);
+        c1->dataType.type = TYPECHAR;
+        $$->dataType.child1 = &c1->dataType;
+
     }
     ;
 
