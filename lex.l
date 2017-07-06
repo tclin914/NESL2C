@@ -74,8 +74,9 @@ int line_no = 1;
                                             return FLOAT_CONST;
                                         }
 
-"T"                                     { return TRUE;}
-"F"                                     { return FALSE;}
+"T"                                     { return TRUE_CONST;}
+"F"                                     { return FALSE_CONST;}
+
 "INT"                                   { return INT;}
 "BOOL"                                  { return BOOL;}
 "FLOAT"                                 { return FLOAT;}
