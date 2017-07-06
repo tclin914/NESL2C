@@ -6,23 +6,27 @@
 #include <getopt.h>
 #include <libgen.h>
 
-#include "lex.yy.c"
-#include "node.h"
-#include "symtab.h"
-#include "assert.h"
-#include "codegen.h"
-#include "pfcodegen.h"
-#include "sqcodegen.h"
-#include "codegencheck.h"
-
 #include "treenode.h"
+#include "treenodetype.h"
+
+#include "lex.yy.c"
+/* #include "node.h" */
+/* #include "symtab.h" */
+#include "assert.h"
+/* #include "codegen.h" */
+/* #include "pfcodegen.h" */
+/* #include "sqcodegen.h" */
+/* #include "codegencheck.h" */
 
 #define DECHEAD "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n"
 #define ENDOFMAIN "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\nmyFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n"
 int yydebug =1;
 int yyerror(const char *s);
-struct nodeType * newOpNode(enum OpType op); 
-extern struct nodeType* ASTRoot;
+
+/* struct nodeType * newOpNode(enum OpType op);  */
+/* extern struct nodeType* ASTRoot; */
+
+treenode *node;
 %}
 
 %union {
@@ -30,7 +34,7 @@ extern struct nodeType* ASTRoot;
     char *tokenstr;
     int tokenint;
     float tokenfloat;
-    struct nodeType *node;
+    treenode *node;
 }
 
 %token <tokenval> FUNCTION
@@ -53,7 +57,7 @@ extern struct nodeType* ASTRoot;
 %token <tokenval> PP
 
 %token <tokenval> RARROW
-%token <tokenval> LARROR
+%token <tokenval> LARROW
 %token <tokenval> EQ
 %token <tokenval> NE
 %token <tokenval> LE
@@ -74,7 +78,7 @@ extern struct nodeType* ASTRoot;
 %token <tokenstr> ID
 
 %type <node> id 
-%type <node> goal TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
+%type <node> Goal TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
 %type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp OrOp 
 %type <node> AndExp AndOp RelExp RelOp AddExp AddOp MulExp MulOp ExpExp UnExp 
 %type <node> UnOp SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
@@ -92,20 +96,20 @@ extern struct nodeType* ASTRoot;
 %left '#' '@' 
 %nonassoc UMINUS
 
-%start goal
+%start Goal
 
 %%
 
-goal
+Goal
     :   TopLevel 
         {
-            ASTRoot=newNode(NODE_NESL);
-            addChild(ASTRoot,$1);
-            $$=ASTRoot; 
+            /* ASTRoot=newNode(NODE_NESL); */
+            /* addChild(ASTRoot,$1); */
+            /* $$=ASTRoot;  */
         }
-    |   goal TopLevel 
+    |   Goal TopLevel 
         {
-            $$=$1; addChild($$,$2);
+            /* $$=$1; addChild($$,$2); */
         }
     ;
 
@@ -249,7 +253,7 @@ TypeList
 Exp 
     :   IfOrLetExp 
         {
-              /* $$ = $1; */
+            $$ = $1;
         }
     |   TupleExp 
         {
@@ -275,40 +279,28 @@ Exp
 IfOrLetExp
     :   IF Exp THEN Exp ELSE Exp 
         {
-            /* $$ = newNode(NODE_IFELSE); */
-            /* struct nodeType *n1 = newNode(NODE_IFSTMT); */
-            /* struct nodeType *n3 = newNode(NODE_THENSTMT); */
-            /* struct nodeType *n5 = newNode(NODE_ELSESTMT); */
-            /* addChild($$, n1); */
-            /* addChild($$, n3); */
-            /* addChild($$, n5); */
-            /* addChild(n1,$2); */
-            /* addChild(n3,$4); */
-            /* addChild(n5,$6); */
+            $$ = createNode(NODE_IFELSE);
+            $$->left = $4;
+            $$->right = $6;
         }
     |   LET ExpBinds ';' IN Exp 
         {
-            /* $$= newNode(NODE_LET); */
-            /* addChild($$,$2); */
-            /* struct nodeType* LET_REST = newNode(NODE_EXP); */
-            /* addChild($$, LET_REST); */
-            /* addChild(LET_REST,$5); */
+            $$ = createNode(NODE_LET);
+            $$->left = $2;
+            $$->right = $5;
         }
     |   LET ExpBinds IN Exp
         {
-            /* $$ = newNode(NODE_LET); */
-            /* addChild($$,$2); */
-            /* struct nodeType* LET_REST = newNode(NODE_EXP); */
-            /* addChild($$, LET_REST); */
-            /* addChild(LET_REST,$4); */
+            $$ = createNode(NODE_LET);
+            $$->left = $2;
+            $$->right = $4;
         }
     ;
 
 ExpBinds
     :   ExpBind 
         {
-            /* $$ = newNode(NODE_BIND); */
-            /* addChild($$,$1); */
+            $$ = $1;
         }
     |   ExpBinds ';' ExpBind 
         { 
@@ -320,22 +312,22 @@ ExpBinds
 ExpBind
     :   Exp '=' Exp
         {
-            /* $$ = newNode(NODE_ASSIGN); */
-            /* addChild($$, $1); */
-            /* addChild($$, $3); */
+            $$ = createNode(NODE_ASSIGN);
+            $$->left = $1;
+            $$->right = $3;
         }
     ;
 
 TupleExp
     :   OrExp 
         {
-            /* $$ = $1; */
+            $$ = $1;
         }
     |   OrExp ',' TupleRest 
         {
-            /* $$ = newNode(NODE_TUPLE); */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $$ = createNode(NODE_TUPLE);
+            $$->left = $1;
+            $$->right = $3;
         }
     ;
 
@@ -343,229 +335,223 @@ TupleExp
 TupleRest
     :   TupleExp
         {
-            /* $$ = $1; */
+            $$ = $1;
         }
     |   IfOrLetExp
         {
-            /* $$ = $1; */
+            $$ = $1;
         }
     ;
 
 OrExp
     :   OrExp OrOp AndExp 
         {
-            /* $$ = $2; */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $2->left = $1;
+            $2->right = $3;
+            $$ = $2;
         }
     |   AndExp 
         {
-            /* $$ = $1; */
+            $$ = $1;
         }
     ;
 
 OrOp
     :   OR  
         { 
-            /* $$ = newOpNode(OP_OR);   */
+            $$ = createNode(NODE_OR); 
         }
     |   NOR 
         { 
-            /* $$ = newOpNode(OP_NOR);   */
+            $$ = createNode(NODE_NOR); 
         }
     |   XOR 
         { 
-            /* $$ = newOpNode(OP_XOR);   */
+            $$ = createNode(NODE_XOR);  
         } 
     ;
 
 AndExp
     :   RelExp 
         {
-            $$=$1;
+            $$ = $1;
         }
     |   AndExp AndOp RelExp 
         {
-            /* $$=$2; */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $2->left = $1;
+            $2->right = $3;
+            $$ = $2;
         }
     ;
 
 AndOp
     :   AND  
         {
-            /* $$ = newOpNode(OP_AND); */
+            $$ = createNode(NODE_AND);
         }
     |   NAND 
         {
-            /* $$ = newOpNode(OP_NAND); */
+            $$ = createNode(NODE_NAND);
         }
     ;
 
 RelExp
     :   AddExp 
         {
-            /* $$=$1; */
+            $$ = $1;
         }
     |   RelExp RelOp AddExp
         {
-            /* $$ = $2; */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $2->left = $1;
+            $2->right = $3;
+            $$ = $2;
         }
     ;
 
 RelOp
     :   EQ 
         {
-            /* $$=newNode(NODE_OP); $$->op = OP_EQ; */
+            $$ = createNode(NODE_EQ); 
         }
     |   NE  
         {
-            /* $$=newNode(NODE_OP); $$->op = OP_NE; */
+            $$ = createNode(NODE_NE);
         }
     |   '<' 
         {
-            /* $$=newNode(NODE_OP); $$->op = OP_LT; */
+            $$ = createNode(NODE_LT);
         }
     |   '>' 
         {
-            /* $$=newNode(NODE_OP); $$->op = OP_GT; */
+            $$ = createNode(NODE_GT);
         }
     |   LE  
         {
-            /* $$=newNode(NODE_OP); $$->op = OP_LE; */
+            $$ = createNode(NODE_LE);
         }
     |   GE  
         {
-            /* $$=newNode(NODE_OP); $$->op = OP_GE; */
+            $$ = createNode(NODE_GE);
         }
     ;
 
 AddExp
     :   MulExp 
         {
-            /* $$=$1; */
+            $$ = $1;
         }
     |   AddExp AddOp MulExp 
         {
-            /* $$ = $2;  */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $2->left = $1;
+            $2->right = $3;
+            $$ = $2;
         }
     ;
 
 AddOp
     :   '+'     
         {
-            /* $$=newNode(NODE_OP);  */
-            /* $$->op = OP_ADD; */
+            $$ = createNode(NODE_ADD);
         }
     |   '-'     
         {
-            /* $$=newNode(NODE_OP);  */
-            /* $$->op = OP_SUB; */
+            $$ = createNode(NODE_SUB);
         }
     |   PP      
         {
-            /* $$=newNode(NODE_OP);  */
-            /* $$->op = OP_PP; */
+            $$ = createNode(NODE_PP);
         }
     |   LARROW  
         {
-            /* $$=newNode(NODE_OP);  */
-            /* $$->op = OP_LARROW; */
+            $$ = createNode(NODE_LARROW);
         }
     ;
 
 MulExp
     :   ExpExp 
         {
-            /* $$=$1; */
+            $$ = $1;
         }
     |   MulExp MulOp ExpExp 
         {
-            /* $$ = $2;  */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $2->left = $1;
+            $2->right = $3;
+            $$ = $2;
         }
     ;
 
 MulOp 
     :   '*'    
         {
-            /* $$=newOpNode(OP_MUL);  */
+            $$ = createNode(NODE_MUL);
         } 
     |   '/'    
         {
-            /* $$=newOpNode(OP_DIV);  */
-        } 
+            $$ = createNode(NODE_DIV);
+        }
     |   RARROW 
         {
-            /* $$=newOpNode(OP_RARROW);  */
+            $$ = createNode(NODE_RARROW);
         }  
     ;
 
 ExpExp 
     :   UnExp 
         { 
-            /* $$ = $1; */
+            $$ = $1;
         }
     |   ExpExp '^' UnExp 
         {
-            /* $$ = newOpNode(OP_UPT);  */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $$ = createNode(NODE_UPT);
+            $$->left = $1;
+            $$->right = $3;
         }
     ;
 
 UnExp 
     :   SubscriptExp 
         {
-            /* $$=$1; */
+            $$ = $1;
         }
     |   UnOp UnExp   
         {
-            /* $$=$1;  */
-            /* addChild($$,$2); */
+            $1->left = $2;
+            $$ = $1;
         }
     ;
 
 UnOp
     :   '#'   
         {   
-            /* $$=newOpNode(OP_SHARP); */
+            $$ = createNode(NODE_SHARP);
         }
     |   '@'   
         {
-            /* $$=newOpNode(OP_AT); */
+            $$ = createNode(NODE_AT);
         }
     |   '-'   
         {
-            /* $$=newOpNode(OP_UMINUS); */
+            $$ = createNode(NODE_UMINUS);
         } 
     ;
 
 SubscriptExp
     :   AtomicExp 
         {
-            /* $$ = $1; */
+            $$ = $1;
         }
     |   AtomicExp '[' Exp ']'
         {
-            /* $$=newNode(NODE_SEQ_REF);  */
-            /* //$$->string = (char*)malloc(strlen($1->string)); */
-            /* //strcpy($$->string,$1->string); */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $$ = createNode(NODE_SEQ_REF);
+            $$->left = $1;
+            $$->right = $3;
         }
     ;
 
 AtomicExp
     :   Const 
         {
-            /* $$=$1; */
+            $$ = $1;
         }
     |   SpecialId '(' Exp ')' 
         {
@@ -614,9 +600,8 @@ AtomicExp
         }
     |   ID 
         {
-            /* $$ = newTokenNode(TOKE_ID); */
-            /* $$->string = (char*)malloc(sizeof(char)*strlen($1)); */
-            /* strcpy($$->string, $1); */
+            $$ = createNode(NODE_ID);
+            $$->str_val = $1;
         }
     |   id '(' Exp ')'
         {
@@ -677,37 +662,46 @@ RBinds
         }
     |   RBind 
         {
-            /* $$ = newNode(NODE_RBINDS); */
-            /* addChild($$,$1); */
+            $$ = $1;
         }
     ;
     
 RBind
     :   ID 
         {
-            /* $$ = newTokenNode(TOKE_ID); */
-            /* $$->string = (char*)malloc(sizeof(char)*strlen($1)); */
-            /* strcpy($$->string, $1); */
+            $$ = createNode(NODE_ID);
+            $$->str_val = $1;
         }
     |   Exp IN Exp
         {
-            /* $$ = newNode(NODE_IN); */
-            /* addChild($$,$1); */
-            /* addChild($$,$3); */
+            $$ = createNode(NODE_IN);
+            $$->left = $1;
+            $$->right = $3;
         }
     ;
 
 id 
-    :   ID      
+    :   ID
         {
-            /* $$ = newTokenNode(TOKE_ID); */
-            /* $$->string = (char*)malloc(sizeof(char)*strlen($1)); */
-            /* strcpy($$->string, $1); */
+            $$ = createNode(NODE_ID);
+            $$->str_val = $1;
         } 
-    /* |   T_INT   {$$ = newTokenNode(TOKE_INT);} */
-    /* |   T_FLOAT {$$ = newTokenNode(TOKE_FLOAT);} */
-    /* |   T_BOOL  {$$ = newTokenNode(TOKE_BOOL);} */
-    /* |   T_CHAR  {$$ = newTokenNode(TOKE_CHAR);} */
+    |   INT   
+        {
+            $$ = createNode(NODE_TYPE_INT);
+        }
+    |   FLOAT 
+        {
+            $$ = createNode(NODE_TYPE_FLOAT);
+        }
+    |   BOOL  
+        {
+            $$ = createNode(NODE_TYPE_BOOL);
+        }
+    |   CHAR  
+        {
+            $$ = createNode(NODE_TYPE_CHAR);
+        }
     ;
 
 SequenceTail
@@ -730,47 +724,41 @@ SequenceTail
 Const
     :   INT_CONST 
         {
-            /* $$ = newNode(NODE_INT); */
-            /* $$->iValue = $1; */
+            $$ = createNode(NODE_INT);
+            $$->int_val = $1; 
         }
     |   FLOAT_CONST
         {
-            /* $$ = newNode(NODE_FLOAT); */
-            /* $$->rValue = $1; */
+            $$ = createNode(NODE_FLOAT);
+            $$->float_val = $1;
         }
     |   TRUE_CONST
         {
-            /* $$ = newNode(NODE_BOOL); */
-            /* $$->iValue = $1; */
+            $$ = createNode(NODE_TRUE);
         }
     |   FALSE_CONST
         {
-        
+            $$ = createNode(NODE_FALSE);
         }
     |   STRING_CONST
         {
-            /* $$ = newNode(NODE_STRING); */
-            /* $$->string = malloc(sizeof(char)*strlen($1)); */
-            /* strcpy($$->string, $1); */
-            /* $$->dataType.type = TYPESEQ; */
-            /* struct nodeType *c1 = newNode(NODE_TYPE_CHAR); */
-            /* c1->dataType.type = TYPECHAR; */
-            /* $$->dataType.child1 = &c1->dataType; */
+            $$ = createNode(NODE_STRING);
+            $$->str_val = $1;
         }
     ;
 
 %%
 
-extern void removePair(struct nodeType *node);
-extern void printNESL(struct nodeType *node, FILE* yyout);
-extern void semanticPass(struct nodeType *node);
+/* extern void removePair(struct nodeType *node); */
+/* extern void printNESL(struct nodeType *node, FILE* yyout); */
+/* extern void semanticPass(struct nodeType *node); */
 
-struct nodeType *ASTRoot;
-struct nodeType * newOpNode(enum OpType op) {
-    struct nodeType *node = newNode(NODE_OP);
-    node -> op = op;
-    return node;
-}
+/* struct nodeType *ASTRoot; */
+/* struct nodeType * newOpNode(enum OpType op) { */
+    /* struct nodeType *node = newNode(NODE_OP); */
+    /* node -> op = op; */
+    /* return node; */
+/* } */
 
 int yyerror(const char *s) {
     printf("Syntax error: %s \n",s);
@@ -913,8 +901,8 @@ int main(int argc, char **argv) {
     /**
     * PrintTree
     */
-    printTree(ASTRoot, 0);
-    printf("************************\n");
+    /* printTree(ASTRoot, 0); */
+    /* printf("************************\n"); */
     
     /**
     * Generate NESL to compare difference.
@@ -943,7 +931,7 @@ int main(int argc, char **argv) {
     * Semantic Check: type
     */
     // TODO 
-    semanticPass(ASTRoot);
+    /* semanticPass(ASTRoot); */
      
     printf("************************\n");
     printf("** NO SEMANTIC ERROR ***\n");
@@ -967,36 +955,36 @@ int main(int argc, char **argv) {
     
     switch (codeGenMode) {
         case SQC: {
-            //sqcheck(ASTRoot);
-            pfcheck(ASTRoot);
+            /* //sqcheck(ASTRoot); */
+            /* pfcheck(ASTRoot); */
         
-            for (int i = 0; i < 100; i++) {
-                strcpy(refTable.entries[i].name, "");
-            }
-            // generate the needed tuple structures
-            gentuple(yyout);
-            sqcodegen(yyout, ASTRoot);
-            fprintf(yyout, "}\n\n"); // end of myFunc();
-            fprintf(yyout, "int main() {\n");
-            if (issrand)
-                fprintf(yyout, "srand(time(0));\n");
-            fprintf(yyout, ENDOFMAIN);
-            break;
+            /* for (int i = 0; i < 100; i++) { */
+                /* strcpy(refTable.entries[i].name, ""); */
+            /* } */
+            /* // generate the needed tuple structures */
+            /* gentuple(yyout); */
+            /* sqcodegen(yyout, ASTRoot); */
+            /* fprintf(yyout, "}\n\n"); // end of myFunc(); */
+            /* fprintf(yyout, "int main() {\n"); */
+            /* if (issrand) */
+                /* fprintf(yyout, "srand(time(0));\n"); */
+            /* fprintf(yyout, ENDOFMAIN); */
+            /* break; */
         }
       
         case PFC: {
-            pfcheck(ASTRoot);
-            for (int i = 0; i < 100; i++){
-                strcpy(refTable.entries[i].name, "");
-            }
-            // generate the needed tuple structures
-            gentuple(yyout);
-            sqcodegen(yyout, ASTRoot); 
-            fprintf(yyout, "}\n\n"); // end of myFunc();
-            fprintf(yyout, "int main(){\n");
-            if (issrand)
-                fprintf(yyout, "srand(time(0));\n");
-            fprintf(yyout, ENDOFMAIN);
+            /* pfcheck(ASTRoot); */
+            /* for (int i = 0; i < 100; i++){ */
+                /* strcpy(refTable.entries[i].name, ""); */
+            /* } */
+            /* // generate the needed tuple structures */
+            /* gentuple(yyout); */
+            /* sqcodegen(yyout, ASTRoot);  */
+            /* fprintf(yyout, "}\n\n"); // end of myFunc(); */
+            /* fprintf(yyout, "int main(){\n"); */
+            /* if (issrand) */
+                /* fprintf(yyout, "srand(time(0));\n"); */
+            /* fprintf(yyout, ENDOFMAIN); */
             break;
         }   
       
