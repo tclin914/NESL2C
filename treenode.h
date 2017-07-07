@@ -19,6 +19,8 @@ typedef struct node {
     // sibling
     struct node *sibling;
 
+    void (*accept)(struct node*);
+
 } treenode;
 
 treenode *createNode(NodeType node_type);
