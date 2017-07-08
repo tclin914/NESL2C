@@ -94,7 +94,9 @@ TopLevels
         }
     |   TopLevels TopLevel 
         {
-            // TODO:
+            $$ = createNode(NODE_TOP_LEVELS);
+            $$->left = $1;
+            $$->right = $2;
         }
     ;
 
@@ -613,25 +615,25 @@ SequenceTail
 Const
     :   INT_CONST 
         {
-            $$ = createNode(NODE_INT);
+            $$ = createNode(NODE_CONST_INT);
             $$->int_val = $1; 
         }
     |   FLOAT_CONST
         {
-            $$ = createNode(NODE_FLOAT);
+            $$ = createNode(NODE_CONST_FLOAT);
             $$->float_val = $1;
         }
     |   TRUE_CONST
         {
-            $$ = createNode(NODE_TRUE);
+            $$ = createNode(NODE_CONST_TRUE);
         }
     |   FALSE_CONST
         {
-            $$ = createNode(NODE_FALSE);
+            $$ = createNode(NODE_CONST_FALSE);
         }
     |   STRING_CONST
         {
-            $$ = createNode(NODE_STRING);
+            $$ = createNode(NODE_CONST_STRING);
             $$->str_val = $1;
         }
     ;

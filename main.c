@@ -7,13 +7,23 @@
 
 #include "assert.h"
 
+#include "treenode.h"
+#include "semantic_pass.h"
+
 #define VERSION "0.0.1"
 #define SQC_OUTPUT "output/%s.sqc.c" 
 #define PFC_OUTPUT "output/%s.pfc.c"
 #define OMP_OUTPUT "output/%s.omp.c"
 
-#define DECHEAD "#include <stdio.h>\n#include <stdlib.h>\n#include \"sqmacro.h\"\n"
-#define ENDOFMAIN "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\nmyFunc1();\ncheckglobal();\nCUDA_ERROR_CHECK();\nreturn 1;\n}\n"
+#define DECHEAD "#include <stdio.h>    \n"  \
+                "#include <stdlib.h>   \n"  \
+                "#include \"sqmacro.h\"\n" 
+
+#define ENDOFMAIN "SET_HEAP_SIZE(MALLOC_HEAP_SIZE);\n" \
+                  "myFunc1();                      \n" \
+                  "checkglobal();                  \n" \
+                  "CUDA_ERROR_CHECK();             \n" \
+                  "return 1;                    \n}\n"
 
 static const char *help_manual = 
     "Usage:\n"
@@ -56,6 +66,7 @@ static struct option options[] = {
 
 int yyparse();
 extern FILE *yyin;
+extern treenode *yyheader;
 
 int main(int argc, char **argv) {
    
@@ -144,6 +155,8 @@ int main(int argc, char **argv) {
     printf("*** NO PARSING ERROR ***\n");
     printf("************************\n");
 
+    int is_pass = semantic_pass(yyheader);
+    printf("%d\n", is_pass);
     /**
     * PrintTree
     */

@@ -3,9 +3,12 @@
 
 #include "treenodetype.h"
 
+struct visitor;
+
 typedef struct node {
     // type 
     NodeType node_type; 
+    ValueType value_type;
 
     // value
     int int_val;
@@ -19,7 +22,7 @@ typedef struct node {
     // sibling
     struct node *sibling;
 
-    void (*accept)(struct node*);
+    void (*accept)(struct visitor*);
 
 } treenode;
 

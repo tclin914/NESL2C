@@ -2,6 +2,8 @@
 #define __TREE_NODE_TYPE_H__
 
 typedef enum {
+    NODE_TOP_LEVELS,
+    
     NODE_FUNC_TYPE_DEF,
 
     NODE_IFELSE,
@@ -60,11 +62,19 @@ typedef enum {
 
     NODE_SEQ_TAIL,
 
-    NODE_INT,
-    NODE_FLOAT,
-    NODE_TRUE,
-    NODE_FALSE,
-    NODE_STRING
+    NODE_CONST_INT,
+    NODE_CONST_FLOAT,
+    NODE_CONST_TRUE,
+    NODE_CONST_FALSE,
+    NODE_CONST_STRING
 } NodeType;
+
+typedef enum {
+    VALUE_NONE,
+    VALUE_INT,
+    VALUE_FLOAT,
+    VALUE_BOOL,
+    VALUE_STRING
+} ValueType;
 
 #endif
