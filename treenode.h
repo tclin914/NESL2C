@@ -5,7 +5,7 @@
 
 struct visitor;
 
-typedef struct node {
+typedef struct treenode {
     // type 
     NodeType node_type; 
     ValueType value_type;
@@ -16,13 +16,11 @@ typedef struct node {
     char *str_val;
 
     // child
-    struct node *left;
-    struct node *right;
+    struct treenode *left;
+    struct treenode *right;
 
     // sibling
-    struct node *sibling;
-
-    void (*accept)(struct visitor*);
+    struct treenode *sibling;
 
 } treenode;
 

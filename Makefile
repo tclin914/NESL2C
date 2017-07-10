@@ -1,5 +1,5 @@
 CFLAGS = -g 
-objects = y.tab.o node.o symtab.o codegen.o pfcodegen.o sqcodegen.o codegencheck.o treenode.o main.o
+objects = y.tab.o treenode.o main.o semantic_pass.o codegen_pass.o ir.o stack.o
 
 all: NESL2C
 
