@@ -1,20 +1,23 @@
-CFLAGS = -g 
-objects = y.tab.o treenode.o main.o semantic_pass.o codegen_pass.o ir.o stack.o
+
+objects = lex.yy.o nesl.tab.o Main.o Node.o NullaryNode.o ConstantBoolean.o ConstantInteger.o ConstantFloat.o      \
+					ConstantString.o BinaryNode.o ArithmeticOpFactory.o ArithmeticOperation.o Add.o Subtract.o PP.o LARROW.o \
 
 all: NESL2C
 
-debug : $(objects)
-	cc -DDEBUG $(CFLAGS) -o NESL2C $(objects) 
-
 NESL2C : $(objects)
-	cc -o NESL2C $(objects)
+	$(CXX) -o NESL2C $(objects)
 
-y.tab.o: nesl.y lex.yy.c
-	yacc nesl.y -d 
-	cc -c y.tab.c -g
+lex.yy.o: lex.yy.c nesl.tab.h
+	$(CXX) -c lex.yy.c 
 
-lex.yy.c: nesl.l
-	lex nesl.l
+nesl.tab.o: nesl.tab.c
+	$(CXX) -c nesl.tab.c
+
+lex.yy.c: nesl.l nesl.tab.h
+	flex nesl.l
+
+nesl.tab.c nesl.tab.h: nesl.y 
+	bison -d nesl.y  
 
 clean :
-	rm NESL2C $(objects)
+	rm -rf NESL2C $(objects) nesl.tab.c nesl.tab.h lex.yy.c

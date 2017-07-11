@@ -1,23 +1,27 @@
 %{
 
-#include "treenode.h"
-#include "treenodetype.h"
+#include "OpCode.h"
 
-#include "lex.yy.c"
+#include "Node.h"
+// Nulary Node
+#include "ConstantBoolean.h"
+#include "ConstantInteger.h"
+#include "ConstantFloat.h"
+#include "ConstantString.h"
+// Binary Node
+#include "ArithmeticOpFactory.h"
 
-int yydebug =1;
-int yyerror(const char *s);
+using namespace nesl2c;
 
-treenode *yyheader;
+void yyerror(const char *s);
+Node* yyheader;
+
+extern "C" int yylex();
+extern "C" int yyparse();
+extern "C" FILE *yyin;
+extern int yylineno;
+
 %}
-
-%union {
-    int tokenval;
-    char *tokenstr;
-    int tokenint;
-    float tokenfloat;
-    treenode *node;
-}
 
 %token <tokenval> FUNCTION
 %token <tokenval> DATATYPE
@@ -45,8 +49,6 @@ treenode *yyheader;
 %token <tokenval> LE
 %token <tokenval> GE
 
-
-
 %token <tokenval> INT
 %token <tokenval> BOOL
 %token <tokenval> FLOAT
@@ -54,17 +56,19 @@ treenode *yyheader;
 
 %token <tokenval> TRUE_CONST
 %token <tokenval> FALSE_CONST
-%token <tokenint> INT_CONST
-%token <tokenfloat> FLOAT_CONST
+%token <tokenstr> INT_CONST
+%token <tokenstr> FLOAT_CONST
 %token <tokenstr> STRING_CONST 
 %token <tokenstr> ID
 
 %type <node> id 
 %type <node> Goal TopLevels TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
 %type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp OrOp 
-%type <node> AndExp AndOp RelExp RelOp AddExp AddOp MulExp MulOp ExpExp UnExp 
+%type <node> AndExp AndOp RelExp RelOp AddExp MulExp MulOp ExpExp UnExp 
 %type <node> UnOp SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
 %type <node> SequenceTail Const 
+
+%type <opcode> AddOp
 
 %left ','
 %left OR NOR XOR
@@ -76,6 +80,13 @@ treenode *yyheader;
 %left '#' '@' 
 %nonassoc UMINUS
 
+%union {
+  int tokenval;
+  char *tokenstr;
+  nesl2c::OpCode opcode;
+  Node* node;
+}
+
 %start Goal
 
 %%
@@ -83,20 +94,20 @@ treenode *yyheader;
 Goal
     :   TopLevels
         {
-            yyheader = $1;
+            /* yyheader = $1; */
         }
     ;
 
 TopLevels
     :   TopLevel 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   TopLevels TopLevel 
         {
-            $$ = createNode(NODE_TOP_LEVELS);
-            $$->left = $1;
-            $$->right = $2;
+            /* $$ = createNode(NODE_TOP_LEVELS); */
+            /* $$->left = $1; */
+            /* $$->right = $2; */
         }
     ;
 
@@ -115,25 +126,25 @@ TopLevel
         }
     |   Exp '=' Exp EndMark 
         {
-            $$ = createNode(NODE_ASSIGN);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_ASSIGN); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     |   Exp EndMark 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     ;
 
 FunId   
     :   ID    
         {
-            $$ = createNode(NODE_ID);
-            $$->str_val = $1;
+            /* $$ = createNode(NODE_ID); */
+            /* $$->str_val = $1; */
         }
     |   SpecialId
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     ;
 
@@ -145,16 +156,16 @@ EndMark
 FunTypeDef 
     :   TypeExp RARROW TypeExp
         {    
-            $$ = createNode(NODE_FUNC_TYPE_DEF);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_FUNC_TYPE_DEF); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
 TypeExp 
     :   id 
         {  
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   ID '(' TypeList ')' 
         {
@@ -188,75 +199,75 @@ TypeList
         }
     |   TypeExp
         {
-            $$ = $1;    
+            /* $$ = $1;     */
         }
     ;
 
 Exp 
     :   IfOrLetExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   TupleExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     ;
 
 IfOrLetExp
     :   IF Exp THEN Exp ELSE Exp 
         {
-            $$ = createNode(NODE_IFELSE);
-            $$->sibling = $2;
-            $$->left = $4;
-            $$->right = $6;
+            /* $$ = createNode(NODE_IFELSE); */
+            /* $$->sibling = $2; */
+            /* $$->left = $4; */
+            /* $$->right = $6; */
         }
     |   LET ExpBinds ';' IN Exp 
         {
-            $$ = createNode(NODE_LET);
-            $$->left = $2;
-            $$->right = $5;
+            /* $$ = createNode(NODE_LET); */
+            /* $$->left = $2; */
+            /* $$->right = $5; */
         }
     |   LET ExpBinds IN Exp
         {
-            $$ = createNode(NODE_LET);
-            $$->left = $2;
-            $$->right = $4;
+            /* $$ = createNode(NODE_LET); */
+            /* $$->left = $2; */
+            /* $$->right = $4; */
         }
     ;
 
 ExpBinds
     :   ExpBind 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   ExpBinds ';' ExpBind 
         { 
-            $$ = createNode(NODE_EXP_BINDS);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_EXP_BINDS); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
 ExpBind
     :   Exp '=' Exp
         {
-            $$ = createNode(NODE_ASSIGN);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_ASSIGN); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
 TupleExp
     :   OrExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   OrExp ',' TupleRest 
         {
-            $$ = createNode(NODE_TUPLE);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_TUPLE); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
@@ -264,223 +275,221 @@ TupleExp
 TupleRest
     :   TupleExp
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   IfOrLetExp
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     ;
 
 OrExp
     :   OrExp OrOp AndExp 
         {
-            $2->left = $1;
-            $2->right = $3;
-            $$ = $2;
+            /* $2->left = $1; */
+            /* $2->right = $3; */
+            /* $$ = $2; */
         }
     |   AndExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     ;
 
 OrOp
     :   OR  
         { 
-            $$ = createNode(NODE_OR); 
+            /* $$ = createNode(NODE_OR);  */
         }
     |   NOR 
         { 
-            $$ = createNode(NODE_NOR); 
+            /* $$ = createNode(NODE_NOR);  */
         }
     |   XOR 
         { 
-            $$ = createNode(NODE_XOR);  
+            /* $$ = createNode(NODE_XOR);   */
         } 
     ;
 
 AndExp
     :   RelExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   AndExp AndOp RelExp 
         {
-            $2->left = $1;
-            $2->right = $3;
-            $$ = $2;
+            /* $2->left = $1; */
+            /* $2->right = $3; */
+            /* $$ = $2; */
         }
     ;
 
 AndOp
     :   AND  
         {
-            $$ = createNode(NODE_AND);
+            /* $$ = createNode(NODE_AND); */
         }
     |   NAND 
         {
-            $$ = createNode(NODE_NAND);
+            /* $$ = createNode(NODE_NAND); */
         }
     ;
 
 RelExp
     :   AddExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   RelExp RelOp AddExp
         {
-            $2->left = $1;
-            $2->right = $3;
-            $$ = $2;
+            /* $2->left = $1; */
+            /* $2->right = $3; */
+            /* $$ = $2; */
         }
     ;
 
 RelOp
     :   EQ 
         {
-            $$ = createNode(NODE_EQ); 
+            /* $$ = createNode(NODE_EQ);  */
         }
     |   NE  
         {
-            $$ = createNode(NODE_NE);
+            /* $$ = createNode(NODE_NE); */
         }
     |   '<' 
         {
-            $$ = createNode(NODE_LT);
+            /* $$ = createNode(NODE_LT); */
         }
     |   '>' 
         {
-            $$ = createNode(NODE_GT);
+            /* $$ = createNode(NODE_GT); */
         }
     |   LE  
         {
-            $$ = createNode(NODE_LE);
+            /* $$ = createNode(NODE_LE); */
         }
     |   GE  
         {
-            $$ = createNode(NODE_GE);
+            /* $$ = createNode(NODE_GE); */
         }
     ;
 
 AddExp
     :   MulExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   AddExp AddOp MulExp 
         {
-            $2->left = $1;
-            $2->right = $3;
-            $$ = $2;
+          $$ = ArithmeticOpFactory::CreateArithmeticOpNode($2, $1, $3);
         }
     ;
 
 AddOp
-    :   '+'     
-        {
-            $$ = createNode(NODE_ADD);
-        }
-    |   '-'     
-        {
-            $$ = createNode(NODE_SUB);
-        }
-    |   PP      
-        {
-            $$ = createNode(NODE_PP);
-        }
-    |   LARROW  
-        {
-            $$ = createNode(NODE_LARROW);
-        }
-    ;
+  : '+'     
+    {
+      $$ = ADD_OP;
+    }
+  | '-'     
+    {
+      $$ = SUBTRACT_OP;      
+    }
+  | PP      
+    {
+      $$ = PP_OP;
+    }
+  | LARROW  
+    {
+      $$ = LARROW_OP;
+    }
+  ;
 
 MulExp
     :   ExpExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   MulExp MulOp ExpExp 
         {
-            $2->left = $1;
-            $2->right = $3;
-            $$ = $2;
+            /* $2->left = $1; */
+            /* $2->right = $3; */
+            /* $$ = $2; */
         }
     ;
 
 MulOp 
     :   '*'    
         {
-            $$ = createNode(NODE_MUL);
+            /* $$ = createNode(NODE_MUL); */
         } 
     |   '/'    
         {
-            $$ = createNode(NODE_DIV);
+            /* $$ = createNode(NODE_DIV); */
         }
     |   RARROW 
         {
-            $$ = createNode(NODE_RARROW);
+            /* $$ = createNode(NODE_RARROW); */
         }  
     ;
 
 ExpExp 
     :   UnExp 
         { 
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   ExpExp '^' UnExp 
         {
-            $$ = createNode(NODE_UPT);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_UPT); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
 UnExp 
     :   SubscriptExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   UnOp UnExp   
         {
-            $1->left = $2;
-            $$ = $1;
+            /* $1->left = $2; */
+            /* $$ = $1; */
         }
     ;
 
 UnOp
     :   '#'   
         {   
-            $$ = createNode(NODE_SHARP);
+            /* $$ = createNode(NODE_SHARP); */
         }
     |   '@'   
         {
-            $$ = createNode(NODE_AT);
+            /* $$ = createNode(NODE_AT); */
         }
     |   '-'   
         {
-            $$ = createNode(NODE_UMINUS);
+            /* $$ = createNode(NODE_UMINUS); */
         } 
     ;
 
 SubscriptExp
     :   AtomicExp 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   AtomicExp '[' Exp ']'
         {
-            $$ = createNode(NODE_SEQ_REF);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_SEQ_REF); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
 AtomicExp
     :   Const 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     |   SpecialId '(' Exp ')' 
         {
@@ -488,39 +497,39 @@ AtomicExp
         }
     |   '{' ApplyBody '}' 
         {
-            $$ = $2;
+            /* $$ = $2; */
         }
     |   '{' ApplyBody '|' Exp '}' 
         {
-            $$ = createNode(NODE_APPLY_TO_EACH);
-            $$->left = $2;
-            $$->right = $4;
+            /* $$ = createNode(NODE_APPLY_TO_EACH); */
+            /* $$->left = $2; */
+            /* $$->right = $4; */
         }
     |   '[' ']' TypeExp 
         {
-            $$ = createNode(NODE_EMPTY_SEQ);
-            $$->left = $3;
+            /* $$ = createNode(NODE_EMPTY_SEQ); */
+            /* $$->left = $3; */
         }
     |   '[' Exp SequenceTail ']'
         {
-            $$ = createNode(NODE_SEQ);
-            $$->left = $2;
-            $$->right = $3;
+            /* $$ = createNode(NODE_SEQ); */
+            /* $$->left = $2; */
+            /* $$->right = $3; */
         }
     |   '(' Exp ')' 
         {
-            $$ = $2;
+            /* $$ = $2; */
         }
     |   ID 
         {
-            $$ = createNode(NODE_ID);
-            $$->str_val = $1;
+            /* $$ = createNode(NODE_ID); */
+            /* $$->str_val = $1; */
         }
     |   id '(' Exp ')'
         {
-            $$ = createNode(NODE_FUNC_CALL);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_FUNC_CALL); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
@@ -534,9 +543,9 @@ SpecialId
 ApplyBody
     :   Exp ':' RBinds
         {
-            $$ = createNode(NODE_APPLY_BODY);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_APPLY_BODY); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     |   RBinds 
         {
@@ -547,101 +556,97 @@ ApplyBody
 RBinds
     :   RBinds ';' RBind
         {
-            $$ = createNode(NODE_RBINDS);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_RBINDS); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     |   RBind 
         {
-            $$ = $1;
+            /* $$ = $1; */
         }
     ;
     
 RBind
     :   ID 
         {
-            $$ = createNode(NODE_ID);
-            $$->str_val = $1;
+            /* $$ = createNode(NODE_ID); */
+            /* $$->str_val = $1; */
         }
     |   Exp IN Exp
         {
-            $$ = createNode(NODE_IN);
-            $$->left = $1;
-            $$->right = $3;
+            /* $$ = createNode(NODE_IN); */
+            /* $$->left = $1; */
+            /* $$->right = $3; */
         }
     ;
 
 id 
     :   ID
         {
-            $$ = createNode(NODE_ID);
-            $$->str_val = $1;
+            /* $$ = createNode(NODE_ID); */
+            /* $$->str_val = $1; */
         } 
     |   INT   
         {
-            $$ = createNode(NODE_TYPE_INT);
+            /* $$ = createNode(NODE_TYPE_INT); */
         }
     |   FLOAT 
         {
-            $$ = createNode(NODE_TYPE_FLOAT);
+            /* $$ = createNode(NODE_TYPE_FLOAT); */
         }
     |   BOOL  
         {
-            $$ = createNode(NODE_TYPE_BOOL);
+            /* $$ = createNode(NODE_TYPE_BOOL); */
         }
     |   CHAR  
         {
-            $$ = createNode(NODE_TYPE_CHAR);
+            /* $$ = createNode(NODE_TYPE_CHAR); */
         }
     ;
 
 SequenceTail
     :   ':' Exp 
         {
-            $$ = createNode(NODE_SEQ_TAIL);
-            $$->left = $2;
+            /* $$ = createNode(NODE_SEQ_TAIL); */
+            /* $$->left = $2; */
         }
     |   ':' Exp ':' Exp 
         {
-            $$ = createNode(NODE_SEQ_TAIL);
-            $$->left = $2;
-            $$->right = $4;
+            /* $$ = createNode(NODE_SEQ_TAIL); */
+            /* $$->left = $2; */
+            /* $$->right = $4; */
         }
     |   {
-            $$ = createNode(NODE_SEQ_TAIL);
+            /* $$ = createNode(NODE_SEQ_TAIL); */
         } 
     ;
 
 Const
-    :   INT_CONST 
-        {
-            $$ = createNode(NODE_CONST_INT);
-            $$->int_val = $1; 
-        }
-    |   FLOAT_CONST
-        {
-            $$ = createNode(NODE_CONST_FLOAT);
-            $$->float_val = $1;
-        }
-    |   TRUE_CONST
-        {
-            $$ = createNode(NODE_CONST_TRUE);
-        }
-    |   FALSE_CONST
-        {
-            $$ = createNode(NODE_CONST_FALSE);
-        }
-    |   STRING_CONST
-        {
-            $$ = createNode(NODE_CONST_STRING);
-            $$->str_val = $1;
-        }
-    ;
+  : INT_CONST 
+    {
+      $$ = new ConstantInteger($1);
+    }
+  | FLOAT_CONST
+    {
+      $$ = new ConstantFloat($1);
+    }
+  | TRUE_CONST
+    {
+      $$ = new ConstantBoolean(true);
+    }
+  | FALSE_CONST
+    {
+      $$ = new ConstantBoolean(false);
+    }
+  | STRING_CONST
+    {
+      $$ = new ConstantString($1);
+    }
+  ;
 
 %%
 
-int yyerror(const char *s) {
-    printf("Syntax error: %s \n",s);
-
-    exit(0);
+void yyerror(char const *s) {
+  
+  fprintf(stderr, "line %d: %s\n", yylineno, s);
 }

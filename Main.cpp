@@ -7,8 +7,9 @@
 
 #include "assert.h"
 
-#include "treenode.h"
-#include "semantic_pass.h"
+#include "Node.h"
+
+using namespace nesl2c;
 
 #define VERSION "0.0.1"
 #define SQC_OUTPUT "output/%s.sqc.c" 
@@ -64,9 +65,9 @@ static struct option options[] = {
     {"version", no_argument, NULL, 'v'}
 };
 
-int yyparse();
-extern FILE *yyin;
-extern treenode *yyheader;
+extern "C" int yyparse();
+extern "C" FILE* yyin;
+extern Node* yyheader;
 
 int main(int argc, char **argv) {
    
@@ -155,8 +156,6 @@ int main(int argc, char **argv) {
     printf("*** NO PARSING ERROR ***\n");
     printf("************************\n");
 
-    int is_pass = semantic_pass(yyheader);
-    printf("%d\n", is_pass);
     /**
     * PrintTree
     */

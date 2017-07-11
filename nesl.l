@@ -1,9 +1,13 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "y.tab.h"
 
-int line_no = 1;
+extern "C" int yylex();
+
+#include "OpCode.h"
+class Node;
+
+#include "nesl.tab.h"
 
 %}
 
@@ -64,13 +68,13 @@ int line_no = 1;
 "PI"                                    { return PI;}
 
 [0-9]+                                  { 
-                                            yylval.tokenint = atoi(yytext);
-                                            return INT_CONST;
+                                          yylval.tokenstr = strdup(yytext);
+                                          return INT_CONST;
                                         }
 
 [0-9]*\.[0-9]+([eE][-+]?[0-9]+)?        {
-                                            yylval.tokenfloat = atof(yytext);
-                                            return FLOAT_CONST;
+                                          yylval.tokenstr = strdup(yytext);
+                                          return FLOAT_CONST;
                                         }
 
 "T"                                     { return TRUE_CONST;}
@@ -83,18 +87,18 @@ int line_no = 1;
 
 
 [_a-z0-9]+                              {
-                                            yylval.tokenstr = strdup(yytext);
-                                            return ID;
+                                          yylval.tokenstr = strdup(yytext);
+                                          return ID;
                                         }
 
 \"[^"]*\"                               {
-                                            yylval.tokenstr = strdup(yytext);
-                                            return STRING_CONST;
+                                          yylval.tokenstr = strdup(yytext);
+                                          return STRING_CONST;
                                         }
 
-"//".*"\n"  {                           //string value
-    printf("%d: %s", line_no++, yytext);
-}
+"//".*"\n"                              { //string value
+                                          printf("%d: %s", yylineno++, yytext);
+                                        }
 
 %%
 
