@@ -7,3 +7,7 @@ UnaryNode::UnaryNode(Node* a) : Node()
 {
   children.push_back(a);
 }
+
+UnaryNode::UnaryNode() : Node()
+{
+}

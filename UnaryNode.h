@@ -10,6 +10,7 @@ class UnaryNode : public Node
 
 public:
   UnaryNode(Node*);
+  UnaryNode();
 
 };
 

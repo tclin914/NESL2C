@@ -9,3 +9,7 @@ BinaryNode::BinaryNode(Node* a, Node* b) : Node()
   children.push_back(b);
   type = UNDEFINED;
 }
+
+BinaryNode::BinaryNode() : Node()
+{
+}

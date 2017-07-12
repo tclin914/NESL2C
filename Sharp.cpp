@@ -3,6 +3,6 @@
 
 using namespace nesl2c;
 
-Sharp::Sharp(Node *a) : UnaryOperation(a)
+Sharp::Sharp(Node* a) : UnaryOperation(a)
 {
 }

@@ -4,16 +4,31 @@
 
 #include "Node.h"
 // Nulary Node
+#include "TypeNode.h"
 #include "ConstantBoolean.h"
 #include "ConstantInteger.h"
 #include "ConstantFloat.h"
 #include "ConstantString.h"
+#include "Identifier.h"
 // Unary Node
 #include "UnaryOpFactory.h"
+#include "EmptySequence.h"
 // Binary Node
+#include "Assign.h"
+#include "Let.h"
+#include "ApplyToEach.h"
+#include "ApplyBody.h"
+#include "FuncCall.h"
+#include "Sequence.h"
 #include "ArithmeticOpFactory.h"
 #include "RelationalOpFactory.h"
 #include "LogicOpFactory.h"
+#include "In.h"
+
+#include "SequenceTail.h"
+
+// Ternary Node
+#include "IfElse.h"
 
 using namespace nesl2c;
 
@@ -96,196 +111,184 @@ extern int yylineno;
 %%
 
 Goal
-    :   TopLevels
-        {
-            /* yyheader = $1; */
-        }
-    ;
+  : TopLevels
+    {
+      yyheader = $1;
+    }
+  ;
 
 TopLevels
-    :   TopLevel 
-        {
-            /* $$ = $1; */
-        }
-    |   TopLevels TopLevel 
-        {
-            /* $$ = createNode(NODE_TOP_LEVELS); */
-            /* $$->left = $1; */
-            /* $$->right = $2; */
-        }
-    ;
+  : TopLevel 
+    {
+      $$ = $1;
+    }
+  | TopLevels TopLevel 
+    {
+      /* $$ = createNode(NODE_TOP_LEVELS); */
+      /* $$->left = $1; */
+      /* $$->right = $2; */
+    }
+  ;
 
 TopLevel 
-    :   FUNCTION FunId Exp ':' FunTypeDef '=' Exp EndMark
-        {
-            // TODO:
-        }
-    |   FUNCTION FunId Exp '=' Exp EndMark
-        {
-            // TODO:
-        }
-    |   DATATYPE ID '(' TypeList ')' EndMark
-        {
-            // TODO:
-        }
-    |   Exp '=' Exp EndMark 
-        {
-            /* $$ = createNode(NODE_ASSIGN); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    |   Exp EndMark 
-        {
-            /* $$ = $1; */
-        }
-    ;
+  : FUNCTION FunId Exp ':' FunTypeDef '=' Exp EndMark
+    {
+      // TODO:
+    }
+  | FUNCTION FunId Exp '=' Exp EndMark
+    {
+      // TODO:
+    }
+  | DATATYPE ID '(' TypeList ')' EndMark
+    {
+      // TODO:
+    }
+  | Exp '=' Exp EndMark 
+    {
+      $$ = new Assign($1, $3);
+    }
+  | Exp EndMark 
+    {
+      $$ = $1;
+    }
+  ;
 
 FunId   
-    :   ID    
-        {
-            /* $$ = createNode(NODE_ID); */
-            /* $$->str_val = $1; */
-        }
-    |   SpecialId
-        {
-            /* $$ = $1; */
-        }
-    ;
+  : ID    
+    {
+      $$ = new Identifier($1);
+    }
+  | SpecialId
+    {
+      /* $$ = $1; */
+    }
+  ;
 
 EndMark 
-    :   ';' 
-    |   '$'
-    ;
+  : ';' 
+  | '$'
+  ;
 
 FunTypeDef 
-    :   TypeExp RARROW TypeExp
-        {    
-            /* $$ = createNode(NODE_FUNC_TYPE_DEF); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : TypeExp RARROW TypeExp
+    {    
+      /* $$ = createNode(NODE_FUNC_TYPE_DEF); */
+      /* $$->left = $1; */
+      /* $$->right = $3; */
+    }
+  ;
 
 TypeExp 
-    :   id 
-        {  
-            /* $$ = $1; */
-        }
-    |   ID '(' TypeList ')' 
-        {
-            // TODO:
-        }
-    |   '[' TypeExp ']' 
-        {
-            // TODO:
-        }
-    |   '(' PairTypes ')' 
-        {
-            // TODO:
-        }
-    ;
+  : id 
+    {  
+      /* $$ = $1; */
+    }
+  | ID '(' TypeList ')' 
+    {
+      // TODO:
+    }
+  | '[' TypeExp ']' 
+    {
+      // TODO:
+    }
+  | '(' PairTypes ')' 
+    {
+      // TODO:
+    }
+  ;
 
 PairTypes 
-    :   TypeExp ',' PairTypes
-        {
-            // TODO:
-        }
-    |   TypeExp 
-        {
-            $$ = $1;   
-        }
-    ;
+  : TypeExp ',' PairTypes
+    {
+      // TODO:
+    }
+  | TypeExp 
+    {
+      $$ = $1;   
+    }
+  ;
 
 TypeList
-    :   TypeList ',' TypeExp 
-        {
-            // TODO:
-        }
-    |   TypeExp
-        {
-            /* $$ = $1;     */
-        }
-    ;
+  : TypeList ',' TypeExp 
+    {
+      // TODO:
+    }
+  | TypeExp
+    {
+      /* $$ = $1;     */
+    }
+  ;
 
 Exp 
-    :   IfOrLetExp 
-        {
-            /* $$ = $1; */
-        }
-    |   TupleExp 
-        {
-            /* $$ = $1; */
-        }
-    ;
+  : IfOrLetExp 
+    {
+      $$ = $1;
+    }
+  | TupleExp 
+    {
+      /* $$ = $1; */
+    }
+  ;
 
 IfOrLetExp
-    :   IF Exp THEN Exp ELSE Exp 
-        {
-            /* $$ = createNode(NODE_IFELSE); */
-            /* $$->sibling = $2; */
-            /* $$->left = $4; */
-            /* $$->right = $6; */
-        }
-    |   LET ExpBinds ';' IN Exp 
-        {
-            /* $$ = createNode(NODE_LET); */
-            /* $$->left = $2; */
-            /* $$->right = $5; */
-        }
-    |   LET ExpBinds IN Exp
-        {
-            /* $$ = createNode(NODE_LET); */
-            /* $$->left = $2; */
-            /* $$->right = $4; */
-        }
-    ;
+  : IF Exp THEN Exp ELSE Exp 
+    {
+      $$ = new IfElse($2, $4, $6);
+    }
+  | LET ExpBinds ';' IN Exp 
+    {
+      $$ = new Let($2, $5);
+    }
+  | LET ExpBinds IN Exp
+    {
+      $$ = new Let($2, $4);
+    }
+  ;
 
 ExpBinds
-    :   ExpBind 
-        {
-            /* $$ = $1; */
-        }
-    |   ExpBinds ';' ExpBind 
-        { 
-            /* $$ = createNode(NODE_EXP_BINDS); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : ExpBind 
+    {
+      /* $$ = $1; */
+    }
+  | ExpBinds ';' ExpBind 
+    { 
+      /* $$ = createNode(NODE_EXP_BINDS); */
+      /* $$->left = $1; */
+      /* $$->right = $3; */
+    }
+  ;
 
 ExpBind
-    :   Exp '=' Exp
-        {
-            /* $$ = createNode(NODE_ASSIGN); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : Exp '=' Exp
+    {
+      $$ = new Assign($1, $3);
+    }
+  ;
 
 TupleExp
-    :   OrExp 
-        {
-            /* $$ = $1; */
-        }
-    |   OrExp ',' TupleRest 
-        {
-            /* $$ = createNode(NODE_TUPLE); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : OrExp 
+    {
+      /* $$ = $1; */
+    }
+  | OrExp ',' TupleRest 
+    {
+      /* $$ = createNode(NODE_TUPLE); */
+      /* $$->left = $1; */
+      /* $$->right = $3; */
+    }
+  ;
 
 
 TupleRest
-    :   TupleExp
-        {
-            /* $$ = $1; */
-        }
-    |   IfOrLetExp
-        {
-            /* $$ = $1; */
-        }
-    ;
+  : TupleExp
+    {
+      $$ = $1;
+    }
+  | IfOrLetExp
+    {
+      $$ = $1;
+    }
+  ;
 
 OrExp
   : OrExp OrOp AndExp 
@@ -430,17 +433,17 @@ MulOp
   ;
 
 ExpExp 
-    :   UnExp 
-        { 
-            /* $$ = $1; */
-        }
-    |   ExpExp '^' UnExp 
-        {
-            /* $$ = createNode(NODE_UPT); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : UnExp 
+    { 
+      /* $$ = $1; */
+    }
+  | ExpExp '^' UnExp 
+    {
+      /* $$ = createNode(NODE_UPT); */
+      /* $$->left = $1; */
+      /* $$->right = $3; */
+    }
+  ;
 
 UnExp 
   : SubscriptExp 
@@ -469,17 +472,17 @@ UnOp
   ;
 
 SubscriptExp
-    :   AtomicExp 
-        {
-            /* $$ = $1; */
-        }
-    |   AtomicExp '[' Exp ']'
-        {
-            /* $$ = createNode(NODE_SEQ_REF); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : AtomicExp 
+    {
+      $$ = $1;
+    }
+  | AtomicExp '[' Exp ']'
+    {
+      /* $$ = createNode(NODE_SEQ_REF); */
+      /* $$->left = $1; */
+      /* $$->right = $3; */
+    }
+  ;
 
 AtomicExp
   : Const 
@@ -492,129 +495,112 @@ AtomicExp
     }
   | '{' ApplyBody '}' 
     {
-      /* $$ = $2; */
+      $$ = $2;
     }
   | '{' ApplyBody '|' Exp '}' 
     {
-      /* $$ = createNode(NODE_APPLY_TO_EACH); */
-      /* $$->left = $2; */
-      /* $$->right = $4; */
+      $$ = new ApplyToEach($2, $4);
     }
   | '[' ']' TypeExp 
     {
-      /* $$ = createNode(NODE_EMPTY_SEQ); */
-      /* $$->left = $3; */
+      $$ = new EmptySequence($3);
     }
   | '[' Exp SequenceTail ']'
     {
-      /* $$ = createNode(NODE_SEQ); */
-      /* $$->left = $2; */
-      /* $$->right = $3; */
+      $$ = new Sequence($2, $3);
     }
   | '(' Exp ')' 
     {
-      /* $$ = $2; */
+      $$ = $2;
     }
   | ID 
     {
-      /* $$ = createNode(NODE_ID); */
-      /* $$->str_val = $1; */
+      $$ = new Identifier($1);
     }
   | id '(' Exp ')'
     {
-      /* $$ = createNode(NODE_FUNC_CALL); */
-      /* $$->left = $1; */
-      /* $$->right = $3; */
+      $$ = new FuncCall($1, $3);
     }
   ;
 
 SpecialId
-    :   ANY 
-        {
-            // TODO:
-        }
-    ;
+  : ANY 
+    {
+      // TODO:
+    }
+  ;
 
 ApplyBody
-    :   Exp ':' RBinds
-        {
-            /* $$ = createNode(NODE_APPLY_BODY); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    |   RBinds 
-        {
-            // TODO:
-        }
-    ;
+  : Exp ':' RBinds
+    {
+      $$ = new ApplyBody($1, $3);
+    }
+  | RBinds 
+    {
+      $$ = $1;
+    }
+  ;
 
 RBinds
-    :   RBinds ';' RBind
-        {
-            /* $$ = createNode(NODE_RBINDS); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    |   RBind 
-        {
-            /* $$ = $1; */
-        }
-    ;
+  : RBinds ';' RBind
+    {
+      /* $$ = createNode(NODE_RBINDS); */
+      /* $$->left = $1; */
+      /* $$->right = $3; */
+    }
+  | RBind 
+    {
+      $$ = $1;
+    }
+  ;
     
 RBind
-    :   ID 
-        {
-            /* $$ = createNode(NODE_ID); */
-            /* $$->str_val = $1; */
-        }
-    |   Exp IN Exp
-        {
-            /* $$ = createNode(NODE_IN); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : ID 
+    {
+      $$ = new Identifier($1);
+    }
+  | Exp IN Exp
+    {
+      $$ = new In($1, $3);
+    }
+  ;
 
 id 
-    :   ID
-        {
-            /* $$ = createNode(NODE_ID); */
-            /* $$->str_val = $1; */
-        } 
-    |   INT   
-        {
-            /* $$ = createNode(NODE_TYPE_INT); */
-        }
-    |   FLOAT 
-        {
-            /* $$ = createNode(NODE_TYPE_FLOAT); */
-        }
-    |   BOOL  
-        {
-            /* $$ = createNode(NODE_TYPE_BOOL); */
-        }
-    |   CHAR  
-        {
-            /* $$ = createNode(NODE_TYPE_CHAR); */
-        }
-    ;
+  : ID
+    {
+      $$ = new Identifier($1);
+    } 
+  | INT   
+    {
+      $$ = new TypeNode(INTEGER_T);
+    }
+  | FLOAT 
+    {
+      $$ = new TypeNode(BOOL_T);
+    }
+  | BOOL  
+    {
+      $$ = new TypeNode(BOOL_T);
+    }
+  | CHAR  
+    {
+      $$ = new TypeNode(CHAR_T);
+    }
+  ;
 
 SequenceTail
-    :   ':' Exp 
-        {
-            /* $$ = createNode(NODE_SEQ_TAIL); */
-            /* $$->left = $2; */
-        }
-    |   ':' Exp ':' Exp 
-        {
-            /* $$ = createNode(NODE_SEQ_TAIL); */
-            /* $$->left = $2; */
-            /* $$->right = $4; */
-        }
-    |   {
-            /* $$ = createNode(NODE_SEQ_TAIL); */
-        } 
-    ;
+  : ':' Exp 
+    {
+      $$ = new SequenceTail($2, NULL);
+    }
+  | ':' Exp ':' Exp 
+    {
+      $$ = new SequenceTail($2, $4);
+    }
+  | {
+      $$ = new SequenceTail(NULL, NULL);
+    } 
+  ;
 
 Const
   : INT_CONST 

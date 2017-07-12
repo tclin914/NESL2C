@@ -10,6 +10,7 @@ class BinaryNode : public Node
  
 public:
   BinaryNode(Node*, Node*);
+  BinaryNode();
 
 };
 
