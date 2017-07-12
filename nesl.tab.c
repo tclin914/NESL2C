@@ -157,6 +157,7 @@
 #include "ConstantString.h"
 // Binary Node
 #include "ArithmeticOpFactory.h"
+#include "RelationalOpFactory.h"
 
 using namespace nesl2c;
 
@@ -190,7 +191,7 @@ extern int yylineno;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 83 "nesl.y"
+#line 84 "nesl.y"
 {
   int tokenval;
   char *tokenstr;
@@ -198,7 +199,7 @@ typedef union YYSTYPE
   Node* node;
 }
 /* Line 193 of yacc.c.  */
-#line 202 "nesl.tab.c"
+#line 203 "nesl.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -211,7 +212,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 215 "nesl.tab.c"
+#line 216 "nesl.tab.c"
 
 #ifdef short
 # undef short
@@ -535,17 +536,17 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    95,    95,   102,   106,   115,   119,   123,   127,   133,
-     140,   145,   152,   153,   157,   166,   170,   174,   178,   185,
-     189,   196,   200,   207,   211,   218,   225,   231,   240,   244,
-     253,   262,   266,   276,   280,   287,   293,   300,   304,   308,
-     315,   319,   328,   332,   339,   343,   352,   356,   360,   364,
-     368,   372,   379,   383,   390,   394,   398,   402,   409,   413,
-     422,   426,   430,   437,   441,   450,   454,   462,   466,   470,
-     477,   481,   490,   494,   498,   502,   508,   513,   519,   523,
-     528,   537,   544,   550,   557,   563,   570,   575,   584,   589,
-     593,   597,   601,   608,   613,   619,   625,   629,   633,   637,
-     641
+       0,    96,    96,   103,   107,   116,   120,   124,   128,   134,
+     141,   146,   153,   154,   158,   167,   171,   175,   179,   186,
+     190,   197,   201,   208,   212,   219,   226,   232,   241,   245,
+     254,   263,   267,   277,   281,   288,   294,   301,   305,   309,
+     316,   320,   329,   333,   340,   344,   351,   355,   359,   363,
+     367,   371,   378,   382,   389,   393,   397,   401,   408,   412,
+     419,   423,   427,   434,   438,   447,   451,   459,   463,   467,
+     474,   478,   487,   491,   495,   499,   505,   510,   516,   520,
+     525,   534,   541,   547,   554,   560,   567,   572,   581,   586,
+     590,   594,   598,   605,   610,   616,   622,   626,   630,   634,
+     638
 };
 #endif
 
@@ -1601,21 +1602,21 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 96 "nesl.y"
+#line 97 "nesl.y"
     {
             /* yyheader = $1; */
         ;}
     break;
 
   case 3:
-#line 103 "nesl.y"
+#line 104 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 4:
-#line 107 "nesl.y"
+#line 108 "nesl.y"
     {
             /* $$ = createNode(NODE_TOP_LEVELS); */
             /* $$->left = $1; */
@@ -1624,28 +1625,28 @@ yyreduce:
     break;
 
   case 5:
-#line 116 "nesl.y"
+#line 117 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 6:
-#line 120 "nesl.y"
+#line 121 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 7:
-#line 124 "nesl.y"
+#line 125 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 8:
-#line 128 "nesl.y"
+#line 129 "nesl.y"
     {
             /* $$ = createNode(NODE_ASSIGN); */
             /* $$->left = $1; */
@@ -1654,14 +1655,14 @@ yyreduce:
     break;
 
   case 9:
-#line 134 "nesl.y"
+#line 135 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 10:
-#line 141 "nesl.y"
+#line 142 "nesl.y"
     {
             /* $$ = createNode(NODE_ID); */
             /* $$->str_val = $1; */
@@ -1669,14 +1670,14 @@ yyreduce:
     break;
 
   case 11:
-#line 146 "nesl.y"
+#line 147 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 14:
-#line 158 "nesl.y"
+#line 159 "nesl.y"
     {    
             /* $$ = createNode(NODE_FUNC_TYPE_DEF); */
             /* $$->left = $1; */
@@ -1685,77 +1686,77 @@ yyreduce:
     break;
 
   case 15:
-#line 167 "nesl.y"
+#line 168 "nesl.y"
     {  
             /* $$ = $1; */
         ;}
     break;
 
   case 16:
-#line 171 "nesl.y"
+#line 172 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 17:
-#line 175 "nesl.y"
+#line 176 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 18:
-#line 179 "nesl.y"
+#line 180 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 19:
-#line 186 "nesl.y"
+#line 187 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 20:
-#line 190 "nesl.y"
+#line 191 "nesl.y"
     {
             (yyval.node) = (yyvsp[(1) - (1)].node);   
         ;}
     break;
 
   case 21:
-#line 197 "nesl.y"
+#line 198 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 22:
-#line 201 "nesl.y"
+#line 202 "nesl.y"
     {
             /* $$ = $1;     */
         ;}
     break;
 
   case 23:
-#line 208 "nesl.y"
+#line 209 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 24:
-#line 212 "nesl.y"
+#line 213 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 25:
-#line 219 "nesl.y"
+#line 220 "nesl.y"
     {
             /* $$ = createNode(NODE_IFELSE); */
             /* $$->sibling = $2; */
@@ -1765,7 +1766,7 @@ yyreduce:
     break;
 
   case 26:
-#line 226 "nesl.y"
+#line 227 "nesl.y"
     {
             /* $$ = createNode(NODE_LET); */
             /* $$->left = $2; */
@@ -1774,7 +1775,7 @@ yyreduce:
     break;
 
   case 27:
-#line 232 "nesl.y"
+#line 233 "nesl.y"
     {
             /* $$ = createNode(NODE_LET); */
             /* $$->left = $2; */
@@ -1783,14 +1784,14 @@ yyreduce:
     break;
 
   case 28:
-#line 241 "nesl.y"
+#line 242 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 29:
-#line 245 "nesl.y"
+#line 246 "nesl.y"
     { 
             /* $$ = createNode(NODE_EXP_BINDS); */
             /* $$->left = $1; */
@@ -1799,7 +1800,7 @@ yyreduce:
     break;
 
   case 30:
-#line 254 "nesl.y"
+#line 255 "nesl.y"
     {
             /* $$ = createNode(NODE_ASSIGN); */
             /* $$->left = $1; */
@@ -1808,14 +1809,14 @@ yyreduce:
     break;
 
   case 31:
-#line 263 "nesl.y"
+#line 264 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 32:
-#line 267 "nesl.y"
+#line 268 "nesl.y"
     {
             /* $$ = createNode(NODE_TUPLE); */
             /* $$->left = $1; */
@@ -1824,21 +1825,21 @@ yyreduce:
     break;
 
   case 33:
-#line 277 "nesl.y"
+#line 278 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 34:
-#line 281 "nesl.y"
+#line 282 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 35:
-#line 288 "nesl.y"
+#line 289 "nesl.y"
     {
             /* $2->left = $1; */
             /* $2->right = $3; */
@@ -1847,42 +1848,42 @@ yyreduce:
     break;
 
   case 36:
-#line 294 "nesl.y"
+#line 295 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 37:
-#line 301 "nesl.y"
+#line 302 "nesl.y"
     { 
             /* $$ = createNode(NODE_OR);  */
         ;}
     break;
 
   case 38:
-#line 305 "nesl.y"
+#line 306 "nesl.y"
     { 
             /* $$ = createNode(NODE_NOR);  */
         ;}
     break;
 
   case 39:
-#line 309 "nesl.y"
+#line 310 "nesl.y"
     { 
             /* $$ = createNode(NODE_XOR);   */
         ;}
     break;
 
   case 40:
-#line 316 "nesl.y"
+#line 317 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 41:
-#line 320 "nesl.y"
+#line 321 "nesl.y"
     {
             /* $2->left = $1; */
             /* $2->right = $3; */
@@ -1891,165 +1892,161 @@ yyreduce:
     break;
 
   case 42:
-#line 329 "nesl.y"
+#line 330 "nesl.y"
     {
             /* $$ = createNode(NODE_AND); */
         ;}
     break;
 
   case 43:
-#line 333 "nesl.y"
+#line 334 "nesl.y"
     {
             /* $$ = createNode(NODE_NAND); */
         ;}
     break;
 
   case 44:
-#line 340 "nesl.y"
+#line 341 "nesl.y"
     {
-            /* $$ = $1; */
-        ;}
+      (yyval.node) = (yyvsp[(1) - (1)].node);
+    ;}
     break;
 
   case 45:
-#line 344 "nesl.y"
+#line 345 "nesl.y"
     {
-            /* $2->left = $1; */
-            /* $2->right = $3; */
-            /* $$ = $2; */
-        ;}
+      (yyval.node) = RelationalOpFactory::CreateRelationalOpNode((yyvsp[(2) - (3)].opcode), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+    ;}
     break;
 
   case 46:
-#line 353 "nesl.y"
+#line 352 "nesl.y"
     {
-            /* $$ = createNode(NODE_EQ);  */
-        ;}
+      (yyval.opcode) = EQ_OP;
+    ;}
     break;
 
   case 47:
-#line 357 "nesl.y"
+#line 356 "nesl.y"
     {
-            /* $$ = createNode(NODE_NE); */
-        ;}
+      (yyval.opcode) = NE_OP;
+    ;}
     break;
 
   case 48:
-#line 361 "nesl.y"
+#line 360 "nesl.y"
     {
-            /* $$ = createNode(NODE_LT); */
-        ;}
+      (yyval.opcode) = LT_OP;
+    ;}
     break;
 
   case 49:
-#line 365 "nesl.y"
+#line 364 "nesl.y"
     {
-            /* $$ = createNode(NODE_GT); */
-        ;}
+      (yyval.opcode) = GT_OP;
+    ;}
     break;
 
   case 50:
-#line 369 "nesl.y"
+#line 368 "nesl.y"
     {
-            /* $$ = createNode(NODE_LE); */
-        ;}
+      (yyval.opcode) = LE_OP;
+    ;}
     break;
 
   case 51:
-#line 373 "nesl.y"
+#line 372 "nesl.y"
     {
-            /* $$ = createNode(NODE_GE); */
-        ;}
+      (yyval.opcode) = GE_OP;
+    ;}
     break;
 
   case 52:
-#line 380 "nesl.y"
+#line 379 "nesl.y"
     {
-            /* $$ = $1; */
-        ;}
+      (yyval.node) = (yyvsp[(1) - (1)].node);
+    ;}
     break;
 
   case 53:
-#line 384 "nesl.y"
+#line 383 "nesl.y"
     {
-          (yyval.node) = ArithmeticOpFactory::CreateArithmeticOpNode((yyvsp[(2) - (3)].opcode), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
-        ;}
+      (yyval.node) = ArithmeticOpFactory::CreateArithmeticOpNode((yyvsp[(2) - (3)].opcode), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+    ;}
     break;
 
   case 54:
-#line 391 "nesl.y"
+#line 390 "nesl.y"
     {
       (yyval.opcode) = ADD_OP;
     ;}
     break;
 
   case 55:
-#line 395 "nesl.y"
+#line 394 "nesl.y"
     {
       (yyval.opcode) = SUBTRACT_OP;      
     ;}
     break;
 
   case 56:
-#line 399 "nesl.y"
+#line 398 "nesl.y"
     {
       (yyval.opcode) = PP_OP;
     ;}
     break;
 
   case 57:
-#line 403 "nesl.y"
+#line 402 "nesl.y"
     {
       (yyval.opcode) = LARROW_OP;
     ;}
     break;
 
   case 58:
-#line 410 "nesl.y"
+#line 409 "nesl.y"
     {
-            /* $$ = $1; */
-        ;}
+      (yyval.node) = (yyvsp[(1) - (1)].node);
+    ;}
     break;
 
   case 59:
-#line 414 "nesl.y"
+#line 413 "nesl.y"
     {
-            /* $2->left = $1; */
-            /* $2->right = $3; */
-            /* $$ = $2; */
-        ;}
+      (yyval.node) = ArithmeticOpFactory::CreateArithmeticOpNode((yyvsp[(2) - (3)].opcode), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+    ;}
     break;
 
   case 60:
-#line 423 "nesl.y"
+#line 420 "nesl.y"
     {
-            /* $$ = createNode(NODE_MUL); */
-        ;}
+      (yyval.opcode) = MUL_OP;
+    ;}
     break;
 
   case 61:
-#line 427 "nesl.y"
+#line 424 "nesl.y"
     {
-            /* $$ = createNode(NODE_DIV); */
-        ;}
+      (yyval.opcode) = DIV_OP;
+    ;}
     break;
 
   case 62:
-#line 431 "nesl.y"
+#line 428 "nesl.y"
     {
-            /* $$ = createNode(NODE_RARROW); */
-        ;}
+      (yyval.opcode) = RARROW_OP
+    ;}
     break;
 
   case 63:
-#line 438 "nesl.y"
+#line 435 "nesl.y"
     { 
             /* $$ = $1; */
         ;}
     break;
 
   case 64:
-#line 442 "nesl.y"
+#line 439 "nesl.y"
     {
             /* $$ = createNode(NODE_UPT); */
             /* $$->left = $1; */
@@ -2058,14 +2055,14 @@ yyreduce:
     break;
 
   case 65:
-#line 451 "nesl.y"
+#line 448 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 66:
-#line 455 "nesl.y"
+#line 452 "nesl.y"
     {
             /* $1->left = $2; */
             /* $$ = $1; */
@@ -2073,35 +2070,35 @@ yyreduce:
     break;
 
   case 67:
-#line 463 "nesl.y"
+#line 460 "nesl.y"
     {   
             /* $$ = createNode(NODE_SHARP); */
         ;}
     break;
 
   case 68:
-#line 467 "nesl.y"
+#line 464 "nesl.y"
     {
             /* $$ = createNode(NODE_AT); */
         ;}
     break;
 
   case 69:
-#line 471 "nesl.y"
+#line 468 "nesl.y"
     {
             /* $$ = createNode(NODE_UMINUS); */
         ;}
     break;
 
   case 70:
-#line 478 "nesl.y"
+#line 475 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 71:
-#line 482 "nesl.y"
+#line 479 "nesl.y"
     {
             /* $$ = createNode(NODE_SEQ_REF); */
             /* $$->left = $1; */
@@ -2110,28 +2107,28 @@ yyreduce:
     break;
 
   case 72:
-#line 491 "nesl.y"
+#line 488 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 73:
-#line 495 "nesl.y"
+#line 492 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 74:
-#line 499 "nesl.y"
+#line 496 "nesl.y"
     {
             /* $$ = $2; */
         ;}
     break;
 
   case 75:
-#line 503 "nesl.y"
+#line 500 "nesl.y"
     {
             /* $$ = createNode(NODE_APPLY_TO_EACH); */
             /* $$->left = $2; */
@@ -2140,7 +2137,7 @@ yyreduce:
     break;
 
   case 76:
-#line 509 "nesl.y"
+#line 506 "nesl.y"
     {
             /* $$ = createNode(NODE_EMPTY_SEQ); */
             /* $$->left = $3; */
@@ -2148,7 +2145,7 @@ yyreduce:
     break;
 
   case 77:
-#line 514 "nesl.y"
+#line 511 "nesl.y"
     {
             /* $$ = createNode(NODE_SEQ); */
             /* $$->left = $2; */
@@ -2157,14 +2154,14 @@ yyreduce:
     break;
 
   case 78:
-#line 520 "nesl.y"
+#line 517 "nesl.y"
     {
             /* $$ = $2; */
         ;}
     break;
 
   case 79:
-#line 524 "nesl.y"
+#line 521 "nesl.y"
     {
             /* $$ = createNode(NODE_ID); */
             /* $$->str_val = $1; */
@@ -2172,7 +2169,7 @@ yyreduce:
     break;
 
   case 80:
-#line 529 "nesl.y"
+#line 526 "nesl.y"
     {
             /* $$ = createNode(NODE_FUNC_CALL); */
             /* $$->left = $1; */
@@ -2181,14 +2178,14 @@ yyreduce:
     break;
 
   case 81:
-#line 538 "nesl.y"
+#line 535 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 82:
-#line 545 "nesl.y"
+#line 542 "nesl.y"
     {
             /* $$ = createNode(NODE_APPLY_BODY); */
             /* $$->left = $1; */
@@ -2197,14 +2194,14 @@ yyreduce:
     break;
 
   case 83:
-#line 551 "nesl.y"
+#line 548 "nesl.y"
     {
             // TODO:
         ;}
     break;
 
   case 84:
-#line 558 "nesl.y"
+#line 555 "nesl.y"
     {
             /* $$ = createNode(NODE_RBINDS); */
             /* $$->left = $1; */
@@ -2213,14 +2210,14 @@ yyreduce:
     break;
 
   case 85:
-#line 564 "nesl.y"
+#line 561 "nesl.y"
     {
             /* $$ = $1; */
         ;}
     break;
 
   case 86:
-#line 571 "nesl.y"
+#line 568 "nesl.y"
     {
             /* $$ = createNode(NODE_ID); */
             /* $$->str_val = $1; */
@@ -2228,7 +2225,7 @@ yyreduce:
     break;
 
   case 87:
-#line 576 "nesl.y"
+#line 573 "nesl.y"
     {
             /* $$ = createNode(NODE_IN); */
             /* $$->left = $1; */
@@ -2237,7 +2234,7 @@ yyreduce:
     break;
 
   case 88:
-#line 585 "nesl.y"
+#line 582 "nesl.y"
     {
             /* $$ = createNode(NODE_ID); */
             /* $$->str_val = $1; */
@@ -2245,35 +2242,35 @@ yyreduce:
     break;
 
   case 89:
-#line 590 "nesl.y"
+#line 587 "nesl.y"
     {
             /* $$ = createNode(NODE_TYPE_INT); */
         ;}
     break;
 
   case 90:
-#line 594 "nesl.y"
+#line 591 "nesl.y"
     {
             /* $$ = createNode(NODE_TYPE_FLOAT); */
         ;}
     break;
 
   case 91:
-#line 598 "nesl.y"
+#line 595 "nesl.y"
     {
             /* $$ = createNode(NODE_TYPE_BOOL); */
         ;}
     break;
 
   case 92:
-#line 602 "nesl.y"
+#line 599 "nesl.y"
     {
             /* $$ = createNode(NODE_TYPE_CHAR); */
         ;}
     break;
 
   case 93:
-#line 609 "nesl.y"
+#line 606 "nesl.y"
     {
             /* $$ = createNode(NODE_SEQ_TAIL); */
             /* $$->left = $2; */
@@ -2281,7 +2278,7 @@ yyreduce:
     break;
 
   case 94:
-#line 614 "nesl.y"
+#line 611 "nesl.y"
     {
             /* $$ = createNode(NODE_SEQ_TAIL); */
             /* $$->left = $2; */
@@ -2290,42 +2287,42 @@ yyreduce:
     break;
 
   case 95:
-#line 619 "nesl.y"
+#line 616 "nesl.y"
     {
             /* $$ = createNode(NODE_SEQ_TAIL); */
         ;}
     break;
 
   case 96:
-#line 626 "nesl.y"
+#line 623 "nesl.y"
     {
       (yyval.node) = new ConstantInteger((yyvsp[(1) - (1)].tokenstr));
     ;}
     break;
 
   case 97:
-#line 630 "nesl.y"
+#line 627 "nesl.y"
     {
       (yyval.node) = new ConstantFloat((yyvsp[(1) - (1)].tokenstr));
     ;}
     break;
 
   case 98:
-#line 634 "nesl.y"
+#line 631 "nesl.y"
     {
       (yyval.node) = new ConstantBoolean(true);
     ;}
     break;
 
   case 99:
-#line 638 "nesl.y"
+#line 635 "nesl.y"
     {
       (yyval.node) = new ConstantBoolean(false);
     ;}
     break;
 
   case 100:
-#line 642 "nesl.y"
+#line 639 "nesl.y"
     {
       (yyval.node) = new ConstantString((yyvsp[(1) - (1)].tokenstr));
     ;}
@@ -2333,7 +2330,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 2337 "nesl.tab.c"
+#line 2334 "nesl.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2547,7 +2544,7 @@ yyreturn:
 }
 
 
-#line 647 "nesl.y"
+#line 644 "nesl.y"
 
 
 void yyerror(char const *s) {

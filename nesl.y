@@ -10,6 +10,7 @@
 #include "ConstantString.h"
 // Binary Node
 #include "ArithmeticOpFactory.h"
+#include "RelationalOpFactory.h"
 
 using namespace nesl2c;
 
@@ -64,11 +65,11 @@ extern int yylineno;
 %type <node> id 
 %type <node> Goal TopLevels TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
 %type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp OrOp 
-%type <node> AndExp AndOp RelExp RelOp AddExp MulExp MulOp ExpExp UnExp 
+%type <node> AndExp AndOp RelExp AddExp MulExp ExpExp UnExp 
 %type <node> UnOp SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
 %type <node> SequenceTail Const 
 
-%type <opcode> AddOp
+%type <opcode> AddOp MulOp RelOp
 
 %left ','
 %left OR NOR XOR
@@ -336,55 +337,53 @@ AndOp
     ;
 
 RelExp
-    :   AddExp 
-        {
-            /* $$ = $1; */
-        }
-    |   RelExp RelOp AddExp
-        {
-            /* $2->left = $1; */
-            /* $2->right = $3; */
-            /* $$ = $2; */
-        }
-    ;
+  : AddExp 
+    {
+      $$ = $1;
+    }
+  | RelExp RelOp AddExp
+    {
+      $$ = RelationalOpFactory::CreateRelationalOpNode($2, $1, $3);
+    }
+  ;
 
 RelOp
-    :   EQ 
-        {
-            /* $$ = createNode(NODE_EQ);  */
-        }
-    |   NE  
-        {
-            /* $$ = createNode(NODE_NE); */
-        }
-    |   '<' 
-        {
-            /* $$ = createNode(NODE_LT); */
-        }
-    |   '>' 
-        {
-            /* $$ = createNode(NODE_GT); */
-        }
-    |   LE  
-        {
-            /* $$ = createNode(NODE_LE); */
-        }
-    |   GE  
-        {
-            /* $$ = createNode(NODE_GE); */
-        }
-    ;
+  : EQ 
+    {
+      $$ = EQ_OP;
+    }
+  | NE  
+    {
+      $$ = NE_OP;
+    }
+  | '<' 
+    {
+      $$ = LT_OP;
+    }
+  | '>' 
+    {
+      $$ = GT_OP;
+    }
+  | LE  
+    {
+      $$ = LE_OP;
+    }
+  | GE  
+    {
+      $$ = GE_OP;
+    }
+  ;
 
 AddExp
-    :   MulExp 
-        {
-            /* $$ = $1; */
-        }
-    |   AddExp AddOp MulExp 
-        {
-          $$ = ArithmeticOpFactory::CreateArithmeticOpNode($2, $1, $3);
-        }
-    ;
+  : MulExp 
+    {
+      $$ = $1;
+    }
+  | AddExp AddOp MulExp 
+    {
+      $$ = ArithmeticOpFactory::CreateArithmeticOpNode($2, $1, $3);
+    }
+  ;
 
 AddOp
   : '+'     
@@ -406,32 +405,30 @@ AddOp
   ;
 
 MulExp
-    :   ExpExp 
-        {
-            /* $$ = $1; */
-        }
-    |   MulExp MulOp ExpExp 
-        {
-            /* $2->left = $1; */
-            /* $2->right = $3; */
-            /* $$ = $2; */
-        }
-    ;
+  : ExpExp 
+    {
+      $$ = $1;
+    }
+  | MulExp MulOp ExpExp 
+    {
+      $$ = ArithmeticOpFactory::CreateArithmeticOpNode($2, $1, $3);
+    }
+  ;
 
 MulOp 
-    :   '*'    
-        {
-            /* $$ = createNode(NODE_MUL); */
-        } 
-    |   '/'    
-        {
-            /* $$ = createNode(NODE_DIV); */
-        }
-    |   RARROW 
-        {
-            /* $$ = createNode(NODE_RARROW); */
-        }  
-    ;
+  : '*'    
+    {
+      $$ = MUL_OP;
+    } 
+  | '/'    
+    {
+      $$ = DIV_OP;
+    }
+  | RARROW 
+    {
+      $$ = RARROW_OP
+    }  
+  ;
 
 ExpExp 
     :   UnExp 
