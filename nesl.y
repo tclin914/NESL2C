@@ -8,6 +8,8 @@
 #include "ConstantInteger.h"
 #include "ConstantFloat.h"
 #include "ConstantString.h"
+// Unary Node
+#include "UnaryOpFactory.h"
 // Binary Node
 #include "ArithmeticOpFactory.h"
 #include "RelationalOpFactory.h"
@@ -67,10 +69,10 @@ extern int yylineno;
 %type <node> Goal TopLevels TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
 %type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp 
 %type <node> AndExp RelExp AddExp MulExp ExpExp UnExp 
-%type <node> UnOp SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
+%type <node> SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
 %type <node> SequenceTail Const 
 
-%type <opcode> AddOp MulOp RelOp OrOp AndOp
+%type <opcode> AddOp MulOp RelOp OrOp AndOp UnOp
 
 %left ','
 %left OR NOR XOR
@@ -441,31 +443,30 @@ ExpExp
     ;
 
 UnExp 
-    :   SubscriptExp 
-        {
-            /* $$ = $1; */
-        }
-    |   UnOp UnExp   
-        {
-            /* $1->left = $2; */
-            /* $$ = $1; */
-        }
-    ;
+  : SubscriptExp 
+    {
+      $$ = $1;
+    }
+  | UnOp UnExp   
+    {
+      $$ = UnaryOpFactory::CreateUnaryOpNode($1, $2);
+    }
+  ;
 
 UnOp
-    :   '#'   
-        {   
-            /* $$ = createNode(NODE_SHARP); */
-        }
-    |   '@'   
-        {
-            /* $$ = createNode(NODE_AT); */
-        }
-    |   '-'   
-        {
-            /* $$ = createNode(NODE_UMINUS); */
-        } 
-    ;
+  : '#'   
+    {   
+      $$ = SHARP_OP;
+    }
+  | '@'   
+    {
+      $$ = AT_OP;
+    }
+  | '-'   
+    {
+      $$ = UMINUS_OP
+    } 
+  ;
 
 SubscriptExp
     :   AtomicExp 
@@ -481,51 +482,51 @@ SubscriptExp
     ;
 
 AtomicExp
-    :   Const 
-        {
-            /* $$ = $1; */
-        }
-    |   SpecialId '(' Exp ')' 
-        {
-            // TODO:
-        }
-    |   '{' ApplyBody '}' 
-        {
-            /* $$ = $2; */
-        }
-    |   '{' ApplyBody '|' Exp '}' 
-        {
-            /* $$ = createNode(NODE_APPLY_TO_EACH); */
-            /* $$->left = $2; */
-            /* $$->right = $4; */
-        }
-    |   '[' ']' TypeExp 
-        {
-            /* $$ = createNode(NODE_EMPTY_SEQ); */
-            /* $$->left = $3; */
-        }
-    |   '[' Exp SequenceTail ']'
-        {
-            /* $$ = createNode(NODE_SEQ); */
-            /* $$->left = $2; */
-            /* $$->right = $3; */
-        }
-    |   '(' Exp ')' 
-        {
-            /* $$ = $2; */
-        }
-    |   ID 
-        {
-            /* $$ = createNode(NODE_ID); */
-            /* $$->str_val = $1; */
-        }
-    |   id '(' Exp ')'
-        {
-            /* $$ = createNode(NODE_FUNC_CALL); */
-            /* $$->left = $1; */
-            /* $$->right = $3; */
-        }
-    ;
+  : Const 
+    {
+      $$ = $1;
+    }
+  | SpecialId '(' Exp ')' 
+    {
+      // TODO:
+    }
+  | '{' ApplyBody '}' 
+    {
+      /* $$ = $2; */
+    }
+  | '{' ApplyBody '|' Exp '}' 
+    {
+      /* $$ = createNode(NODE_APPLY_TO_EACH); */
+      /* $$->left = $2; */
+      /* $$->right = $4; */
+    }
+  | '[' ']' TypeExp 
+    {
+      /* $$ = createNode(NODE_EMPTY_SEQ); */
+      /* $$->left = $3; */
+    }
+  | '[' Exp SequenceTail ']'
+    {
+      /* $$ = createNode(NODE_SEQ); */
+      /* $$->left = $2; */
+      /* $$->right = $3; */
+    }
+  | '(' Exp ')' 
+    {
+      /* $$ = $2; */
+    }
+  | ID 
+    {
+      /* $$ = createNode(NODE_ID); */
+      /* $$->str_val = $1; */
+    }
+  | id '(' Exp ')'
+    {
+      /* $$ = createNode(NODE_FUNC_CALL); */
+      /* $$->left = $1; */
+      /* $$->right = $3; */
+    }
+  ;
 
 SpecialId
     :   ANY 

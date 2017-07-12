@@ -23,7 +23,11 @@ enum OpCode {
   NAND_OP,
   OR_OP,
   NOR_OP,
-  XOR_OP
+  XOR_OP,
+
+  SHARP_OP,
+  AT_OP,
+  UMINUS_OP
 };
 
 } // namespace of nesl2c

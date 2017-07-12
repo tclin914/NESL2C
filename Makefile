@@ -4,7 +4,8 @@ objects = lex.yy.o nesl.tab.o Main.o Node.o NullaryNode.o ConstantBoolean.o     
 					ArithmeticOpFactory.o ArithmeticOperation.o Add.o Subtract.o PP.o         \
 					LARROW.o Mul.o Div.o RARROW.o RelationalOpFactory.o RelationalOperation.o \
 					Equal.o NotEqual.o LessThan.o GreaterThan.o LessEqual.o GreaterEqual.o    \
-					LogicOpFactory.o LogicOperation.o And.o NotAnd.o Or.o NotOr.o XOr.o
+					LogicOpFactory.o LogicOperation.o And.o NotAnd.o Or.o NotOr.o XOr.o       \
+					UnaryNode.o UnaryOpFactory.o UnaryOperation.o Sharp.o At.o Uminus.o
 
 all: NESL2C
 
