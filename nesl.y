@@ -11,6 +11,7 @@
 // Binary Node
 #include "ArithmeticOpFactory.h"
 #include "RelationalOpFactory.h"
+#include "LogicOpFactory.h"
 
 using namespace nesl2c;
 
@@ -64,12 +65,12 @@ extern int yylineno;
 
 %type <node> id 
 %type <node> Goal TopLevels TopLevel FunId FunTypeDef TypeExp PairTypes TypeList
-%type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp OrOp 
-%type <node> AndExp AndOp RelExp AddExp MulExp ExpExp UnExp 
+%type <node> Exp IfOrLetExp ExpBinds ExpBind TupleExp TupleRest OrExp 
+%type <node> AndExp RelExp AddExp MulExp ExpExp UnExp 
 %type <node> UnOp SubscriptExp AtomicExp SpecialId ApplyBody RBinds RBind
 %type <node> SequenceTail Const 
 
-%type <opcode> AddOp MulOp RelOp
+%type <opcode> AddOp MulOp RelOp OrOp AndOp
 
 %left ','
 %left OR NOR XOR
@@ -285,56 +286,52 @@ TupleRest
     ;
 
 OrExp
-    :   OrExp OrOp AndExp 
-        {
-            /* $2->left = $1; */
-            /* $2->right = $3; */
-            /* $$ = $2; */
-        }
-    |   AndExp 
-        {
-            /* $$ = $1; */
-        }
-    ;
+  : OrExp OrOp AndExp 
+    {
+      $$ = LogicOpFactory::CreateLogicOpNode($2, $1, $3);
+    }
+  | AndExp 
+    {
+      $$ = $1;
+    }
+  ;
 
 OrOp
-    :   OR  
-        { 
-            /* $$ = createNode(NODE_OR);  */
-        }
-    |   NOR 
-        { 
-            /* $$ = createNode(NODE_NOR);  */
-        }
-    |   XOR 
-        { 
-            /* $$ = createNode(NODE_XOR);   */
-        } 
-    ;
+  : OR  
+    { 
+      $$ = OR_OP;
+    }
+  | NOR 
+    { 
+      $$ = NOR_OP;
+    }
+  | XOR 
+    { 
+      $$ = XOR_OP;
+    } 
+  ;
 
 AndExp
-    :   RelExp 
-        {
-            /* $$ = $1; */
-        }
-    |   AndExp AndOp RelExp 
-        {
-            /* $2->left = $1; */
-            /* $2->right = $3; */
-            /* $$ = $2; */
-        }
-    ;
+  : RelExp 
+    {
+      $$ = $1;
+    }
+  | AndExp AndOp RelExp 
+    {
+      $$ = LogicOpFactory::CreateLogicOpNode($2, $1, $3);
+    }
+  ;
 
 AndOp
-    :   AND  
-        {
-            /* $$ = createNode(NODE_AND); */
-        }
-    |   NAND 
-        {
-            /* $$ = createNode(NODE_NAND); */
-        }
-    ;
+  : AND  
+    {
+      $$ = AND_OP;
+    }
+  | NAND 
+    {
+      $$ = NAND_OP;
+    }
+  ;
 
 RelExp
   : AddExp 

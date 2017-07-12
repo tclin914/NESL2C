@@ -11,12 +11,19 @@ enum OpCode {
   MUL_OP,
   DIV_OP,
   RARROW_OP,
+
   EQ_OP,
   NE_OP,
   LT_OP,
   GT_OP,
   LE_OP,
-  GE_OP
+  GE_OP,
+
+  AND_OP,
+  NAND_OP,
+  OR_OP,
+  NOR_OP,
+  XOR_OP
 };
 
 } // namespace of nesl2c

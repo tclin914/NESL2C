@@ -118,7 +118,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 84 "nesl.y"
+#line 85 "nesl.y"
 {
   int tokenval;
   char *tokenstr;
