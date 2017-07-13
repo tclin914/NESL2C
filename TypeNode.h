@@ -10,6 +10,9 @@ class TypeNode : public NullaryNode
 
 public:
   TypeNode(Type);
+  
+  bool Initialize();
+  void Accept(Visitor*);
 
 };
 
