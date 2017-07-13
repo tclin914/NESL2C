@@ -10,6 +10,8 @@ class BinaryNode : public Node
  
 public:
   BinaryNode(Node*, Node*);
+  virtual ~BinaryNode() {}
+
   virtual bool Initialize();
   virtual bool SemanticCheck();
 };
