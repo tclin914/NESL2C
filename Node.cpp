@@ -12,5 +12,5 @@ Node::Node()
 
 Type Node::GetType()
 {
-  return type;
+  return type; 
 }

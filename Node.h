@@ -7,20 +7,28 @@
 
 namespace nesl2c {
 
+class Visitor;
+
 class Node 
 {
 
 public:
   Node();
+  virtual ~Node() {}
+
+  virtual bool Initialize() = 0;
+  virtual bool SemanticCheck() = 0;
+  virtual void Accept(Visitor*) = 0;
 
   virtual Type GetType();
+
   Node* GetChild(int);
 
 protected:
   // virtual void ErrorReport(string, ...);
   std::vector<Node*> children;
-  int lineNo;
   Type type;
+  int lineNo;
 };
 
 } // namespace of nesl2c
