@@ -8,6 +8,16 @@ UnaryNode::UnaryNode(Node* a) : Node()
   children.push_back(a);
 }
 
-UnaryNode::UnaryNode() : Node()
+bool UnaryNode::Initialize()
 {
+  if (children[0] != NULL)
+    return children[0]->Initialize();
+  return true;
+}
+
+bool UnaryNode::SemanticCheck()
+{
+  if (children[0] != NULL) 
+    return children[0]->SemanticCheck();
+  return true;
 }

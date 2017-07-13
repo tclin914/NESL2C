@@ -4,31 +4,31 @@
 
 #include "Node.h"
 // Nulary Node
+#include "Identifier.h"
 #include "TypeNode.h"
 #include "ConstantBoolean.h"
 #include "ConstantInteger.h"
 #include "ConstantFloat.h"
 #include "ConstantString.h"
-#include "Identifier.h"
 // Unary Node
 #include "UnaryOpFactory.h"
 #include "EmptySequence.h"
 // Binary Node
-#include "Assign.h"
-#include "Let.h"
-#include "ApplyToEach.h"
-#include "ApplyBody.h"
-#include "FuncCall.h"
-#include "Sequence.h"
+/* #include "Assign.h" */
+/* #include "Let.h" */
+/* #include "ApplyToEach.h" */
+/* #include "ApplyBody.h" */
+/* #include "FunctionCall.h" */
+/* #include "Sequence.h" */
 #include "ArithmeticOpFactory.h"
-#include "RelationalOpFactory.h"
+/* #include "RelationalOpFactory.h" */
 #include "LogicOpFactory.h"
-#include "In.h"
+/* #include "In.h" */
 
 #include "SequenceTail.h"
 
 // Ternary Node
-#include "IfElse.h"
+/* #include "IfElse.h" */
 
 using namespace nesl2c;
 
@@ -145,7 +145,7 @@ TopLevel
     }
   | Exp '=' Exp EndMark 
     {
-      $$ = new Assign($1, $3);
+      /* $$ = new Assign($1, $3); */
     }
   | Exp EndMark 
     {
@@ -156,7 +156,7 @@ TopLevel
 FunId   
   : ID    
     {
-      $$ = new Identifier($1);
+      /* $$ = new Identifier($1); */
     }
   | SpecialId
     {
@@ -233,15 +233,15 @@ Exp
 IfOrLetExp
   : IF Exp THEN Exp ELSE Exp 
     {
-      $$ = new IfElse($2, $4, $6);
+      /* $$ = new IfElse($2, $4, $6); */
     }
   | LET ExpBinds ';' IN Exp 
     {
-      $$ = new Let($2, $5);
+      /* $$ = new Let($2, $5); */
     }
   | LET ExpBinds IN Exp
     {
-      $$ = new Let($2, $4);
+      /* $$ = new Let($2, $4); */
     }
   ;
 
@@ -261,7 +261,7 @@ ExpBinds
 ExpBind
   : Exp '=' Exp
     {
-      $$ = new Assign($1, $3);
+      /* $$ = new Assign($1, $3); */
     }
   ;
 
@@ -345,7 +345,7 @@ RelExp
     }
   | RelExp RelOp AddExp
     {
-      $$ = RelationalOpFactory::CreateRelationalOpNode($2, $1, $3);
+      /* $$ = RelationalOpFactory::CreateRelationalOpNode($2, $1, $3); */
     }
   ;
 
@@ -452,7 +452,7 @@ UnExp
     }
   | UnOp UnExp   
     {
-      $$ = UnaryOpFactory::CreateUnaryOpNode($1, $2);
+      /* $$ = UnaryOpFactory::CreateUnaryOpNode($1, $2); */
     }
   ;
 
@@ -499,7 +499,7 @@ AtomicExp
     }
   | '{' ApplyBody '|' Exp '}' 
     {
-      $$ = new ApplyToEach($2, $4);
+      /* $$ = new ApplyToEach($2, $4); */
     }
   | '[' ']' TypeExp 
     {
@@ -507,7 +507,7 @@ AtomicExp
     }
   | '[' Exp SequenceTail ']'
     {
-      $$ = new Sequence($2, $3);
+      /* $$ = new Sequence($2, $3); */
     }
   | '(' Exp ')' 
     {
@@ -515,11 +515,11 @@ AtomicExp
     }
   | ID 
     {
-      $$ = new Identifier($1);
+      /* $$ = new Identifier($1); */
     }
   | id '(' Exp ')'
     {
-      $$ = new FuncCall($1, $3);
+      /* $$ = new FunctionCall($1, $3); */
     }
   ;
 
@@ -533,7 +533,7 @@ SpecialId
 ApplyBody
   : Exp ':' RBinds
     {
-      $$ = new ApplyBody($1, $3);
+      /* $$ = new ApplyBody($1, $3); */
     }
   | RBinds 
     {
@@ -557,11 +557,11 @@ RBinds
 RBind
   : ID 
     {
-      $$ = new Identifier($1);
+      /* $$ = new Identifier($1); */
     }
   | Exp IN Exp
     {
-      $$ = new In($1, $3);
+      /* $$ = new In($1, $3); */
     }
   ;
 
@@ -576,7 +576,7 @@ id
     }
   | FLOAT 
     {
-      $$ = new TypeNode(BOOL_T);
+      $$ = new TypeNode(FLOAT_T);
     }
   | BOOL  
     {

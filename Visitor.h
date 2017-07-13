@@ -3,6 +3,7 @@
 
 namespace nesl2c {
 
+class EmptySequence;
 class Or;
 class NotOr;
 class XOr;
@@ -17,6 +18,7 @@ class Div;
 class RARROW;
 class Identifier;
 class TypeNode;
+class SequenceTail;
 class ConstantInteger;
 class ConstantFloat;
 class ConstantBoolean;
@@ -25,6 +27,8 @@ class ConstantString;
 class Visitor {
 
 public:
+
+  virtual void Visit(EmptySequence*) = 0;
 
   virtual void Visit(Or*) = 0;
   virtual void Visit(NotOr*) = 0;
@@ -39,6 +43,8 @@ public:
   virtual void Visit(Mul*) = 0;
   virtual void Visit(Div*) = 0;
   virtual void Visit(RARROW*) = 0;
+
+  virtual void Visit(SequenceTail*) = 0;
 
   virtual void Visit(Identifier*) = 0;
   virtual void Visit(TypeNode*) = 0;

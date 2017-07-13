@@ -151,31 +151,31 @@
 
 #include "Node.h"
 // Nulary Node
+#include "Identifier.h"
 #include "TypeNode.h"
 #include "ConstantBoolean.h"
 #include "ConstantInteger.h"
 #include "ConstantFloat.h"
 #include "ConstantString.h"
-#include "Identifier.h"
 // Unary Node
 #include "UnaryOpFactory.h"
 #include "EmptySequence.h"
 // Binary Node
-#include "Assign.h"
-#include "Let.h"
-#include "ApplyToEach.h"
-#include "ApplyBody.h"
-#include "FuncCall.h"
-#include "Sequence.h"
+/* #include "Assign.h" */
+/* #include "Let.h" */
+/* #include "ApplyToEach.h" */
+/* #include "ApplyBody.h" */
+/* #include "FunctionCall.h" */
+/* #include "Sequence.h" */
 #include "ArithmeticOpFactory.h"
-#include "RelationalOpFactory.h"
+/* #include "RelationalOpFactory.h" */
 #include "LogicOpFactory.h"
-#include "In.h"
+/* #include "In.h" */
 
 #include "SequenceTail.h"
 
 // Ternary Node
-#include "IfElse.h"
+/* #include "IfElse.h" */
 
 using namespace nesl2c;
 
@@ -1666,7 +1666,7 @@ yyreduce:
   case 8:
 #line 147 "nesl.y"
     {
-      (yyval.node) = new Assign((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].node));
+      /* $$ = new Assign($1, $3); */
     ;}
     break;
 
@@ -1680,7 +1680,7 @@ yyreduce:
   case 10:
 #line 158 "nesl.y"
     {
-      (yyval.node) = new Identifier((yyvsp[(1) - (1)].tokenstr));
+      /* $$ = new Identifier($1); */
     ;}
     break;
 
@@ -1773,21 +1773,21 @@ yyreduce:
   case 25:
 #line 235 "nesl.y"
     {
-      (yyval.node) = new IfElse((yyvsp[(2) - (6)].node), (yyvsp[(4) - (6)].node), (yyvsp[(6) - (6)].node));
+      /* $$ = new IfElse($2, $4, $6); */
     ;}
     break;
 
   case 26:
 #line 239 "nesl.y"
     {
-      (yyval.node) = new Let((yyvsp[(2) - (5)].node), (yyvsp[(5) - (5)].node));
+      /* $$ = new Let($2, $5); */
     ;}
     break;
 
   case 27:
 #line 243 "nesl.y"
     {
-      (yyval.node) = new Let((yyvsp[(2) - (4)].node), (yyvsp[(4) - (4)].node));
+      /* $$ = new Let($2, $4); */
     ;}
     break;
 
@@ -1810,7 +1810,7 @@ yyreduce:
   case 30:
 #line 263 "nesl.y"
     {
-      (yyval.node) = new Assign((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+      /* $$ = new Assign($1, $3); */
     ;}
     break;
 
@@ -1917,7 +1917,7 @@ yyreduce:
   case 45:
 #line 347 "nesl.y"
     {
-      (yyval.node) = RelationalOpFactory::CreateRelationalOpNode((yyvsp[(2) - (3)].opcode), (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+      /* $$ = RelationalOpFactory::CreateRelationalOpNode($2, $1, $3); */
     ;}
     break;
 
@@ -2066,7 +2066,7 @@ yyreduce:
   case 66:
 #line 454 "nesl.y"
     {
-      (yyval.node) = UnaryOpFactory::CreateUnaryOpNode((yyvsp[(1) - (2)].opcode), (yyvsp[(2) - (2)].node));
+      /* $$ = UnaryOpFactory::CreateUnaryOpNode($1, $2); */
     ;}
     break;
 
@@ -2131,7 +2131,7 @@ yyreduce:
   case 75:
 #line 501 "nesl.y"
     {
-      (yyval.node) = new ApplyToEach((yyvsp[(2) - (5)].node), (yyvsp[(4) - (5)].node));
+      /* $$ = new ApplyToEach($2, $4); */
     ;}
     break;
 
@@ -2145,7 +2145,7 @@ yyreduce:
   case 77:
 #line 509 "nesl.y"
     {
-      (yyval.node) = new Sequence((yyvsp[(2) - (4)].node), (yyvsp[(3) - (4)].node));
+      /* $$ = new Sequence($2, $3); */
     ;}
     break;
 
@@ -2159,14 +2159,14 @@ yyreduce:
   case 79:
 #line 517 "nesl.y"
     {
-      (yyval.node) = new Identifier((yyvsp[(1) - (1)].tokenstr));
+      /* $$ = new Identifier($1); */
     ;}
     break;
 
   case 80:
 #line 521 "nesl.y"
     {
-      (yyval.node) = new FuncCall((yyvsp[(1) - (4)].node), (yyvsp[(3) - (4)].node));
+      /* $$ = new FunctionCall($1, $3); */
     ;}
     break;
 
@@ -2180,7 +2180,7 @@ yyreduce:
   case 82:
 #line 535 "nesl.y"
     {
-      (yyval.node) = new ApplyBody((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+      /* $$ = new ApplyBody($1, $3); */
     ;}
     break;
 
@@ -2210,14 +2210,14 @@ yyreduce:
   case 86:
 #line 559 "nesl.y"
     {
-      (yyval.node) = new Identifier((yyvsp[(1) - (1)].tokenstr));
+      /* $$ = new Identifier($1); */
     ;}
     break;
 
   case 87:
 #line 563 "nesl.y"
     {
-      (yyval.node) = new In((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node));
+      /* $$ = new In($1, $3); */
     ;}
     break;
 
@@ -2238,7 +2238,7 @@ yyreduce:
   case 90:
 #line 578 "nesl.y"
     {
-      (yyval.node) = new TypeNode(BOOL_T);
+      (yyval.node) = new TypeNode(FLOAT_T);
     ;}
     break;
 

@@ -10,8 +10,10 @@ class UnaryNode : public Node
 
 public:
   UnaryNode(Node*);
-  UnaryNode();
+  virtual ~UnaryNode() {}
 
+  virtual bool Initialize();
+  virtual bool SemanticCheck();
 };
 
 } // namespace of nesl2c

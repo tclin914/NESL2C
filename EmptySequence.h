@@ -10,6 +10,9 @@ class EmptySequence : public UnaryNode
 
 public:
   EmptySequence(Node*);
+
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c
