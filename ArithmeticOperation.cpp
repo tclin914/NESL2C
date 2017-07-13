@@ -25,6 +25,15 @@ bool ArithmeticOperation::SemanticCheck()
 
 bool ArithmeticOperation::locallySemanticCheck()
 {
-  // TODO:
+  if (children[0] == NULL || children[1] == NULL) {
+    return false;
+  }
+
+  if (children[0]->GetType() != children[1]->GetType() ||
+        (children[0]->GetType() != INTEGER_T && 
+        children[0]->GetType() != FLOAT_T)) {
+    return false;
+  }
+
   return true;
 }
