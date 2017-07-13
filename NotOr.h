@@ -10,7 +10,9 @@ class NotOr : public LogicOperation
 
 public:
   NotOr(Node*, Node*);
-  
+
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

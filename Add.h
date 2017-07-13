@@ -10,6 +10,8 @@ class Add : public ArithmeticOperation
 
 public:
   Add(Node*, Node*);
+  
+  void Accept(Visitor*);
 
 };
 

@@ -10,7 +10,9 @@ class Or : public LogicOperation
 
 public:
   Or(Node*, Node*);
-  
+
+  void Accept(Visitor*);
+    
 };
 
 } // namespace of nesl2c

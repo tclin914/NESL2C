@@ -10,7 +10,9 @@ class XOr : public LogicOperation
 
 public:
   XOr(Node*, Node*);
-  
+
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

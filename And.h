@@ -11,6 +11,8 @@ class And : public LogicOperation
 public:
   And(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

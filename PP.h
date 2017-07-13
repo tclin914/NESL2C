@@ -10,7 +10,9 @@ class PP : public ArithmeticOperation
   
 public:
   PP(Node*, Node*);
-  
+
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

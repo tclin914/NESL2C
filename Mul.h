@@ -11,6 +11,8 @@ class Mul : public ArithmeticOperation
 public:
   Mul(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

@@ -11,6 +11,8 @@ class RARROW : public ArithmeticOperation
 public:
   RARROW(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

@@ -11,6 +11,8 @@ class Subtract : public ArithmeticOperation
 public:
   Subtract(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

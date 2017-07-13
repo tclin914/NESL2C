@@ -10,6 +10,9 @@ class Div : public ArithmeticOperation
  
 public:
   Div(Node*, Node*);
+
+  void Accept(Visitor*);
+
 };
 
 

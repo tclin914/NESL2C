@@ -10,7 +10,9 @@ class LARROW : public ArithmeticOperation
 
 public:
   LARROW(Node*, Node*);
-  
+
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

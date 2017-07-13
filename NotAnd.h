@@ -10,6 +10,8 @@ class NotAnd : public LogicOperation
 
 public:
   NotAnd(Node*, Node*);
+  
+  void Accept(Visitor*);
 
 };
 
