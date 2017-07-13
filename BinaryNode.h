@@ -10,8 +10,8 @@ class BinaryNode : public Node
  
 public:
   BinaryNode(Node*, Node*);
-  BinaryNode();
-
+  virtual bool Initialize();
+  virtual bool SemanticCheck();
 };
 
 } // namespace of nesl2c

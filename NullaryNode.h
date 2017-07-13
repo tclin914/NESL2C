@@ -10,7 +10,9 @@ class NullaryNode : public Node
 
 public:
   NullaryNode();
+  virtual ~NullaryNode() {}
 
+  virtual bool SemanticCheck();
 }; 
 
 } // namespace of nesl2c

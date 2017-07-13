@@ -7,3 +7,8 @@ NullaryNode::NullaryNode() : Node()
 {
   type = UNDEFINED;
 }
+
+bool NullaryNode::SemanticCheck()
+{
+  return true;
+}
