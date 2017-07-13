@@ -14,6 +14,9 @@ class ConstantString : public NullaryNode
 
 public:
   ConstantString(string);
+  
+  bool Initialize();
+  void Accept(Visitor*);
 
 private:
   string str;

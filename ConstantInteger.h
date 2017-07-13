@@ -14,6 +14,9 @@ class ConstantInteger : public NullaryNode
 
 public:
   ConstantInteger(string);
+  
+  bool Initialize();
+  void Accept(Visitor*);
 
 private:
   int num;

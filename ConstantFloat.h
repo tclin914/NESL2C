@@ -14,6 +14,9 @@ class ConstantFloat : public NullaryNode
 
 public:
   ConstantFloat(string);
+  
+  bool Initialize();
+  void Accept(Visitor*);
 
 private:
   float num;

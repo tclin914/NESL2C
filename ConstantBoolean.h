@@ -10,6 +10,9 @@ class ConstantBoolean : public NullaryNode
 
 public:
   ConstantBoolean(bool);
+  
+  bool Initialize();
+  void Accept(Visitor*);
 
 private:
   bool value;
