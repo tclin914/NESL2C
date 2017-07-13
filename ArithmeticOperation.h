@@ -10,6 +10,13 @@ class ArithmeticOperation : public BinaryNode
 
 public:
   ArithmeticOperation(Node*, Node*);
+  virtual ~ArithmeticOperation() {}
+
+  bool Initialize(); 
+  bool SemanticCheck();
+
+private:
+  bool locallySemanticCheck();
 
 };
 

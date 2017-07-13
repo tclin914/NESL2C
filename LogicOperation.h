@@ -10,6 +10,13 @@ class LogicOperation : public BinaryNode
 
 public:
   LogicOperation(Node*, Node*);
+  virtual ~LogicOperation() {}
+
+  bool Initialize();
+  bool SemanticCheck();
+
+private:
+  bool locallySemanticCheck();
                     
 };
 
