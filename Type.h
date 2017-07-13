@@ -7,6 +7,7 @@ enum Type
 {
   UNDEFINED,
   INTEGER_T,
+  FLOAT_T,
   BOOL_T,
   CHAR_T,
   STRING_T
