@@ -1,12 +1,18 @@
 #ifndef NESL2C_VISITOR_CODE_GEN_VISITOR_H
 #define NESL2C_VISITOR_CODE_GEN_VISITOR_H
 
+#include "llvm/IR/LLVMContext.h"
+
 #include "Visitor.h"
+
+using namespace llvm;
 
 namespace nesl2c {
 
 class CodeGenVisitor : public Visitor
 {
+
+public:
   CodeGenVisitor();
 
   virtual void Visit(EmptySequence*);
@@ -33,7 +39,10 @@ class CodeGenVisitor : public Visitor
   virtual void Visit(ConstantFloat*);
   virtual void Visit(ConstantBoolean*);
   virtual void Visit(ConstantString*);
-   
+  
+private:
+  LLVMContext context;
+
 };
 
 } // end namespace nesl2c
