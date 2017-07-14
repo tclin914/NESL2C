@@ -7,3 +7,6 @@ FLEX_TARGET(Lexer nesl.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.cc)
 
 add_library(LexerParser
   nesl.tab.cc lex.yy.cc)
+
+target_compile_options(LexerParser
+  PRIVATE -Wno-deprecated-register)
