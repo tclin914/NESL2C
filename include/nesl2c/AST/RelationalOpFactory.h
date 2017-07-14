@@ -1,5 +1,5 @@
-#ifndef NESL2C_RELATION_OP_FACTORY_H
-#define NESL2C_RELATION_OP_FACTORY_H
+#ifndef NESL2C_AST_RELATION_OP_FACTORY_H
+#define NESL2C_AST_RELATION_OP_FACTORY_H
 
 #include "OpCode.h"
 #include "Node.h"
@@ -15,6 +15,6 @@ public:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_RELATION_OP_FACTORY_H

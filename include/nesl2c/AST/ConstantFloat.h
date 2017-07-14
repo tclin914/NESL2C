@@ -1,5 +1,5 @@
-#ifndef NESL2C_CONSTANT_FLOAT_H
-#define NESL2C_CONSTANT_FLOAT_H
+#ifndef NESL2C_AST_CONSTANT_FLOAT_H
+#define NESL2C_AST_CONSTANT_FLOAT_H
 
 #include <string>
 
@@ -23,6 +23,6 @@ private:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_CONSTANT_FLOAT_H

@@ -1,5 +1,5 @@
-#ifndef NESL2C_LOGIC_OPERATION_H
-#define NESL2C_LOGIC_OPERATION_H
+#ifndef NESL2C_AST_LOGIC_OPERATION_H
+#define NESL2C_AST_LOGIC_OPERATION_H
 
 #include "BinaryNode.h"
 
@@ -20,6 +20,6 @@ private:
                     
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESLC2_AST_LOGIC_OPERATION_H

@@ -1,5 +1,5 @@
-#ifndef NESL2C_CONSTANT_BOOLEAN_H
-#define NESL2C_CONSTANT_BOOLEAN_H
+#ifndef NESL2C_AST_CONSTANT_BOOLEAN_H
+#define NESL2C_AST_CONSTANT_BOOLEAN_H
 
 #include "NullaryNode.h"
 
@@ -19,6 +19,6 @@ private:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_CONSTANT_BOOLEAN_H

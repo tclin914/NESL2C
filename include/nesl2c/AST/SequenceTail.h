@@ -1,5 +1,5 @@
-#ifndef NESL2C_SEQUENCE_TAIL_H
-#define NESL2C_SEQUENCE_TAIL_H
+#ifndef NESL2C_AST_SEQUENCE_TAIL_H
+#define NESL2C_AST_SEQUENCE_TAIL_H
 
 #include "UnaryNode.h"
 #include "BinaryNode.h"
@@ -17,6 +17,6 @@ public:
   void Accept(Visitor*);
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_SEQUENCE_TAIL_H

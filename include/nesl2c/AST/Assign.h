@@ -1,5 +1,5 @@
-#ifndef NESL2C_ASSIGN_H
-#define NESL2C_ASSIGN_H
+#ifndef NESL2C_AST_ASSIGN_H
+#define NESL2C_AST_ASSIGN_H
 
 #include "BinaryNode.h"
 
@@ -12,6 +12,6 @@ public:
   Assign(Node*, Node*);
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_ASSIGN_H

@@ -1,5 +1,5 @@
-#ifndef NESL2C_SHARP_H
-#define NESL2C_SHARP_H
+#ifndef NESL2C_AST_SHARP_H
+#define NESL2C_AST_SHARP_H
 
 #include "UnaryOperation.h"
 
@@ -13,6 +13,6 @@ public:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_SHARP_H

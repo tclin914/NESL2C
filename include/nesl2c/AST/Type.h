@@ -1,5 +1,5 @@
-#ifndef NESL2C_TYPE_H
-#define NESL2C_TYPE_H
+#ifndef NESL2C_AST_TYPE_H
+#define NESL2C_AST_TYPE_H
 
 namespace nesl2c {
 
@@ -13,6 +13,6 @@ enum Type
   STRING_T
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_TYPE_H

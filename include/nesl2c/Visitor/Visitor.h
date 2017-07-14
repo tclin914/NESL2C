@@ -1,5 +1,5 @@
-#ifndef NESL2C_VISITOR_H
-#define NESL2C_VISITOR_H
+#ifndef NESL2C_VISITOR_VISITOR_H
+#define NESL2C_VISITOR_VISITOR_H
 
 namespace nesl2c {
 
@@ -55,6 +55,6 @@ public:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_VISITOR_VISITOR_H

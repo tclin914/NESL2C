@@ -1,5 +1,5 @@
-#ifndef NESL2C_NODE_H
-#define NESL2C_NODE_H
+#ifndef NESL2C_AST_NODE_H
+#define NESL2C_AST_NODE_H
 
 #include <vector>
 
@@ -31,6 +31,6 @@ protected:
   int lineNo;
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_NODE_H

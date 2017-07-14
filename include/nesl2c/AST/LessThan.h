@@ -1,5 +1,5 @@
-#ifndef NESL2C_LESS_THAN_H
-#define NESL2C_LESS_THAN_H
+#ifndef NESL2C_AST_LESS_THAN_H
+#define NESL2C_AST_LESS_THAN_H
 
 #include "RelationalOperation.h"
 
@@ -13,6 +13,6 @@ public:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_LESS_THAN_H

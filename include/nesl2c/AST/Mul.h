@@ -1,5 +1,5 @@
-#ifndef NESL2C_MUL_H
-#define NESL2C_MUL_H
+#ifndef NESL2C_AST_MUL_H
+#define NESL2C_AST_MUL_H
 
 #include "ArithmeticOperation.h"
 
@@ -15,6 +15,6 @@ public:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_MUL_H

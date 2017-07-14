@@ -1,5 +1,5 @@
-#ifndef NESL2C_OPCODE_H
-#define NESL2C_OPCODE_H
+#ifndef NESL2C_AST_OPCODE_H
+#define NESL2C_AST_OPCODE_H
 
 namespace nesl2c {
 
@@ -30,6 +30,6 @@ enum OpCode {
   UMINUS_OP
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_OPCODE_H

@@ -1,5 +1,5 @@
-#ifndef NESL2C_RELATIONAL_OPERATION_H
-#define NESL2C_RELATIONAL_OPERATION_H
+#ifndef NESL2C_AST_RELATIONAL_OPERATION_H
+#define NESL2C_AST_RELATIONAL_OPERATION_H
 
 #include "BinaryNode.h"
 
@@ -13,6 +13,6 @@ public:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_RELATIONAL_OPERATION_H

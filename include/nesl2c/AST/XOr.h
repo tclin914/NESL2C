@@ -1,5 +1,5 @@
-#ifndef NESL2C_XOR_H
-#define NESL2C_XOR_H
+#ifndef NESL2C_AST_XOR_H
+#define NESL2C_AST_XOR_H
 
 #include "LogicOperation.h"
 
@@ -15,6 +15,6 @@ public:
 
 };
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_XOR_H

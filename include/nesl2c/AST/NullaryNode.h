@@ -1,5 +1,5 @@
-#ifndef NESL2C_NULLARY_NODE_H
-#define NESL2C_NULLARY_NODE_H
+#ifndef NESL2C_AST_NULLARY_NODE_H
+#define NESL2C_AST_NULLARY_NODE_H
 
 #include "Node.h"
 
@@ -15,6 +15,6 @@ public:
   virtual bool SemanticCheck();
 }; 
 
-} // namespace of nesl2c
+} // end namespace nesl2c
 
-#endif
+#endif // NESL2C_AST_NULLARY_NODE_H
