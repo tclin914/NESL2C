@@ -1,2 +1,2 @@
 
-add_subdirectory(NESL2C)
+add_subdirectory(nesl2c)
