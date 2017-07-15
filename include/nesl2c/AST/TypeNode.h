@@ -9,7 +9,7 @@ class TypeNode : public NullaryNode
 {
 
 public:
-  TypeNode(Type);
+  TypeNode(NESLType);
   
   bool Initialize();
   void Accept(Visitor*);

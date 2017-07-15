@@ -2,8 +2,10 @@
 #define NESL2C_VISITOR_CODE_GEN_VISITOR_H
 
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Type.h"
 
 #include "Visitor.h"
+#include "nesl2c/AST/NESLType.h"
 
 using namespace llvm;
 
@@ -42,7 +44,7 @@ public:
   
 private:
   LLVMContext context;
-
+  Type *ToLLVMType(NESLType);
 };
 
 } // end namespace nesl2c

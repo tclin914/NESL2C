@@ -4,7 +4,7 @@
 
 using namespace nesl2c;
 
-TypeNode::TypeNode(Type type) : NullaryNode()
+TypeNode::TypeNode(NESLType type) : NullaryNode()
 {
   this->type = type;
 }

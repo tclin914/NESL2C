@@ -10,7 +10,7 @@ Node::Node()
   lineNo = yylineno; // line_no is a global variable from yacc
 }
 
-Type Node::GetType()
+NESLType Node::GetType()
 {
   return type; 
 }
