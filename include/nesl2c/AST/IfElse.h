@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_IF_ELSE_H
 #define NESL2C_AST_IF_ELSE_H
 
-#include "TernaryNode.h"
+#include "nesl2c/AST/TernaryNode.h"
 
 namespace nesl2c {
 

@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_PP_H
 #define NESL2C_AST_PP_H
 
-#include "ArithmeticOperation.h"
+#include "nesl2c/AST/ArithmeticOperation.h"
 
 namespace nesl2c {
 

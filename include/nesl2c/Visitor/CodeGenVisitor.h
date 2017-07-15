@@ -4,7 +4,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Type.h"
 
-#include "Visitor.h"
+#include "nesl2c/Visitor/Visitor.h"
 #include "nesl2c/AST/NESLType.h"
 
 using namespace llvm;

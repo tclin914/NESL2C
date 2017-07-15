@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_NOT_AND_H
 #define NESL2C_AST_NOT_AND_H
 
-#include "LogicOperation.h"
+#include "nesl2c/AST/LogicOperation.h"
 
 namespace nesl2c {
 

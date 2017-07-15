@@ -1,7 +1,7 @@
 #ifndef NESL2C_UNARY_OPERATION_H
 #define NESL2C_UNARY_OPERATION_H
 
-#include "UnaryNode.h"
+#include "nesl2c/AST/UnaryNode.h"
 
 namespace nesl2c {
 

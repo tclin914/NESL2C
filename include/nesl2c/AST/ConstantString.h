@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "NullaryNode.h"
+#include "nesl2c/AST/NullaryNode.h"
 
 using namespace std;
 

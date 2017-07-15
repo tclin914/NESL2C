@@ -1,9 +1,9 @@
 #ifndef NESL2C_AST_ARITHMETIC_OP_FACTORY_H
 #define NESL2C_AST_ARITHMETIC_OP_FACTORY_H
 
-#include "OpCode.h"
-#include "Node.h"
-#include "ArithmeticOperation.h"
+#include "nesl2c/AST/OpCode.h"
+#include "nesl2c/AST/Node.h"
+#include "nesl2c/AST/ArithmeticOperation.h"
 
 namespace nesl2c {
 

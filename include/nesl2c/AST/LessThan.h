@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_LESS_THAN_H
 #define NESL2C_AST_LESS_THAN_H
 
-#include "RelationalOperation.h"
+#include "nesl2c/AST/RelationalOperation.h"
 
 namespace nesl2c {
 

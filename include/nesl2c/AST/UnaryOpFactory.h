@@ -1,9 +1,9 @@
 #ifndef NESL2C_AST_UNARY_OP_FACTORY_H
 #define NESL2C_AST_UNARY_OP_FACTORY_H
 
-#include "OpCode.h"
-#include "Node.h"
-#include "UnaryOperation.h"
+#include "nesl2c/AST/OpCode.h"
+#include "nesl2c/AST/Node.h"
+#include "nesl2c/AST/UnaryOperation.h"
 
 namespace nesl2c {
 

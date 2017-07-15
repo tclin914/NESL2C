@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_UMINUS_H
 #define NESL2C_AST_UMINUS_H
 
-#include "UnaryOperation.h"
+#include "nesl2c/AST/UnaryOperation.h"
 
 namespace nesl2c {
 

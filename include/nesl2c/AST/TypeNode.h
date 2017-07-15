@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_TYPE_NODE_H
 #define NESL2C_AST_TYPE_NODE_H
 
-#include "NullaryNode.h"
+#include "nesl2c/AST/NullaryNode.h"
 
 namespace nesl2c {
 

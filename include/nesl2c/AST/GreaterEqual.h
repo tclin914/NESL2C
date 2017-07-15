@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_GREATER_EQUAL_H
 #define NESL2C_AST_GREATER_EQUAL_H
 
-#include "RelationalOperation.h"
+#include "nesl2c/AST/RelationalOperation.h"
 
 namespace nesl2c {
 

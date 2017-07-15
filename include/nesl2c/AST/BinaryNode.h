@@ -1,7 +1,7 @@
 #ifndef NESL2C_AST_BINARY_NODE_H
 #define NESL2C_AST_BINARY_NODE_H
 
-#include "Node.h"
+#include "nesl2c/AST/Node.h"
 
 namespace nesl2c {
 
