@@ -18,8 +18,10 @@ public:
   bool Initialize();
   void Accept(Visitor*);
 
+  int GetIntValue();
+
 private:
-  int num;
+  int value;
 
 };
 

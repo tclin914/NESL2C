@@ -14,6 +14,8 @@ public:
   bool Initialize();
   void Accept(Visitor*);
 
+  bool GetBoolValue();
+
 private:
   bool value;
 

@@ -1,13 +1,22 @@
 #ifndef NESL2C_VISITOR_CODE_GEN_VISITOR_H
 #define NESL2C_VISITOR_CODE_GEN_VISITOR_H
 
+#include <vector>
+
 #include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Type.h"
 
 #include "nesl2c/Visitor/Visitor.h"
 #include "nesl2c/AST/NESLType.h"
 
+using namespace std;
 using namespace llvm;
+
+namespace llvm {
+
+class Type;
+class BasicBlock;
+class Value;
+}
 
 namespace nesl2c {
 
@@ -43,7 +52,21 @@ public:
   virtual void Visit(ConstantString*);
   
 private:
-  LLVMContext context;
+  // LLVM IR Container
+  LLVMContext Context;
+  Module *M;
+  Function *CurrentFunc;
+  BasicBlock *CurrentBB;
+
+  void VisitChildren(Node*, int);
+
+  // stack for code generation
+  Value *Pop();
+  NESLType *PopNESLType(int);
+  vector<Value*> Values;
+  vector<NESLType> Types;
+
+  // translate NESL Type to LLVM Type
   Type *ToLLVMType(NESLType);
 };
 

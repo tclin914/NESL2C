@@ -19,3 +19,8 @@ void ConstantBoolean::Accept(Visitor* visitor)
 {
   visitor->Visit(this);
 }
+
+bool ConstantBoolean::GetBoolValue() 
+{
+  return value;
+}

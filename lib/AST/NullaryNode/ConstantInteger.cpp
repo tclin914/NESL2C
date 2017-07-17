@@ -5,9 +5,9 @@
 
 using namespace nesl2c;
 
-ConstantInteger::ConstantInteger(string num) : NullaryNode()
+ConstantInteger::ConstantInteger(string value) : NullaryNode()
 {
-  this->num = atoi(num.c_str());
+  this->value = atoi(value.c_str());
 }
 
 bool ConstantInteger::Initialize()
@@ -19,4 +19,9 @@ bool ConstantInteger::Initialize()
 void ConstantInteger::Accept(Visitor* visitor) 
 {
   visitor->Visit(this);
+}
+
+int ConstantInteger::GetIntValue() 
+{
+  return value;
 }
