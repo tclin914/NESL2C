@@ -1,3 +1,10 @@
+//===- ConstantInteger.cpp ----------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include <stdlib.h>
 
 #include "nesl2c/AST/ConstantInteger.h"
@@ -5,23 +12,23 @@
 
 using namespace nesl2c;
 
-ConstantInteger::ConstantInteger(string value) : NullaryNode()
+ConstantInteger::ConstantInteger(string pValue) : NullaryNode()
 {
-  this->value = atoi(value.c_str());
+  this->m_Value = atoi(pValue.c_str());
 }
 
 bool ConstantInteger::Initialize()
 {
-  type = INTEGER_T;
+  m_NESLType = INTEGER_T;
   return true;
 }
 
-void ConstantInteger::Accept(Visitor* visitor) 
+void ConstantInteger::Accept(Visitor* pVisitor) 
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }
 
 int ConstantInteger::GetIntValue() 
 {
-  return value;
+  return m_Value;
 }

@@ -1,3 +1,10 @@
+//===- In.h -------------------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #ifndef NESL2C_AST_IN_H
 #define NESL2C_AST_IN_H
 
@@ -10,8 +17,9 @@ class In : public BinaryNode
 
 public:
   In(Node*, Node*);
+
 };
 
-} // end namespace nesl2c
+} // namespace of nesl2c
 
 #endif // NESL2C_AST_IN_H

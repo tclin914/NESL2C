@@ -1,21 +1,27 @@
-
+//===- Identifier.cpp ---------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include "nesl2c/AST/Identifier.h"
 #include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
-Identifier::Identifier(string str) : NullaryNode()
+Identifier::Identifier(string pValue) : NullaryNode()
 {
-  this->str = str;
+  this->m_Value = pValue;
 }
 
 bool Identifier::Initialize()
 {
-  type = UNDEFINED;
+  m_NESLType = UNDEFINED;
   return true;
 }
 
-void Identifier::Accept(Visitor* visitor)
+void Identifier::Accept(Visitor* pVisitor)
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }

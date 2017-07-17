@@ -1,26 +1,32 @@
-
+//===- ConstantBoolean.cpp ----------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include "nesl2c/AST/ConstantBoolean.h"
 #include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
-ConstantBoolean::ConstantBoolean(bool value) : NullaryNode()
+ConstantBoolean::ConstantBoolean(bool pValue) : NullaryNode()
 {
-  this->value = value;
+  this->m_Value = pValue;
 }
 
 bool ConstantBoolean::Initialize()
 {
-  type = BOOL_T;
+  m_NESLType = BOOL_T;
   return true;
 }
 
-void ConstantBoolean::Accept(Visitor* visitor)
+void ConstantBoolean::Accept(Visitor* pVisitor)
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }
 
 bool ConstantBoolean::GetBoolValue() 
 {
-  return value;
+  return m_Value;
 }

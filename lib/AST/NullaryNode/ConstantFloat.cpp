@@ -1,3 +1,10 @@
+//===- ConstantFloat.cpp ------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include <stdlib.h>
 
 #include "nesl2c/AST/ConstantFloat.h"
@@ -5,18 +12,18 @@
 
 using namespace nesl2c;
 
-ConstantFloat::ConstantFloat(string num) : NullaryNode()
+ConstantFloat::ConstantFloat(string pValue) : NullaryNode()
 {
-  this->num = atof(num.c_str());
+  this->m_Value = atof(pValue.c_str());
 }
 
 bool ConstantFloat::Initialize()
 {
-  type = FLOAT_T;
+  m_NESLType = FLOAT_T;
   return true;
 }
 
-void ConstantFloat::Accept(Visitor* visitor)
+void ConstantFloat::Accept(Visitor* pVisitor)
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }

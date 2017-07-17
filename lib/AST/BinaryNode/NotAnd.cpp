@@ -1,14 +1,20 @@
-
+//===- NotAnd.cpp -------------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include "nesl2c/AST/NotAnd.h"
 #include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
-NotAnd::NotAnd(Node* a, Node* b) : LogicOperation(a, b)
+NotAnd::NotAnd(Node* pA, Node* pB) : LogicOperation(pA, pB)
 {
 }
 
-void NotAnd::Accept(Visitor* visitor)
+void NotAnd::Accept(Visitor* pVisitor)
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }

@@ -1,4 +1,10 @@
-
+//===- ArithmeticOpFactory.cpp ------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include "nesl2c/AST/ArithmeticOpFactory.h"
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
@@ -10,29 +16,29 @@
 
 using namespace nesl2c;
 
-ArithmeticOperation* ArithmeticOpFactory::CreateArithmeticOpNode(OpCode opcode, Node* a, Node* b)
+ArithmeticOperation* ArithmeticOpFactory::CreateArithmeticOpNode(OpCode pOpcode, Node* pA, Node* pB)
 {
-  switch (opcode) {
+  switch (pOpcode) {
     case ADD_OP:
-      return new Add(a, b);      
+      return new Add(pA, pB);      
       break;
     case SUBTRACT_OP:
-      return new Subtract(a, b);
+      return new Subtract(pA, pB);
       break;
     case PP_OP:
-      return new PP(a, b);
+      return new PP(pA, pB);
       break;
     case LARROW_OP:
-      return new LARROW(a, b);
+      return new LARROW(pA, pB);
       break;
     case MUL_OP:
-      return new Mul(a, b);
+      return new Mul(pA, pB);
       break;
     case DIV_OP:
-      return new Div(a, b);
+      return new Div(pA, pB);
       break;
     case RARROW_OP:
-      return new RARROW(a, b);
+      return new RARROW(pA, pB);
       break;
     default:
       // TODO:

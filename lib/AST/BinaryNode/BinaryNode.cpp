@@ -1,13 +1,19 @@
-
+//===- BinaryNode.cpp ---------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include "nesl2c/AST/BinaryNode.h"
 
 using namespace nesl2c;
 
-BinaryNode::BinaryNode(Node* a, Node* b) : Node()
+BinaryNode::BinaryNode(Node* pA, Node* pB) : Node()
 {
-  children.push_back(a);
-  children.push_back(b);
-  type = UNDEFINED;
+  children.push_back(pA);
+  children.push_back(pB);
+  m_NESLType = UNDEFINED;
 }
 
 bool BinaryNode::Initialize()

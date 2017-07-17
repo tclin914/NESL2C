@@ -1,10 +1,16 @@
-
-#include "SequenceTail.h"
-#include "Visitor.h"
+//===- SequenceTail.cpp -------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
+#include "nesl2c/AST/SequenceTail.h"
+#include "nesl2c/AST/Visitor.h"
 
 using namespace nesl2c;
 
-SequenceTail::SequenceTail(Node* a, Node* b) : BinaryNode(a, b)
+SequenceTail::SequenceTail(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
@@ -18,9 +24,9 @@ bool SequenceTail::SemanticCheck()
   return BinaryNode::SemanticCheck();
 }
 
-void SequenceTail::Accept(Visitor* visitor)
+void SequenceTail::Accept(Visitor* pVisitor)
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }
 
 

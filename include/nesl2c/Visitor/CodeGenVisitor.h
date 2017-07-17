@@ -1,3 +1,10 @@
+//===- CodeGenVisitor.h -------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #ifndef NESL2C_VISITOR_CODE_GEN_VISITOR_H
 #define NESL2C_VISITOR_CODE_GEN_VISITOR_H
 
@@ -19,6 +26,8 @@ class Value;
 }
 
 namespace nesl2c {
+
+class Node;
 
 class CodeGenVisitor : public Visitor
 {
@@ -50,26 +59,33 @@ public:
   virtual void Visit(ConstantFloat*);
   virtual void Visit(ConstantBoolean*);
   virtual void Visit(ConstantString*);
-  
+ 
 private:
-  // LLVM IR Container
-  LLVMContext Context;
-  Module *M;
-  Function *CurrentFunc;
-  BasicBlock *CurrentBB;
+  typedef vector<Value*> Values;
+  typedef vector<NESLType> Types;
 
+private:
   void VisitChildren(Node*, int);
 
-  // stack for code generation
   Value *Pop();
-  NESLType *PopNESLType(int);
-  vector<Value*> Values;
-  vector<NESLType> Types;
+  NESLType PopNESLType(int);
 
   // translate NESL Type to LLVM Type
   Type *ToLLVMType(NESLType);
+
+private:
+  // LLVM IR Container
+  LLVMContext m_Context;
+  Module *m_Module;
+  Function *m_CurrentFunc;
+  BasicBlock *m_CurrentBB;
+
+  // stack 
+  Values m_Values;
+  Types m_Types;
+
 };
 
-} // end namespace nesl2c
+} // namespace of nesl2c
 
 #endif // NESL2C_VISITOR_CODE_GEN_VISITOR_H

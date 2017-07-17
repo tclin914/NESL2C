@@ -1,4 +1,11 @@
 %{
+//===- nesl.l -----------------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include <stdio.h>
 #include <stdlib.h>
 

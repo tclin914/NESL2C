@@ -1,3 +1,10 @@
+//===- Assign.h ---------------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #ifndef NESL2C_AST_ASSIGN_H
 #define NESL2C_AST_ASSIGN_H
 
@@ -12,6 +19,6 @@ public:
   Assign(Node*, Node*);
 };
 
-} // end namespace nesl2c
+} // namespace of nesl2c
 
 #endif // NESL2C_AST_ASSIGN_H

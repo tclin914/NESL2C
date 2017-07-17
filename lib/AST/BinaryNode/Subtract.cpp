@@ -1,14 +1,20 @@
-
+//===- Subtract.cpp -----------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
-Subtract::Subtract(Node* a, Node* b) : ArithmeticOperation(a, b)
+Subtract::Subtract(Node* pA, Node* pB) : ArithmeticOperation(pA, pB)
 {
 }
 
-void Subtract::Accept(Visitor* visitor)
+void Subtract::Accept(Visitor* pVisitor)
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }

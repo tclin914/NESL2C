@@ -1,14 +1,20 @@
-
-#include "EmptySequence.h"
-#include "Visitor.h"
+//===- EmptySequence.cpp ------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
+#include "nesl2c/AST/EmptySequence.h"
+#include "nesl2c/AST/Visitor.h"
 
 using namespace nesl2c;
 
-EmptySequence::EmptySequence(Node* a) : UnaryNode(a)
+EmptySequence::EmptySequence(Node* pA) : UnaryNode(pA)
 {
 }
 
-void EmptySequence::Accept(Visitor* visitor)
+void EmptySequence::Accept(Visitor* pVisitor)
 {
-  visitor->Visit(this);
+  pVisitor->Visit(this);
 }

@@ -1,4 +1,10 @@
-
+//===- CodeGenVisitor.cpp -----------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include "llvm/IR/Constants.h"
 
 #include "nesl2c/Visitor/CodeGenVisitor.h"
@@ -11,97 +17,97 @@ CodeGenVisitor::CodeGenVisitor()
 {
 }
 
-void CodeGenVisitor::Visit(EmptySequence* node)
+void CodeGenVisitor::Visit(EmptySequence* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(Or* node)
+void CodeGenVisitor::Visit(Or* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(NotOr* node)
+void CodeGenVisitor::Visit(NotOr* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(XOr* node)
+void CodeGenVisitor::Visit(XOr* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(And* node)
+void CodeGenVisitor::Visit(And* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(NotAnd* node)
+void CodeGenVisitor::Visit(NotAnd* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(Add* node)
+void CodeGenVisitor::Visit(Add* pNode)
 {
   
 }
 
-void CodeGenVisitor::Visit(Subtract* node)
+void CodeGenVisitor::Visit(Subtract* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(PP* node)
+void CodeGenVisitor::Visit(PP* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(LARROW* node)
+void CodeGenVisitor::Visit(LARROW* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(Mul* node)
+void CodeGenVisitor::Visit(Mul* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(Div* node)
+void CodeGenVisitor::Visit(Div* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(RARROW* node)
+void CodeGenVisitor::Visit(RARROW* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(SequenceTail* node)
+void CodeGenVisitor::Visit(SequenceTail* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(Identifier* node)
+void CodeGenVisitor::Visit(Identifier* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(TypeNode* node)
+void CodeGenVisitor::Visit(TypeNode* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(ConstantInteger* node)
+void CodeGenVisitor::Visit(ConstantInteger* pNode)
 {
   // TODO: Be careful with integer is signed or unsigned in nesl
-  ConstantInt *ConstIntValue = ConstantInt::get(IntegerType::get(Context, 32), 
-        node->GetIntValue());
+  ConstantInt *ConstIntValue = ConstantInt::get(IntegerType::get(m_Context, 32), 
+        pNode->GetIntValue());
 
-  Values.push_back(ConstIntValue);
-  Types.push_back(INTEGER_T);
+  m_Values.push_back(ConstIntValue);
+  m_Types.push_back(INTEGER_T);
 }
 
-void CodeGenVisitor::Visit(ConstantFloat* node)
+void CodeGenVisitor::Visit(ConstantFloat* pNode)
 {
 }
 
-void CodeGenVisitor::Visit(ConstantBoolean* node)
+void CodeGenVisitor::Visit(ConstantBoolean* pNode)
 {
   ConstantInt *ConstBoolValue;
-  if (node->GetBoolValue()) 
-    ConstBoolValue = ConstantInt::getTrue(Context);
+  if (pNode->GetBoolValue()) 
+    ConstBoolValue = ConstantInt::getTrue(m_Context);
   else
-    ConstBoolValue = ConstantInt::getFalse(Context);
+    ConstBoolValue = ConstantInt::getFalse(m_Context);
  
-  Values.push_back(ConstBoolValue);
-  Types.push_back(BOOL_T);
+  m_Values.push_back(ConstBoolValue);
+  m_Types.push_back(BOOL_T);
 }
 
-void CodeGenVisitor::Visit(ConstantString* node)
+void CodeGenVisitor::Visit(ConstantString* pNode)
 {
 }

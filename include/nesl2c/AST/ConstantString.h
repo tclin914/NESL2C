@@ -1,3 +1,10 @@
+//===- ConstantString.h -------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #ifndef NESL2C_AST_CONSTANT_STRING_H
 #define NESL2C_AST_CONSTANT_STRING_H
 
@@ -19,7 +26,7 @@ public:
   void Accept(Visitor*);
 
 private:
-  string str;
+  string m_Value;
 
 };
 

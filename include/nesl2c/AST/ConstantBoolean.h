@@ -1,3 +1,10 @@
+//===- ConstantBoolean.h ------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #ifndef NESL2C_AST_CONSTANT_BOOLEAN_H
 #define NESL2C_AST_CONSTANT_BOOLEAN_H
 
@@ -17,7 +24,7 @@ public:
   bool GetBoolValue();
 
 private:
-  bool value;
+  bool m_Value;
 
 };
 

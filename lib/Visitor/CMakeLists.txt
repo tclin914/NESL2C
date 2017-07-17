@@ -1,3 +1,4 @@
 
 add_library(Visitor
-  CodeGenVisitor.cpp)
+  CodeGenVisitor.cpp
+  CodeGenVisitorHelper.cpp)

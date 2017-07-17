@@ -1,3 +1,10 @@
+//===- OpCode.h ---------------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #ifndef NESL2C_AST_OPCODE_H
 #define NESL2C_AST_OPCODE_H
 
@@ -30,6 +37,6 @@ enum OpCode {
   UMINUS_OP
 };
 
-} // end namespace nesl2c
+} // namespace of nesl2c
 
 #endif // NESL2C_AST_OPCODE_H
