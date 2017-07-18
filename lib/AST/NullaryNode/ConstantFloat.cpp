@@ -19,11 +19,16 @@ ConstantFloat::ConstantFloat(string pValue) : NullaryNode()
 
 bool ConstantFloat::Initialize()
 {
-  m_NESLType = FLOAT_T;
+  f_NESLType = FLOAT_T;
   return true;
 }
 
 void ConstantFloat::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);
+}
+
+float ConstantFloat::GetFPValue()
+{
+  return m_Value;
 }

@@ -12,7 +12,7 @@ using namespace nesl2c;
 
 TypeNode::TypeNode(NESLType pNESLType) : NullaryNode()
 {
-  this->m_NESLType = pNESLType;
+  f_NESLType = pNESLType;
 }
 
 bool TypeNode::Initialize()

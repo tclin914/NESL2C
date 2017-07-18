@@ -11,7 +11,7 @@ using namespace nesl2c;
 
 NullaryNode::NullaryNode() : Node()
 {
-  m_NESLType = UNDEFINED;
+  f_NESLType = UNDEFINED;
 }
 
 bool NullaryNode::SemanticCheck()

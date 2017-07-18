@@ -25,6 +25,8 @@ public:
   bool Initialize();
   void Accept(Visitor*);
 
+  float GetFPValue();
+
 private:
   float m_Value;
 

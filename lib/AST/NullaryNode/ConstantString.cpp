@@ -17,7 +17,7 @@ ConstantString::ConstantString(string pValue) : NullaryNode()
 
 bool ConstantString::Initialize()
 {
-  m_NESLType = STRING_T;
+  f_NESLType = STRING_T;
   return true;
 }
 

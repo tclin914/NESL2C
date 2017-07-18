@@ -32,12 +32,15 @@ public:
   Node* GetChild(int);
 
 protected:
-  NESLType m_NESLType;
-  int m_LineNo;
+  typedef std::vector<Node*> Children;
+
+protected:
+  NESLType f_NESLType;
+  int f_LineNo;
+  Children f_Children;
 
 protected:
   // virtual void ErrorReport(string, ...);
-  std::vector<Node*> children;
 
 };
 

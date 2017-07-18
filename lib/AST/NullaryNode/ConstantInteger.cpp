@@ -19,7 +19,7 @@ ConstantInteger::ConstantInteger(string pValue) : NullaryNode()
 
 bool ConstantInteger::Initialize()
 {
-  m_NESLType = INTEGER_T;
+  f_NESLType = INTEGER_T;
   return true;
 }
 

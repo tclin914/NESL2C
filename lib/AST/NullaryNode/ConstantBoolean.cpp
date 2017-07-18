@@ -17,7 +17,7 @@ ConstantBoolean::ConstantBoolean(bool pValue) : NullaryNode()
 
 bool ConstantBoolean::Initialize()
 {
-  m_NESLType = BOOL_T;
+  f_NESLType = BOOL_T;
   return true;
 }
 

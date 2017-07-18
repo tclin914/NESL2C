@@ -13,10 +13,14 @@ using namespace nesl2c;
 
 Node::Node()
 {
-  m_LineNo = yylineno; // line_no is a global variable from yacc
+  f_LineNo = yylineno; // line_no is a global variable from yacc
+}
+
+Node* Node::GetChild(int pIndex) {
+  return f_Children[pIndex];
 }
 
 NESLType Node::GetType()
 {
-  return m_NESLType; 
+  return f_NESLType; 
 }

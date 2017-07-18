@@ -15,6 +15,6 @@ Add::Add(Node* pA, Node* pB) : ArithmeticOperation(pA, pB)
 }
 
 void Add::Accept(Visitor* pVisitor)
-{
+{ 
   pVisitor->Visit(this);
 }

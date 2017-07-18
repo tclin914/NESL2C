@@ -17,7 +17,7 @@ Identifier::Identifier(string pValue) : NullaryNode()
 
 bool Identifier::Initialize()
 {
-  m_NESLType = UNDEFINED;
+  f_NESLType = UNDEFINED;
   return true;
 }
 
