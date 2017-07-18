@@ -5,6 +5,8 @@
 //  Copyright (C) 2017, Programming Language and System Lab
 //
 //===--------------------------------------------------------------===//
+#include "llvm/IR/Module.h"
+
 #include "nesl2c/Visitor/CodeGenVisitor.h"
 #include "nesl2c/AST/Node.h"
 
@@ -42,9 +44,17 @@ NESLType CodeGenVisitor::PopNESLType(int pNum)
   return type;
 }
 
+void CodeGenVisitor::makeMainFunc() {
+  m_CurrentFunc = cast<Function>(m_Module->getOrInsertFunction("main", ToLLVMType(VOID_T), (Type*)0));
+  m_CurrentBB = BasicBlock::Create(m_Context, "entryBlock", m_CurrentFunc);
+}
+
 Type *CodeGenVisitor::ToLLVMType(NESLType pNESLType) {
   
   switch (pNESLType) {
+    case VOID_T:
+      return Type::getVoidTy(m_Context);
+      break;
     case INTEGER_T:
     case FLOAT_T:
     case BOOL_T:

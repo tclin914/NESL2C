@@ -34,6 +34,7 @@ class CodeGenVisitor : public Visitor
 
 public:
   CodeGenVisitor();
+  ~CodeGenVisitor();
 
   virtual void Visit(EmptySequence*);
 
@@ -71,6 +72,8 @@ private:
   Value *Pop();
   void PushNESLType(NESLType);
   NESLType PopNESLType(int);
+
+  void makeMainFunc();
 
   // translate NESL Type to LLVM Type
   Type *ToLLVMType(NESLType);

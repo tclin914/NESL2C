@@ -13,6 +13,7 @@ namespace nesl2c {
 enum NESLType
 {
   UNDEFINED,
+  VOID_T,
   INTEGER_T,
   FLOAT_T,
   BOOL_T,

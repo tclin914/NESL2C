@@ -5,6 +5,7 @@
 //  Copyright (C) 2017, Programming Language and System Lab
 //
 //===--------------------------------------------------------------===//
+#include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Constants.h"
 
@@ -17,7 +18,14 @@
 using namespace nesl2c;
 
 CodeGenVisitor::CodeGenVisitor()
+  : m_Module(NULL), m_CurrentFunc(NULL), m_CurrentBB(NULL) {
+
+  m_Module = new Module("NESL2C", m_Context);
+}
+
+CodeGenVisitor::~CodeGenVisitor()
 {
+  delete m_Module;
 }
 
 void CodeGenVisitor::Visit(EmptySequence* pNode)
@@ -47,8 +55,13 @@ void CodeGenVisitor::Visit(NotAnd* pNode)
 void CodeGenVisitor::Visit(Add* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
-  
+
   if (m_Values.size() >= m_NumChildOfBinary) {
+
+    if (NULL == m_CurrentFunc) {
+      makeMainFunc(); 
+    }
+
     IRBuilder<> builder(m_CurrentBB);
     NESLType type = PopNESLType(m_NumChildOfBinary);
     Value* operand1 = Pop();
@@ -62,7 +75,6 @@ void CodeGenVisitor::Visit(Add* pNode)
        
         if (isConst1 && isConst2) {
           inst = builder.CreateAdd(operand1, operand2);
-          inst->dump();
         } else if (!isConst1 && isConst2) {  
           LoadInst* loadInst = builder.CreateLoad(operand1);
           inst = builder.CreateAdd(loadInst, operand2);
