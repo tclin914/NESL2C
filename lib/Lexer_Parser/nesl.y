@@ -233,7 +233,7 @@ Exp
     }
   | TupleExp 
     {
-      /* $$ = $1; */
+      $$ = $1;
     }
   ;
 
@@ -275,7 +275,7 @@ ExpBind
 TupleExp
   : OrExp 
     {
-      /* $$ = $1; */
+      $$ = $1;
     }
   | OrExp ',' TupleRest 
     {
@@ -348,7 +348,7 @@ AndOp
 RelExp
   : AddExp 
     {
-      $$ = $1;
+      $$ = $1; 
     }
   | RelExp RelOp AddExp
     {

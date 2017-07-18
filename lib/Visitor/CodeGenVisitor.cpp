@@ -5,10 +5,13 @@
 //  Copyright (C) 2017, Programming Language and System Lab
 //
 //===--------------------------------------------------------------===//
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Constants.h"
 
+#include "nesl2c/AST/Add.h"
 #include "nesl2c/Visitor/CodeGenVisitor.h"
 #include "nesl2c/AST/ConstantInteger.h"
+#include "nesl2c/AST/ConstantFloat.h"
 #include "nesl2c/AST/ConstantBoolean.h"
 
 using namespace nesl2c;
@@ -43,7 +46,45 @@ void CodeGenVisitor::Visit(NotAnd* pNode)
 
 void CodeGenVisitor::Visit(Add* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
   
+  if (m_Values.size() >= m_NumChildOfBinary) {
+    IRBuilder<> builder(m_CurrentBB);
+    NESLType type = PopNESLType(m_NumChildOfBinary);
+    Value* operand1 = Pop();
+    Value* operand2 = Pop();
+    
+    switch (type) {
+      case INTEGER_T: {
+        bool isConst1 = dyn_cast<ConstantInt>(operand1);
+        bool isConst2 = dyn_cast<ConstantInt>(operand2);
+        Value* inst;
+       
+        if (isConst1 && isConst2) {
+          inst = builder.CreateAdd(operand1, operand2);
+          inst->dump();
+        } else if (!isConst1 && isConst2) {  
+          LoadInst* loadInst = builder.CreateLoad(operand1);
+          inst = builder.CreateAdd(loadInst, operand2);
+        } else if (isConst1 && !isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand2);
+          inst = builder.CreateAdd(operand1, loadInst);
+        } else { // !isConst1 && !isConst2
+          LoadInst* loadInst1 = builder.CreateLoad(operand1);
+          LoadInst* loadInst2 = builder.CreateLoad(operand2);
+          inst = builder.CreateAdd(loadInst1, loadInst2);
+        }
+        break;
+      }
+      case FLOAT_T:
+        break;
+      default:
+        // TODO:
+        break;
+    }
+  } else {
+    // TODO:
+  }
 }
 
 void CodeGenVisitor::Visit(Subtract* pNode)
@@ -88,12 +129,17 @@ void CodeGenVisitor::Visit(ConstantInteger* pNode)
   ConstantInt *ConstIntValue = ConstantInt::get(IntegerType::get(m_Context, 32), 
         pNode->GetIntValue());
 
-  m_Values.push_back(ConstIntValue);
-  m_Types.push_back(INTEGER_T);
+  Push(ConstIntValue);
+  PushNESLType(INTEGER_T);
 }
 
 void CodeGenVisitor::Visit(ConstantFloat* pNode)
 {
+  Constant *ConstFPValue = ConstantFP::get(Type::getFloatTy(m_Context), 
+        pNode->GetFPValue());
+
+  Push(ConstFPValue);
+  PushNESLType(FLOAT_T);
 }
 
 void CodeGenVisitor::Visit(ConstantBoolean* pNode)
@@ -103,9 +149,9 @@ void CodeGenVisitor::Visit(ConstantBoolean* pNode)
     ConstBoolValue = ConstantInt::getTrue(m_Context);
   else
     ConstBoolValue = ConstantInt::getFalse(m_Context);
- 
-  m_Values.push_back(ConstBoolValue);
-  m_Types.push_back(BOOL_T);
+  
+  Push(ConstBoolValue);
+  PushNESLType(BOOL_T);
 }
 
 void CodeGenVisitor::Visit(ConstantString* pNode)

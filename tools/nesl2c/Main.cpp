@@ -8,6 +8,7 @@
 #include "assert.h"
 
 #include "nesl2c/AST/Node.h"
+#include "nesl2c/Visitor/CodeGenVisitor.h"
 
 using namespace nesl2c;
 
@@ -158,8 +159,18 @@ int main(int argc, char **argv) {
 
     initialized = yyheader->Initialize();
 
-    if (!initialized)
+    if (!initialized) {
       printf("Initialize fail\n");
+      exit(1);
+    }
+
+    if (!yyheader->SemanticCheck()) {
+      printf("Semantic check fail\n");
+      exit(1);
+    }
+    
+    Visitor *codeGenVisitor = new CodeGenVisitor();
+    yyheader->Accept(codeGenVisitor);
 
     // printf("************************\n");
     // printf("*** NO PARSING ERROR ***\n");

@@ -18,11 +18,19 @@ void CodeGenVisitor::VisitChildren(Node *pNode, int pNum)
   }
 }
 
+void CodeGenVisitor::Push(Value* pValue) {
+  m_Values.push_back(pValue);
+}
+
 Value *CodeGenVisitor::Pop() 
 {
   Value *value = m_Values.back();
   m_Values.pop_back();
   return value;
+}
+
+void CodeGenVisitor::PushNESLType(NESLType pType) {
+  m_Types.push_back(pType);
 }
 
 NESLType CodeGenVisitor::PopNESLType(int pNum) 

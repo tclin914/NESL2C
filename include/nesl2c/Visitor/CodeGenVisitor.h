@@ -67,13 +67,18 @@ private:
 private:
   void VisitChildren(Node*, int);
 
+  void Push(Value*);
   Value *Pop();
+  void PushNESLType(NESLType);
   NESLType PopNESLType(int);
 
   // translate NESL Type to LLVM Type
   Type *ToLLVMType(NESLType);
 
 private:
+  static const int m_NumChildOfUnary = 1;
+  static const int m_NumChildOfBinary = 2;
+
   // LLVM IR Container
   LLVMContext m_Context;
   Module *m_Module;
