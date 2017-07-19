@@ -1,3 +1,10 @@
+//===- Main.cpp ---------------------------------------------------===//
+//
+//  Tsung-Chun Lin <tclin914@gmail.com>
+//
+//  Copyright (C) 2017, Programming Language and System Lab
+//
+//===--------------------------------------------------------------===//
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
