@@ -17,6 +17,9 @@ class Assign : public BinaryNode
 
 public:
   Assign(Node*, Node*);
+
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

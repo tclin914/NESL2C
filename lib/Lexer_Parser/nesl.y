@@ -21,6 +21,7 @@
 #include "nesl2c/AST/UnaryOpFactory.h"
 // Binary Node
 #include "nesl2c/AST/TopLevels.h"
+#include "nesl2c/AST/Assign.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
 #include "nesl2c/AST/LogicOpFactory.h"
 // Ternary Node
@@ -138,7 +139,7 @@ TopLevel
     }
   | Exp '=' Exp EndMark 
     {
-      /* $$ = new Assign($1, $3); */
+      $$ = new Assign($1, $3);
     }
   | Exp EndMark 
     {
@@ -508,7 +509,7 @@ AtomicExp
     }
   | ID 
     {
-      /* $$ = new Identifier($1); */
+      $$ = new Identifier($1);
     }
   | id '(' Exp ')'
     {

@@ -9,8 +9,9 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Constants.h"
 
-#include "nesl2c/AST/Add.h"
 #include "nesl2c/Visitor/CodeGenVisitor.h"
+#include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
 #include "nesl2c/AST/ConstantBoolean.h"
@@ -30,6 +31,25 @@ CodeGenVisitor::~CodeGenVisitor()
 
 void CodeGenVisitor::Visit(TopLevels* pNode)
 {
+}
+
+void CodeGenVisitor::Visit(Assign* pNode)
+{
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (NULL == m_CurrentFunc) {
+    makeMainFunc();
+  }
+
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand1 = Pop();
+  Value* operand2 = Pop();
+  operand1->dump();
+  printf("Assign\n");
+  operand2->dump();
+  printf("Assign\n");
+  builder.CreateStore(operand2, operand1);
 }
 
 void CodeGenVisitor::Visit(EmptySequence* pNode)

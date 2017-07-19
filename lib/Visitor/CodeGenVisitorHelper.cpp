@@ -16,7 +16,7 @@ void CodeGenVisitor::VisitChildren(Node *pNode, int pNum)
 {
   for (int i = 0; i < pNum; ++i) {
     if (NULL != pNode->GetChild(i))
-      pNode->GetChild(i)->Accept(this);
+      pNode->GetChild(i)->Accept(this); 
   }
 }
 
