@@ -67,11 +67,12 @@ void CodeGenVisitor::Visit(Add* pNode)
     Value* operand1 = Pop();
     Value* operand2 = Pop();
     
+    bool isConst1 = dyn_cast<Constant>(operand1);
+    bool isConst2 = dyn_cast<Constant>(operand2);
+
+    Value* inst;
     switch (type) {
       case INTEGER_T: {
-        bool isConst1 = dyn_cast<ConstantInt>(operand1);
-        bool isConst2 = dyn_cast<ConstantInt>(operand2);
-        Value* inst;
        
         if (isConst1 && isConst2) {
           inst = builder.CreateAdd(operand1, operand2);
@@ -87,13 +88,31 @@ void CodeGenVisitor::Visit(Add* pNode)
           inst = builder.CreateAdd(loadInst1, loadInst2);
         }
         break;
-      }
-      case FLOAT_T:
+      }      
+      case FLOAT_T: {
+        
+        if (isConst1 && isConst2) {
+          inst = builder.CreateFAdd(operand1, operand2);
+        } else if (!isConst1 && isConst2) {  
+          LoadInst* loadInst = builder.CreateLoad(operand1);
+          inst = builder.CreateFAdd(loadInst, operand2);
+        } else if (isConst1 && !isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand2);
+          inst = builder.CreateFAdd(operand1, loadInst);
+        } else { // !isConst1 && !isConst2
+          LoadInst* loadInst1 = builder.CreateLoad(operand1);
+          LoadInst* loadInst2 = builder.CreateLoad(operand2);
+          inst = builder.CreateFAdd(loadInst1, loadInst2);
+        }
         break;
+      }
       default:
         // TODO:
         break;
     }
+    
+    Push(inst);
+    PushNESLType(type);
   } else {
     // TODO:
   }
