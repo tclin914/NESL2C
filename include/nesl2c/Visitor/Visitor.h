@@ -10,6 +10,7 @@
 
 namespace nesl2c {
 
+class TopLevels;
 class EmptySequence;
 class Or;
 class NotOr;
@@ -35,6 +36,8 @@ class Visitor
 {
 
 public:
+
+  virtual void Visit(TopLevels*) = 0;
 
   virtual void Visit(EmptySequence*) = 0;
 

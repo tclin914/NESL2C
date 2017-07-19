@@ -36,6 +36,8 @@ public:
   CodeGenVisitor();
   ~CodeGenVisitor();
 
+  virtual void Visit(TopLevels*);
+
   virtual void Visit(EmptySequence*);
 
   virtual void Visit(Or*);

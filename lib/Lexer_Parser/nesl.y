@@ -19,23 +19,11 @@
 #include "nesl2c/AST/ConstantString.h"
 // Unary Node
 #include "nesl2c/AST/UnaryOpFactory.h"
-/* #include "nesl2c/AST/EmptySequence.h" */
 // Binary Node
-/* #include "Assign.h" */
-/* #include "Let.h" */
-/* #include "ApplyToEach.h" */
-/* #include "ApplyBody.h" */
-/* #include "FunctionCall.h" */
-/* #include "Sequence.h" */
+#include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
-/* #include "RelationalOpFactory.h" */
 #include "nesl2c/AST/LogicOpFactory.h"
-/* #include "In.h" */
-
-/* #include "nesl2c/AST/SequenceTail.h" */
-
 // Ternary Node
-/* #include "IfElse.h" */
 
 using namespace nesl2c;
 
@@ -131,9 +119,7 @@ TopLevels
     }
   | TopLevels TopLevel 
     {
-      /* $$ = createNode(NODE_TOP_LEVELS); */
-      /* $$->left = $1; */
-      /* $$->right = $2; */
+      $$ = new TopLevels($1, $2);
     }
   ;
 

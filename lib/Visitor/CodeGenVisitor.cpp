@@ -28,6 +28,10 @@ CodeGenVisitor::~CodeGenVisitor()
   delete m_Module;
 }
 
+void CodeGenVisitor::Visit(TopLevels* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(EmptySequence* pNode)
 {
 }

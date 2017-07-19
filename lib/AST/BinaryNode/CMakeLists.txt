@@ -1,6 +1,7 @@
 
 add_library(BinaryNode
   BinaryNode.cpp
+  TopLevels.cpp
   ArithmeticOperation.cpp
   ArithmeticOpFactory.cpp
   Add.cpp
