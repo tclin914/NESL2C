@@ -12,14 +12,14 @@ add_library(BinaryNode
   Mul.cpp
   Div.cpp
   RARROW.cpp
-  # RelationalOperation.cpp
-  # RelationalOpFactory.cpp
-  # Equal.cpp
-  # NotEqual.cpp
-  # LessThan.cpp
-  # GreaterThan.cpp
-  # LessEqual.cpp
-  # LessThan.cpp
+  RelationalOperation.cpp
+  RelationalOpFactory.cpp
+  Equal.cpp
+  NotEqual.cpp
+  LessThan.cpp
+  GreaterThan.cpp
+  LessEqual.cpp
+  GreaterEqual.cpp
   LogicOperation.cpp
   LogicOpFactory.cpp
   Or.cpp

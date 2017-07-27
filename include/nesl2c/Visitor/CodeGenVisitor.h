@@ -14,6 +14,7 @@
 
 #include "nesl2c/Visitor/Visitor.h"
 #include "nesl2c/AST/NESLType.h"
+#include "nesl2c/AST/SymbolTable.h"
 
 using namespace std;
 using namespace llvm;
@@ -45,6 +46,13 @@ public:
   virtual void Visit(XOr*);
   virtual void Visit(And*);
   virtual void Visit(NotAnd*);
+
+  virtual void Visit(Equal*);
+  virtual void Visit(NotEqual*);
+  virtual void Visit(LessThan*);
+  virtual void Visit(GreaterThan*);
+  virtual void Visit(LessEqual*);
+  virtual void Visit(GreaterEqual*);
 
   virtual void Visit(Add*);
   virtual void Visit(Subtract*);
@@ -93,6 +101,9 @@ private:
   // stack 
   Values m_Values;
   Types m_Types;
+
+  // symbol table
+  SymbolTable m_SymbolTable;
 
 };
 

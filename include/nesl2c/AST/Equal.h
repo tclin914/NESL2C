@@ -18,6 +18,8 @@ class Equal : public RelationalOperation
 public:
   Equal(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

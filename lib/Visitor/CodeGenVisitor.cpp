@@ -76,6 +76,30 @@ void CodeGenVisitor::Visit(NotAnd* pNode)
 {
 }
 
+void CodeGenVisitor::Visit(Equal* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(NotEqual* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(LessThan* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(GreaterThan* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(LessEqual* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(GreaterEqual* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(Add* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);

@@ -6,9 +6,15 @@
 //
 //===--------------------------------------------------------------===//
 #include "nesl2c/AST/GreaterThan.h"
+#include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
 GreaterThan::GreaterThan(Node* pA, Node* pB) : RelationalOperation(pA, pB)
 {
+}
+
+void GreaterThan::Accept(Visitor* pVisitor)
+{
+  pVisitor->Visit(this);
 }

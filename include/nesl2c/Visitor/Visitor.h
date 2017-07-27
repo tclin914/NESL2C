@@ -18,6 +18,12 @@ class NotOr;
 class XOr;
 class And;
 class NotAnd;
+class Equal;
+class NotEqual;
+class LessThan;
+class GreaterThan;
+class LessEqual;
+class GreaterEqual;
 class Add;
 class Subtract;
 class PP;
@@ -47,6 +53,13 @@ public:
   virtual void Visit(XOr*) = 0;
   virtual void Visit(And*) = 0;
   virtual void Visit(NotAnd*) = 0;
+
+  virtual void Visit(Equal*) = 0;
+  virtual void Visit(NotEqual*) = 0;
+  virtual void Visit(LessThan*) = 0;
+  virtual void Visit(GreaterThan*) = 0;
+  virtual void Visit(LessEqual*) = 0;
+  virtual void Visit(GreaterEqual*) = 0;
 
   virtual void Visit(Add*) = 0;
   virtual void Visit(Subtract*) = 0;

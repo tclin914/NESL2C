@@ -18,6 +18,8 @@ class LessThan : public RelationalOperation
 public:
   LessThan(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

@@ -18,6 +18,8 @@ class GreaterEqual : public RelationalOperation
 public:
   GreaterEqual(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

@@ -18,6 +18,8 @@ class GreaterThan : public RelationalOperation
 public:
   GreaterThan(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

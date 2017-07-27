@@ -6,9 +6,15 @@
 //
 //===--------------------------------------------------------------===//
 #include "nesl2c/AST/LessEqual.h"
+#include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
 LessEqual::LessEqual(Node* pA, Node* pB) : RelationalOperation(pA, pB)
 {
+}
+
+void LessEqual::Accept(Visitor* pVisitor)
+{
+  pVisitor->Visit(this);
 }

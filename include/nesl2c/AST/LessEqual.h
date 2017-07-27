@@ -18,6 +18,8 @@ class LessEqual : public RelationalOperation
 public:
   LessEqual(Node*, Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c
