@@ -1,6 +1,8 @@
 
-add_library(Node
-  Node.cpp)
+add_library(AST
+  Node.cpp
+  Symbol.cpp
+  SymbolTable.cpp)
 
 add_subdirectory(NullaryNode)
 # add_subdirectory(UnaryNode)
