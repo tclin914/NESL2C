@@ -6,9 +6,15 @@
 //
 //===--------------------------------------------------------------===//
 #include "nesl2c/AST/Sharp.h"
+#include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
 Sharp::Sharp(Node* pA) : UnaryOperation(pA)
 {
+}
+
+void Sharp::Accept(Visitor* pVisitor)
+{
+  pVisitor->Visit(this);
 }

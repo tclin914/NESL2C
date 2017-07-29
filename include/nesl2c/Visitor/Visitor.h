@@ -31,6 +31,9 @@ class LARROW;
 class Mul;
 class Div;
 class RARROW;
+class Sharp;
+class At;
+class Uminus;
 class Identifier;
 class TypeNode;
 class SequenceTail;
@@ -68,6 +71,10 @@ public:
   virtual void Visit(Mul*) = 0;
   virtual void Visit(Div*) = 0;
   virtual void Visit(RARROW*) = 0;
+
+  virtual void Visit(Sharp*) = 0;
+  virtual void Visit(At*) = 0;
+  virtual void Visit(Uminus*) = 0;
 
   virtual void Visit(SequenceTail*) = 0;
 

@@ -22,8 +22,10 @@
 // Binary Node
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
-#include "nesl2c/AST/ArithmeticOpFactory.h"
 #include "nesl2c/AST/LogicOpFactory.h"
+#include "nesl2c/AST/RelationalOpFactory.h"
+#include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/SequenceTail.h"
 // Ternary Node
 
 using namespace nesl2c;
@@ -339,7 +341,7 @@ RelExp
     }
   | RelExp RelOp AddExp
     {
-      /* $$ = RelationalOpFactory::CreateRelationalOpNode($2, $1, $3); */
+      $$ = RelationalOpFactory::CreateRelationalOpNode($2, $1, $3);
     }
   ;
 
@@ -446,7 +448,7 @@ UnExp
     }
   | UnOp UnExp   
     {
-      /* $$ = UnaryOpFactory::CreateUnaryOpNode($1, $2); */
+      $$ = UnaryOpFactory::CreateUnaryOpNode($1, $2);
     }
   ;
 
@@ -585,14 +587,14 @@ id
 SequenceTail
   : ':' Exp 
     {
-      /* $$ = new SequenceTail($2, NULL); */
+      $$ = new SequenceTail($2, NULL);
     }
   | ':' Exp ':' Exp 
     {
-      /* $$ = new SequenceTail($2, $4); */
+      $$ = new SequenceTail($2, $4);
     }
   | {
-      /* $$ = new SequenceTail(NULL, NULL); */
+      $$ = new SequenceTail(NULL, NULL);
     } 
   ;
 

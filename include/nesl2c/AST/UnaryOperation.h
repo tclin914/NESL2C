@@ -17,7 +17,11 @@ class UnaryOperation : public UnaryNode
 
 public:
   UnaryOperation(Node*);
-  
+  virtual ~UnaryOperation() {}
+ 
+  bool Initialize();
+  bool SemanticCheck();
+
 };
 
 } // namespace of nesl2c

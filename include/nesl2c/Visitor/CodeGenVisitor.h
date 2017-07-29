@@ -62,6 +62,10 @@ public:
   virtual void Visit(Div*);
   virtual void Visit(RARROW*);
 
+  virtual void Visit(Sharp*);
+  virtual void Visit(At*);
+  virtual void Visit(Uminus*);
+
   virtual void Visit(SequenceTail*);
 
   virtual void Visit(Identifier*);

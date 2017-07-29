@@ -6,9 +6,15 @@
 //
 //===--------------------------------------------------------------===//
 #include "nesl2c/AST/At.h"
+#include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
 At::At(Node *pA) : UnaryOperation(pA)
 {
+}
+
+void At::Accept(Visitor* pVisitor)
+{
+  pVisitor->Visit(this);
 }

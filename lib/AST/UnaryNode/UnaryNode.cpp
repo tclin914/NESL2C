@@ -11,19 +11,19 @@ using namespace nesl2c;
 
 UnaryNode::UnaryNode(Node* pA) : Node()
 {
-  children.push_back(a);
+  f_Children.push_back(pA);
 }
 
 bool UnaryNode::Initialize()
 {
-  if (children[0] != NULL)
-    return children[0]->Initialize();
+  if (f_Children[0] != NULL)
+    return f_Children[0]->Initialize();
   return true;
 }
 
 bool UnaryNode::SemanticCheck()
 {
-  if (children[0] != NULL) 
-    return children[0]->SemanticCheck();
+  if (f_Children[0] != NULL) 
+    return f_Children[0]->SemanticCheck();
   return true;
 }

@@ -190,6 +190,18 @@ void CodeGenVisitor::Visit(RARROW* pNode)
 {
 }
 
+void CodeGenVisitor::Visit(Sharp* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(At* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(Uminus* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(SequenceTail* pNode)
 {
 }

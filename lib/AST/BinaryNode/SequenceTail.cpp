@@ -6,7 +6,7 @@
 //
 //===--------------------------------------------------------------===//
 #include "nesl2c/AST/SequenceTail.h"
-#include "nesl2c/AST/Visitor.h"
+#include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
@@ -28,5 +28,3 @@ void SequenceTail::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);
 }
-
-

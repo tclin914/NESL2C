@@ -34,5 +34,5 @@ add_library(BinaryNode
   # In.cpp
   # Let.cpp
   # Sequence.cpp
-  # SequenceTail.cpp
+  SequenceTail.cpp
   )

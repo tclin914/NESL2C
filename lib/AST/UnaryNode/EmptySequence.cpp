@@ -6,7 +6,7 @@
 //
 //===--------------------------------------------------------------===//
 #include "nesl2c/AST/EmptySequence.h"
-#include "nesl2c/AST/Visitor.h"
+#include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 

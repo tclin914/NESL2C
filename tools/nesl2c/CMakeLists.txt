@@ -1,6 +1,6 @@
 
 set(USED_LIBS
-  LexerParser AST NullaryNode BinaryNode Visitor)
+  LexerParser AST NullaryNode UnaryNode BinaryNode Visitor)
 
 add_executable(NESL2C
   Main.cpp)

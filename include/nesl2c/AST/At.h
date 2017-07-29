@@ -17,7 +17,9 @@ class At : public UnaryOperation
 
 public:
   At(Node*);
-  
+
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

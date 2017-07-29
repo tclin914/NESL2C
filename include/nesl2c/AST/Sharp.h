@@ -18,6 +18,8 @@ class Sharp : public UnaryOperation
 public:
   Sharp(Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

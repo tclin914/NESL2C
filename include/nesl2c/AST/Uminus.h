@@ -18,6 +18,8 @@ class Uminus : public UnaryOperation
 public:
   Uminus(Node*);
 
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c
