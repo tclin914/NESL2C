@@ -27,12 +27,12 @@ add_library(BinaryNode
   XOr.cpp
   And.cpp
   NotAnd.cpp
-  # ApplyBody.cpp
   # ApplyToEach.cpp
   # Assign.cpp
   # FunctionCall.cpp
   # Let.cpp
   # Sequence.cpp
+  ApplyBody.cpp
   In.cpp
   SequenceTail.cpp
   )

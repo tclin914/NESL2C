@@ -25,6 +25,7 @@
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/ApplyBody.h"
 #include "nesl2c/AST/In.h"
 #include "nesl2c/AST/SequenceTail.h"
 // Ternary Node
@@ -530,7 +531,7 @@ SpecialId
 ApplyBody
   : Exp ':' RBinds
     {
-      /* $$ = new ApplyBody($1, $3); */
+      $$ = new ApplyBody($1, $3);
     }
   | RBinds 
     {

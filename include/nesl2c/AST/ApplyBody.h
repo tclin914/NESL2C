@@ -17,6 +17,11 @@ class ApplyBody : public BinaryNode
 
 public:
   ApplyBody(Node*, Node*);
+  
+  bool Initialize();
+  bool SemanticCheck();
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c
