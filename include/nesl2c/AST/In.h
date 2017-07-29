@@ -18,6 +18,10 @@ class In : public BinaryNode
 public:
   In(Node*, Node*);
 
+  bool Initialize();
+  bool SemanticCheck();
+  void Accept(Visitor*);
+
 };
 
 } // namespace of nesl2c

@@ -8,7 +8,6 @@
 #ifndef NESL2C_AST_SEQUENCE_TAIL_H
 #define NESL2C_AST_SEQUENCE_TAIL_H
 
-#include "nesl2c/AST/UnaryNode.h"
 #include "nesl2c/AST/BinaryNode.h"
 
 namespace nesl2c {

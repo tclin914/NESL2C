@@ -31,8 +31,8 @@ add_library(BinaryNode
   # ApplyToEach.cpp
   # Assign.cpp
   # FunctionCall.cpp
-  # In.cpp
   # Let.cpp
   # Sequence.cpp
+  In.cpp
   SequenceTail.cpp
   )

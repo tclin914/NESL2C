@@ -66,6 +66,7 @@ public:
   virtual void Visit(At*);
   virtual void Visit(Uminus*);
 
+  virtual void Visit(In*);
   virtual void Visit(SequenceTail*);
 
   virtual void Visit(Identifier*);

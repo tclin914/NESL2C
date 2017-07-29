@@ -36,6 +36,7 @@ class At;
 class Uminus;
 class Identifier;
 class TypeNode;
+class In;
 class SequenceTail;
 class ConstantInteger;
 class ConstantFloat;
@@ -76,6 +77,7 @@ public:
   virtual void Visit(At*) = 0;
   virtual void Visit(Uminus*) = 0;
 
+  virtual void Visit(In*) = 0;
   virtual void Visit(SequenceTail*) = 0;
 
   virtual void Visit(Identifier*) = 0;

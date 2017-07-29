@@ -25,6 +25,7 @@
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/In.h"
 #include "nesl2c/AST/SequenceTail.h"
 // Ternary Node
 
@@ -540,9 +541,6 @@ ApplyBody
 RBinds
   : RBinds ';' RBind
     {
-      /* $$ = createNode(NODE_RBINDS); */
-      /* $$->left = $1; */
-      /* $$->right = $3; */
     }
   | RBind 
     {
@@ -553,11 +551,11 @@ RBinds
 RBind
   : ID 
     {
-      /* $$ = new Identifier($1); */
+      $$ = new Identifier($1);
     }
   | Exp IN Exp
     {
-      /* $$ = new In($1, $3); */
+      $$ = new In($1, $3);
     }
   ;
 

@@ -202,6 +202,10 @@ void CodeGenVisitor::Visit(Uminus* pNode)
 {
 }
 
+void CodeGenVisitor::Visit(In* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(SequenceTail* pNode)
 {
 }
