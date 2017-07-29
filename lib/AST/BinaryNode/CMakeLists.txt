@@ -29,9 +29,9 @@ add_library(BinaryNode
   NotAnd.cpp
   # ApplyToEach.cpp
   # Assign.cpp
-  # FunctionCall.cpp
   # Let.cpp
   # Sequence.cpp
+  FunctionCall.cpp
   ApplyBody.cpp
   In.cpp
   SequenceTail.cpp

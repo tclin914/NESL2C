@@ -202,6 +202,10 @@ void CodeGenVisitor::Visit(Uminus* pNode)
 {
 }
 
+void CodeGenVisitor::Visit(FunctionCall* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(ApplyBody* pNode)
 {
 }

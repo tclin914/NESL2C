@@ -25,6 +25,7 @@
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/FunctionCall.h"
 #include "nesl2c/AST/ApplyBody.h"
 #include "nesl2c/AST/In.h"
 #include "nesl2c/AST/SequenceTail.h"
@@ -517,7 +518,7 @@ AtomicExp
     }
   | id '(' Exp ')'
     {
-      /* $$ = new FunctionCall($1, $3); */
+      $$ = new FunctionCall($1, $3);
     }
   ;
 
