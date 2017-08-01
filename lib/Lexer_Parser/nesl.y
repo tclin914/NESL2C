@@ -25,6 +25,7 @@
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/Upt.h"
 #include "nesl2c/AST/SequenceRef.h"
 #include "nesl2c/AST/ApplyToEach.h"
 #include "nesl2c/AST/EmptySequence.h"
@@ -438,13 +439,11 @@ MulOp
 ExpExp 
   : UnExp 
     { 
-      /* $$ = $1; */
+      $$ = $1;
     }
   | ExpExp '^' UnExp 
     {
-      /* $$ = createNode(NODE_UPT); */
-      /* $$->left = $1; */
-      /* $$->right = $3; */
+      $$ = new Upt($1, $3);
     }
   ;
 

@@ -35,6 +35,7 @@ class At;
 class Uminus;
 class Identifier;
 class TypeNode;
+class Upt;
 class SequenceRef;
 class ApplyToEach;
 class EmptySequence;
@@ -81,6 +82,7 @@ public:
   virtual void Visit(At*) = 0;
   virtual void Visit(Uminus*) = 0;
 
+  virtual void Visit(Upt*) = 0;
   virtual void Visit(SequenceRef*) = 0;
   virtual void Visit(ApplyToEach*) = 0;
   virtual void Visit(EmptySequence*) = 0;

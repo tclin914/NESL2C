@@ -198,6 +198,10 @@ void CodeGenVisitor::Visit(Uminus* pNode)
 {
 }
 
+void CodeGenVisitor::Visit(Upt* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(SequenceRef* pNode)
 {
 }

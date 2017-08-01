@@ -30,6 +30,7 @@ add_library(BinaryNode
   # ApplyToEach.cpp
   # Assign.cpp
   # Let.cpp
+  Upt.cpp
   SequenceRef.cpp
   ApplyToEach.cpp
   Sequence.cpp

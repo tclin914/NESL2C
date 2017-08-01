@@ -65,6 +65,7 @@ public:
   virtual void Visit(At*);
   virtual void Visit(Uminus*);
 
+  virtual void Visit(Upt*);
   virtual void Visit(SequenceRef*);
   virtual void Visit(ApplyToEach*);
   virtual void Visit(EmptySequence*);
