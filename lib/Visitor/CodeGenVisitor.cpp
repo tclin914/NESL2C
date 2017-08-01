@@ -52,6 +52,10 @@ void CodeGenVisitor::Visit(Assign* pNode)
   builder.CreateStore(operand2, operand1);
 }
 
+void CodeGenVisitor::Visit(ExpBinds* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(Tuple* pNode)
 {
 }

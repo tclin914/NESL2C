@@ -266,7 +266,7 @@ ExpBinds
 ExpBind
   : Exp '=' Exp
     {
-      /* $$ = new Assign($1, $3); */
+      $$ = new Assign($1, $3);
     }
   ;
 
