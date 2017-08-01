@@ -39,7 +39,6 @@ public:
 
   virtual void Visit(TopLevels*);
   virtual void Visit(Assign*);
-  virtual void Visit(EmptySequence*);
 
   virtual void Visit(Or*);
   virtual void Visit(NotOr*);
@@ -66,6 +65,8 @@ public:
   virtual void Visit(At*);
   virtual void Visit(Uminus*);
 
+  virtual void Visit(ApplyToEach*);
+  virtual void Visit(EmptySequence*);
   virtual void Visit(Sequence*);
   virtual void Visit(FunctionCall*);
   virtual void Visit(ApplyBody*);

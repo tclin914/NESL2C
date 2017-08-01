@@ -25,6 +25,8 @@
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/ApplyToEach.h"
+#include "nesl2c/AST/EmptySequence.h"
 #include "nesl2c/AST/Sequence.h"
 #include "nesl2c/AST/FunctionCall.h"
 #include "nesl2c/AST/ApplyBody.h"
@@ -499,11 +501,11 @@ AtomicExp
     }
   | '{' ApplyBody '|' Exp '}' 
     {
-      /* $$ = new ApplyToEach($2, $4); */
+      $$ = new ApplyToEach($2, $4);
     }
   | '[' ']' TypeExp 
     {
-      /* $$ = new EmptySequence($3); */
+      $$ = new EmptySequence($3);
     }
   | '[' Exp SequenceTail ']'
     {

@@ -52,10 +52,6 @@ void CodeGenVisitor::Visit(Assign* pNode)
   builder.CreateStore(operand2, operand1);
 }
 
-void CodeGenVisitor::Visit(EmptySequence* pNode)
-{
-}
-
 void CodeGenVisitor::Visit(Or* pNode)
 {
 }
@@ -199,6 +195,14 @@ void CodeGenVisitor::Visit(At* pNode)
 }
 
 void CodeGenVisitor::Visit(Uminus* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(ApplyToEach* pNode)
+{
+}
+
+void CodeGenVisitor::Visit(EmptySequence* pNode)
 {
 }
 

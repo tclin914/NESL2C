@@ -12,7 +12,6 @@ namespace nesl2c {
 
 class TopLevels;
 class Assign;
-class EmptySequence;
 class Or;
 class NotOr;
 class XOr;
@@ -36,6 +35,8 @@ class At;
 class Uminus;
 class Identifier;
 class TypeNode;
+class ApplyToEach;
+class EmptySequence;
 class Sequence;
 class FunctionCall;
 class ApplyBody;
@@ -53,7 +54,6 @@ public:
 
   virtual void Visit(TopLevels*) = 0;
   virtual void Visit(Assign*) = 0;
-  virtual void Visit(EmptySequence*) = 0;
 
   virtual void Visit(Or*) = 0;
   virtual void Visit(NotOr*) = 0;
@@ -80,6 +80,8 @@ public:
   virtual void Visit(At*) = 0;
   virtual void Visit(Uminus*) = 0;
 
+  virtual void Visit(ApplyToEach*) = 0;
+  virtual void Visit(EmptySequence*) = 0;
   virtual void Visit(Sequence*) = 0;
   virtual void Visit(FunctionCall*) = 0;
   virtual void Visit(ApplyBody*) = 0;

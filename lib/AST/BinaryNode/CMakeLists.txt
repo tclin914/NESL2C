@@ -30,6 +30,7 @@ add_library(BinaryNode
   # ApplyToEach.cpp
   # Assign.cpp
   # Let.cpp
+  ApplyToEach.cpp
   Sequence.cpp
   FunctionCall.cpp
   ApplyBody.cpp
