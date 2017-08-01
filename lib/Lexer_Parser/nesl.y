@@ -25,6 +25,7 @@
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/SequenceRef.h"
 #include "nesl2c/AST/ApplyToEach.h"
 #include "nesl2c/AST/EmptySequence.h"
 #include "nesl2c/AST/Sequence.h"
@@ -480,9 +481,7 @@ SubscriptExp
     }
   | AtomicExp '[' Exp ']'
     {
-      /* $$ = createNode(NODE_SEQ_REF); */
-      /* $$->left = $1; */
-      /* $$->right = $3; */
+      $$ = new SequenceRef($1, $3);
     }
   ;
 
