@@ -39,6 +39,7 @@ public:
 
   virtual void Visit(TopLevels*);
   virtual void Visit(Assign*);
+  virtual void Visit(Tuple*);
 
   virtual void Visit(Or*);
   virtual void Visit(NotOr*);

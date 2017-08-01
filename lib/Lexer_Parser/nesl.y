@@ -22,6 +22,7 @@
 // Binary Node
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/Tuple.h"
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
@@ -276,9 +277,7 @@ TupleExp
     }
   | OrExp ',' TupleRest 
     {
-      /* $$ = createNode(NODE_TUPLE); */
-      /* $$->left = $1; */
-      /* $$->right = $3; */
+      $$ = new Tuple($1, $3);
     }
   ;
 
@@ -544,6 +543,7 @@ ApplyBody
 RBinds
   : RBinds ';' RBind
     {
+      // TODO:
     }
   | RBind 
     {

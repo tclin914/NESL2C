@@ -12,6 +12,7 @@ namespace nesl2c {
 
 class TopLevels;
 class Assign;
+class Tuple;
 class Or;
 class NotOr;
 class XOr;
@@ -56,6 +57,7 @@ public:
 
   virtual void Visit(TopLevels*) = 0;
   virtual void Visit(Assign*) = 0;
+  virtual void Visit(Tuple*) = 0;
 
   virtual void Visit(Or*) = 0;
   virtual void Visit(NotOr*) = 0;
