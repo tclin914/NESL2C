@@ -25,6 +25,7 @@
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
 #include "nesl2c/AST/ArithmeticOpFactory.h"
+#include "nesl2c/AST/Sequence.h"
 #include "nesl2c/AST/FunctionCall.h"
 #include "nesl2c/AST/ApplyBody.h"
 #include "nesl2c/AST/In.h"
@@ -506,7 +507,7 @@ AtomicExp
     }
   | '[' Exp SequenceTail ']'
     {
-      /* $$ = new Sequence($2, $3); */
+      $$ = new Sequence($2, $3);
     }
   | '(' Exp ')' 
     {

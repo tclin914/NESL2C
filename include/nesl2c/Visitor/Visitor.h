@@ -36,6 +36,7 @@ class At;
 class Uminus;
 class Identifier;
 class TypeNode;
+class Sequence;
 class FunctionCall;
 class ApplyBody;
 class In;
@@ -79,6 +80,7 @@ public:
   virtual void Visit(At*) = 0;
   virtual void Visit(Uminus*) = 0;
 
+  virtual void Visit(Sequence*) = 0;
   virtual void Visit(FunctionCall*) = 0;
   virtual void Visit(ApplyBody*) = 0;
   virtual void Visit(In*) = 0;

@@ -17,6 +17,8 @@ bool UnaryOperation::Initialize()
 {
   if (!UnaryNode::Initialize())
     return false;
+
+  return true;
 }
 
 bool UnaryOperation::SemanticCheck()
