@@ -15,6 +15,7 @@
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Mul.h"
+#include "nesl2c/AST/Div.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
 #include "nesl2c/AST/ConstantBoolean.h"
@@ -295,7 +296,7 @@ void CodeGenVisitor::Visit(Mul* pNode)
         // TODO:
         break;
     }
-    inst->dump();
+
     Push(inst);
     PushNESLType(type);
   } else {
@@ -305,6 +306,64 @@ void CodeGenVisitor::Visit(Mul* pNode)
 
 void CodeGenVisitor::Visit(Div* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (m_Values.size() >= m_NumChildOfBinary) {
+    
+    IRBuilder<> builder(m_CurrentBB);
+    NESLType type = PopNESLType(m_NumChildOfBinary);
+    Value* operand2 = Pop();
+    Value* operand1 = Pop();
+
+    bool isConst1 = dyn_cast<Constant>(operand1);
+    bool isConst2 = dyn_cast<Constant>(operand2);
+
+    Value* inst;
+    switch (type) {
+      case INTEGER_T: {
+        
+        if (isConst1 && isConst2) { // TODO: unsigned div or signed div
+          inst = builder.CreateUDiv(operand1, operand2);
+        } else if (!isConst1 && isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand1);
+          inst = builder.CreateUDiv(loadInst, operand2);
+        } else if (isConst1 && !isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand2);
+          inst = builder.CreateUDiv(operand1, loadInst);
+        } else { // !isConst1 && !isConst2
+          LoadInst* loadInst1 = builder.CreateLoad(operand1);
+          LoadInst* loadInst2 = builder.CreateLoad(operand2);
+          inst = builder.CreateUDiv(loadInst1, loadInst2);
+        }
+        break;               
+      }
+      case FLOAT_T: {
+        
+        if (isConst1 && isConst2) {
+          inst = builder.CreateFDiv(operand1, operand2);
+        } else if (!isConst1 && isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand1);
+          inst = builder.CreateFDiv(loadInst, operand2);
+        } else if (isConst1 && !isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand2);
+          inst = builder.CreateFDiv(operand1, loadInst);
+        } else { // !isConst1 && !isConst2
+          LoadInst* loadInst1 = builder.CreateLoad(operand1);
+          LoadInst* loadInst2 = builder.CreateLoad(operand2);
+          inst = builder.CreateFDiv(loadInst1, loadInst2);
+        }
+        break;            
+      }
+      default:
+        // TODO:
+        break;
+    }
+    
+    Push(inst);
+    PushNESLType(type);
+  } else {
+    // TODO: 
+  }
 }
 
 void CodeGenVisitor::Visit(RARROW* pNode)
