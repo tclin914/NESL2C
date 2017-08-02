@@ -10,9 +10,11 @@
 #include "llvm/IR/Constants.h"
 
 #include "nesl2c/Visitor/CodeGenVisitor.h"
+#include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
+#include "nesl2c/AST/Mul.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
 #include "nesl2c/AST/ConstantBoolean.h"
@@ -33,6 +35,7 @@ CodeGenVisitor::~CodeGenVisitor()
 
 void CodeGenVisitor::Visit(TopLevels* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
 }
 
 void CodeGenVisitor::Visit(Assign* pNode)
@@ -240,6 +243,64 @@ void CodeGenVisitor::Visit(LARROW* pNode)
 
 void CodeGenVisitor::Visit(Mul* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (m_Values.size() >= m_NumChildOfBinary) {
+    
+    IRBuilder<> builder(m_CurrentBB);
+    NESLType type = PopNESLType(m_NumChildOfBinary);
+    Value* operand2 = Pop();
+    Value* operand1 = Pop();
+
+    bool isConst1 = dyn_cast<Constant>(operand1);
+    bool isConst2 = dyn_cast<Constant>(operand2);
+
+    Value* inst;
+    switch (type) {
+      case INTEGER_T: {
+        
+        if (isConst1 && isConst2) {
+          inst = builder.CreateMul(operand1, operand2);
+        } else if (!isConst1 && isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand1);
+          inst = builder.CreateMul(loadInst, operand2);
+        } else if (isConst1 && !isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand2);
+          inst = builder.CreateMul(operand1, loadInst);
+        } else { // !isConst1 && !isConst2
+          LoadInst* loadInst1 = builder.CreateLoad(operand1);
+          LoadInst* loadInst2 = builder.CreateLoad(operand2);
+          inst = builder.CreateMul(loadInst1, loadInst2);
+        }
+        break;               
+      }
+      case FLOAT_T: {
+        
+        if (isConst1 && isConst2) {
+          inst = builder.CreateFMul(operand1, operand2);
+        } else if (!isConst1 && isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand1);
+          inst = builder.CreateFMul(loadInst, operand2);
+        } else if (isConst1 && !isConst2) {
+          LoadInst* loadInst = builder.CreateLoad(operand2);
+          inst = builder.CreateFMul(operand1, loadInst);
+        } else { // !isConst1 && !isConst2
+          LoadInst* loadInst1 = builder.CreateLoad(operand1);
+          LoadInst* loadInst2 = builder.CreateLoad(operand2);
+          inst = builder.CreateFMul(loadInst1, loadInst2);
+        }
+        break;            
+      }
+      default:
+        // TODO:
+        break;
+    }
+    inst->dump();
+    Push(inst);
+    PushNESLType(type);
+  } else {
+    // TODO: 
+  }
 }
 
 void CodeGenVisitor::Visit(Div* pNode)

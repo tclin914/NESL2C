@@ -22,7 +22,6 @@
 // Binary Node
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
-#include "nesl2c/AST/IfElse.h"
 #include "nesl2c/AST/Let.h"
 #include "nesl2c/AST/ExpBinds.h"
 #include "nesl2c/AST/Tuple.h"
@@ -39,6 +38,7 @@
 #include "nesl2c/AST/In.h"
 #include "nesl2c/AST/SequenceTail.h"
 // Ternary Node
+#include "nesl2c/AST/IfElse.h"
 
 using namespace nesl2c;
 
