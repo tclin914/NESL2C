@@ -22,6 +22,7 @@
 // Binary Node
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/IfElse.h"
 #include "nesl2c/AST/Let.h"
 #include "nesl2c/AST/ExpBinds.h"
 #include "nesl2c/AST/Tuple.h"
@@ -163,11 +164,11 @@ TopLevel
 FunId   
   : ID    
     {
-      /* $$ = new Identifier($1); */
+      $$ = new Identifier($1);
     }
   | SpecialId
     {
-      /* $$ = $1; */
+      $$ = $1;
     }
   ;
 
@@ -178,17 +179,15 @@ EndMark
 
 FunTypeDef 
   : TypeExp RARROW TypeExp
-    {    
-      /* $$ = createNode(NODE_FUNC_TYPE_DEF); */
-      /* $$->left = $1; */
-      /* $$->right = $3; */
+    {
+      // TODO:
     }
   ;
 
 TypeExp 
   : id 
     {  
-      /* $$ = $1; */
+      // TODO:
     }
   | ID '(' TypeList ')' 
     {
@@ -240,7 +239,7 @@ Exp
 IfOrLetExp
   : IF Exp THEN Exp ELSE Exp 
     {
-      /* $$ = new IfElse($2, $4, $6); */
+      $$ = new IfElse($2, $4, $6);
     }
   | LET ExpBinds ';' IN Exp 
     {

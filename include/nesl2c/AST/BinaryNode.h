@@ -21,6 +21,7 @@ public:
 
   virtual bool Initialize();
   virtual bool SemanticCheck();
+
 };
 
 } // namespace of nesl2c

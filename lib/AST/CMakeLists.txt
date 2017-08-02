@@ -7,4 +7,4 @@ add_library(AST
 add_subdirectory(NullaryNode)
 add_subdirectory(UnaryNode)
 add_subdirectory(BinaryNode)
-# add_subdirectory(TernaryNode)
+add_subdirectory(TernaryNode)

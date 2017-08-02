@@ -12,6 +12,7 @@ namespace nesl2c {
 
 class TopLevels;
 class Assign;
+class IfElse;
 class Let;
 class ExpBinds;
 class Tuple;
@@ -59,6 +60,7 @@ public:
 
   virtual void Visit(TopLevels*) = 0;
   virtual void Visit(Assign*) = 0;
+  virtual void Visit(IfElse*) = 0;
   virtual void Visit(Let*) = 0;
   virtual void Visit(ExpBinds*) = 0;
   virtual void Visit(Tuple*) = 0;

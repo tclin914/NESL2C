@@ -17,6 +17,10 @@ class TernaryNode : public Node
 
 public:
   TernaryNode(Node*, Node*, Node*);
+  virtual ~TernaryNode() {}
+
+  virtual bool Initialize();
+  virtual bool SemanticCheck();
 
 };
 
