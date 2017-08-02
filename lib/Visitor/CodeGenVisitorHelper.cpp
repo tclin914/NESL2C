@@ -44,11 +44,6 @@ NESLType CodeGenVisitor::PopNESLType(int pNum)
   return type;
 }
 
-void CodeGenVisitor::makeMainFunc() {
-  m_CurrentFunc = cast<Function>(m_Module->getOrInsertFunction("main", ToLLVMType(VOID_T), (Type*)0));
-  m_CurrentBB = BasicBlock::Create(m_Context, "entryBlock", m_CurrentFunc);
-}
-
 Type *CodeGenVisitor::ToLLVMType(NESLType pNESLType) {
   
   switch (pNESLType) {

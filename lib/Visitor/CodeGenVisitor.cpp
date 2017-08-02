@@ -19,9 +19,10 @@
 using namespace nesl2c;
 
 CodeGenVisitor::CodeGenVisitor()
-  : m_Module(NULL), m_CurrentFunc(NULL), m_CurrentBB(NULL) {
+  : m_Module(new Module("NESL2C", m_Context)), 
+    m_CurrentFunc(cast<Function>(m_Module->getOrInsertFunction("main", ToLLVMType(VOID_T), (Type*)0))), 
+    m_CurrentBB(BasicBlock::Create(m_Context, "entryBlock", m_CurrentFunc)) {
 
-  m_Module = new Module("NESL2C", m_Context);
 }
 
 CodeGenVisitor::~CodeGenVisitor()
@@ -37,18 +38,10 @@ void CodeGenVisitor::Visit(Assign* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (NULL == m_CurrentFunc) {
-    makeMainFunc();
-  }
-
   IRBuilder<> builder(m_CurrentBB);
   NESLType type = PopNESLType(m_NumChildOfBinary);
   Value* operand1 = Pop();
   Value* operand2 = Pop();
-  operand1->dump();
-  printf("Assign\n");
-  operand2->dump();
-  printf("Assign\n");
   builder.CreateStore(operand2, operand1);
 }
 
@@ -118,10 +111,6 @@ void CodeGenVisitor::Visit(Add* pNode)
 
   if (m_Values.size() >= m_NumChildOfBinary) {
 
-    if (NULL == m_CurrentFunc) {
-      makeMainFunc(); 
-    }
-
     IRBuilder<> builder(m_CurrentBB);
     NESLType type = PopNESLType(m_NumChildOfBinary);
     Value* operand1 = Pop();
@@ -153,7 +142,6 @@ void CodeGenVisitor::Visit(Add* pNode)
         
         if (isConst1 && isConst2) {
           inst = builder.CreateFAdd(operand1, operand2);
-        } else if (!isConst1 && isConst2) {  
           LoadInst* loadInst = builder.CreateLoad(operand1);
           inst = builder.CreateFAdd(loadInst, operand2);
         } else if (isConst1 && !isConst2) {
