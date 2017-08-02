@@ -22,6 +22,8 @@
 // Binary Node
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/Let.h"
+#include "nesl2c/AST/ExpBinds.h"
 #include "nesl2c/AST/Tuple.h"
 #include "nesl2c/AST/LogicOpFactory.h"
 #include "nesl2c/AST/RelationalOpFactory.h"
@@ -220,7 +222,7 @@ TypeList
     }
   | TypeExp
     {
-      /* $$ = $1;     */
+      // TODO:
     }
   ;
 
@@ -242,24 +244,22 @@ IfOrLetExp
     }
   | LET ExpBinds ';' IN Exp 
     {
-      /* $$ = new Let($2, $5); */
+      $$ = new Let($2, $5);
     }
   | LET ExpBinds IN Exp
     {
-      /* $$ = new Let($2, $4); */
+      $$ = new Let($2, $4);
     }
   ;
 
 ExpBinds
   : ExpBind 
     {
-      /* $$ = $1; */
+      $$ = $1;
     }
   | ExpBinds ';' ExpBind 
     { 
-      /* $$ = createNode(NODE_EXP_BINDS); */
-      /* $$->left = $1; */
-      /* $$->right = $3; */
+      $$ = new ExpBinds($1, $3);
     }
   ;
 

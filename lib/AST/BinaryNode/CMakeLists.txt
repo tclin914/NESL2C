@@ -3,6 +3,7 @@ add_library(BinaryNode
   BinaryNode.cpp
   Assign.cpp
   TopLevels.cpp
+  Let.cpp
   ExpBinds.cpp
   Tuple.cpp
   ArithmeticOperation.cpp

@@ -5,10 +5,26 @@
 //  Copyright (C) 2017, Programming Language and System Lab
 //
 //===--------------------------------------------------------------===//
-#include "Let.h"
+#include "nesl2c/AST/Let.h"
+#include "nesl2c/Visitor/Visitor.h"
 
 using namespace nesl2c;
 
 Let::Let(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
+}
+
+bool Let::Initialize()
+{
+  return BinaryNode::Initialize();
+}
+
+bool Let::SemanticCheck()
+{
+  return BinaryNode::SemanticCheck();
+}
+
+void Let::Accept(Visitor* pVisitor)
+{
+  pVisitor->Visit(this);
 }

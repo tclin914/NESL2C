@@ -39,6 +39,7 @@ public:
 
   virtual void Visit(TopLevels*);
   virtual void Visit(Assign*);
+  virtual void Visit(Let*);
   virtual void Visit(ExpBinds*);
   virtual void Visit(Tuple*);
 
