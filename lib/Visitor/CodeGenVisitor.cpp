@@ -15,6 +15,7 @@
 #include "nesl2c/AST/Equal.h"
 #include "nesl2c/AST/NotEqual.h"
 #include "nesl2c/AST/LessThan.h"
+#include "nesl2c/AST/GreaterThan.h"
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Mul.h"
@@ -193,6 +194,36 @@ void CodeGenVisitor::Visit(LessThan* pNode)
 
 void CodeGenVisitor::Visit(GreaterThan* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (m_Values.size() >= m_NumChildOfBinary) {
+    
+    IRBuilder<> builder(m_CurrentBB);
+    NESLType type = PopNESLType(m_NumChildOfBinary);
+    Value* operand2 = Pop();
+    Value* operand1 = Pop();
+
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
+
+    Value* inst;
+    switch (type) {
+      case INTEGER_T:
+        inst = builder.CreateICmpSGT(operand1, operand2);
+        break;
+      case FLOAT_T: // TODO: OGT or UGT
+        inst = builder.CreateFCmpUGT(operand1, operand2);
+        break;
+      default:
+        // TODO:
+        break;   
+    }
+    
+    Push(inst);
+    PushNESLType(type);
+  } else {
+    // TODO:
+  }
 }
 
 void CodeGenVisitor::Visit(LessEqual* pNode)
