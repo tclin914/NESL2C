@@ -151,46 +151,18 @@ void CodeGenVisitor::Visit(Add* pNode)
     NESLType type = PopNESLType(m_NumChildOfBinary);
     Value* operand2 = Pop();
     Value* operand1 = Pop();
-    
-    bool isConst1 = dyn_cast<Constant>(operand1);
-    bool isConst2 = dyn_cast<Constant>(operand2);
+   
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
 
     Value* inst;
     switch (type) {
-      case INTEGER_T: {
-       
-        if (isConst1 && isConst2) {
-          inst = builder.CreateAdd(operand1, operand2);
-        } else if (!isConst1 && isConst2) {  
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateAdd(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateAdd(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateAdd(loadInst1, loadInst2);
-        }
+      case INTEGER_T: 
+        inst = builder.CreateAdd(operand1, operand2);
         break;
-      }      
-      case FLOAT_T: {
-        
-        if (isConst1 && isConst2) {
-          inst = builder.CreateFAdd(operand1, operand2);
-        } else if (!isConst1 && isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateFAdd(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateFAdd(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateFAdd(loadInst1, loadInst2);
-        }
+      case FLOAT_T: 
+        inst = builder.CreateFAdd(operand1, operand2);
         break;
-      }
       default:
         // TODO:
         break;
@@ -214,45 +186,17 @@ void CodeGenVisitor::Visit(Subtract* pNode)
     Value* operand2 = Pop();
     Value* operand1 = Pop();
 
-    bool isConst1 = dyn_cast<Constant>(operand1);
-    bool isConst2 = dyn_cast<Constant>(operand2);
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
 
     Value* inst;
     switch (type) {
-      case INTEGER_T: {
-      
-        if (isConst1 && isConst2) {
-          inst = builder.CreateSub(operand1, operand2);
-        } else if (!isConst1 && isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateSub(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateSub(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateAdd(loadInst1, loadInst2);
-        }
+      case INTEGER_T: 
+        inst = builder.CreateSub(operand1, operand2);
         break;
-      }
-      case FLOAT_T: {
-          
-        if (isConst1 && isConst2) {
-          inst = builder.CreateFSub(operand1, operand2);
-        } else if (!isConst1 && isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateFSub(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateFSub(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateFSub(loadInst1, loadInst2);
-        }
+      case FLOAT_T:   
+        inst = builder.CreateFSub(operand1, operand2);
         break;
-      }      
       default:
         // TODO:
         break;
@@ -284,45 +228,17 @@ void CodeGenVisitor::Visit(Mul* pNode)
     Value* operand2 = Pop();
     Value* operand1 = Pop();
 
-    bool isConst1 = dyn_cast<Constant>(operand1);
-    bool isConst2 = dyn_cast<Constant>(operand2);
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
 
     Value* inst;
     switch (type) {
-      case INTEGER_T: {
-        
-        if (isConst1 && isConst2) {
-          inst = builder.CreateMul(operand1, operand2);
-        } else if (!isConst1 && isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateMul(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateMul(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateMul(loadInst1, loadInst2);
-        }
+      case INTEGER_T: 
+        inst = builder.CreateMul(operand1, operand2);
         break;               
-      }
-      case FLOAT_T: {
-        
-        if (isConst1 && isConst2) {
-          inst = builder.CreateFMul(operand1, operand2);
-        } else if (!isConst1 && isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateFMul(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateFMul(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateFMul(loadInst1, loadInst2);
-        }
+      case FLOAT_T: 
+        inst = builder.CreateFMul(operand1, operand2);
         break;            
-      }
       default:
         // TODO:
         break;
@@ -346,45 +262,18 @@ void CodeGenVisitor::Visit(Div* pNode)
     Value* operand2 = Pop();
     Value* operand1 = Pop();
 
-    bool isConst1 = dyn_cast<Constant>(operand1);
-    bool isConst2 = dyn_cast<Constant>(operand2);
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
 
     Value* inst;
     switch (type) {
-      case INTEGER_T: {
-        
-        if (isConst1 && isConst2) { // TODO: unsigned div or signed div
-          inst = builder.CreateUDiv(operand1, operand2);
-        } else if (!isConst1 && isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateUDiv(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateUDiv(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateUDiv(loadInst1, loadInst2);
-        }
+      case INTEGER_T: 
+        // TODO: unsigned div or signed div
+        inst = builder.CreateUDiv(operand1, operand2);
         break;               
-      }
-      case FLOAT_T: {
-        
-        if (isConst1 && isConst2) {
-          inst = builder.CreateFDiv(operand1, operand2);
-        } else if (!isConst1 && isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand1);
-          inst = builder.CreateFDiv(loadInst, operand2);
-        } else if (isConst1 && !isConst2) {
-          LoadInst* loadInst = builder.CreateLoad(operand2);
-          inst = builder.CreateFDiv(operand1, loadInst);
-        } else { // !isConst1 && !isConst2
-          LoadInst* loadInst1 = builder.CreateLoad(operand1);
-          LoadInst* loadInst2 = builder.CreateLoad(operand2);
-          inst = builder.CreateFDiv(loadInst1, loadInst2);
-        }
+      case FLOAT_T: 
+        inst = builder.CreateFDiv(operand1, operand2);
         break;            
-      }
       default:
         // TODO:
         break;
