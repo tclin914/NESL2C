@@ -6,13 +6,14 @@
 //
 //===--------------------------------------------------------------===//
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Instructions.h"
 
 #include "nesl2c/Visitor/CodeGenVisitor.h"
 #include "nesl2c/AST/Node.h"
 
 using namespace nesl2c;
 
-void CodeGenVisitor::VisitChildren(Node *pNode, int pNum) 
+void CodeGenVisitor::VisitChildren(Node* pNode, int pNum) 
 {
   for (int i = 0; i < pNum; ++i) {
     if (NULL != pNode->GetChild(i))
@@ -24,7 +25,7 @@ void CodeGenVisitor::Push(Value* pValue) {
   m_Values.push_back(pValue);
 }
 
-Value *CodeGenVisitor::Pop() 
+Value* CodeGenVisitor::Pop() 
 {
   Value *value = m_Values.back();
   m_Values.pop_back();
@@ -44,7 +45,13 @@ NESLType CodeGenVisitor::PopNESLType(int pNum)
   return type;
 }
 
-Type *CodeGenVisitor::ToLLVMType(NESLType pNESLType) {
+Value* CodeGenVisitor::Dereference(Value* pValue) {
+  if (dyn_cast<Constant>(pValue)) 
+    return pValue;
+  return new LoadInst(pValue, "", false, m_CurrentBB);
+}
+
+Type* CodeGenVisitor::ToLLVMType(NESLType pNESLType) {
   
   switch (pNESLType) {
     case VOID_T:

@@ -94,12 +94,14 @@ private:
   void VisitChildren(Node*, int);
 
   void Push(Value*);
-  Value *Pop();
+  Value* Pop();
   void PushNESLType(NESLType);
   NESLType PopNESLType(int);
 
+  Value* Dereference(Value*);
+  
   // translate NESL Type to LLVM Type
-  Type *ToLLVMType(NESLType);
+  Type* ToLLVMType(NESLType);
 
 private:
   static const int m_NumChildOfUnary = 1;
@@ -107,9 +109,9 @@ private:
 
   // LLVM IR Container
   LLVMContext m_Context;
-  Module *m_Module;
-  Function *m_CurrentFunc;
-  BasicBlock *m_CurrentBB;
+  Module* m_Module;
+  Function* m_CurrentFunc;
+  BasicBlock* m_CurrentBB;
 
   // stack 
   Values m_Values;
