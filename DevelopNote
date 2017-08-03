@@ -1,0 +1,5 @@
+Build LLVM
+cmake -DCMAKE_INSTALL_PREFIX=~/llvm-4.0.0.install -DLLVM_REQUIRES_RTTI=ON -DCMAKE_BUILD_TYPE=Release ../llvm-4.0.0.src
+
+Integer range
+-2147483648 ~ 2147483647
