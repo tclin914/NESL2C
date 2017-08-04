@@ -12,6 +12,7 @@
 #include "nesl2c/Visitor/CodeGenVisitor.h"
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/Or.h"
 #include "nesl2c/AST/Equal.h"
 #include "nesl2c/AST/NotEqual.h"
 #include "nesl2c/AST/LessThan.h"
@@ -74,6 +75,25 @@ void CodeGenVisitor::Visit(Tuple* pNode)
 
 void CodeGenVisitor::Visit(Or* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (m_Values.size() >= m_NumChildOfBinary) {
+ 
+    IRBuilder<> builder(m_CurrentBB);
+    NESLType type = PopNESLType(m_NumChildOfBinary);
+    Value* operand2 = Pop();
+    Value* operand1 = Pop();
+
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
+    // INTEGER or BOOL
+    Value* inst = builder.CreateOr(operand1, operand2);
+    
+    Push(inst);
+    PushNESLType(type);
+  } else {
+    // TODO:
+  }
 }
 
 void CodeGenVisitor::Visit(NotOr* pNode)
