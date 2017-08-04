@@ -6,3 +6,9 @@ T nor F;
 
 1 xor 2;
 T xor F;
+
+1 and 2;
+T and F;
+
+1 nand 2;
+T nand F;

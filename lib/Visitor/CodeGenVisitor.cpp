@@ -15,6 +15,8 @@
 #include "nesl2c/AST/Or.h"
 #include "nesl2c/AST/NotOr.h"
 #include "nesl2c/AST/XOr.h"
+#include "nesl2c/AST/And.h"
+#include "nesl2c/AST/NotAnd.h"
 #include "nesl2c/AST/Equal.h"
 #include "nesl2c/AST/NotEqual.h"
 #include "nesl2c/AST/LessThan.h"
@@ -146,10 +148,44 @@ void CodeGenVisitor::Visit(XOr* pNode)
 
 void CodeGenVisitor::Visit(And* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (m_Values.size() >= m_NumChildOfBinary) {
+    
+    IRBuilder<> builder(m_CurrentBB);
+    NESLType type = PopNESLType(m_NumChildOfBinary);
+    Value* operand2 = Pop();
+    Value* operand1 = Pop();
+
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
+    // INTEGER or BOOL
+    Value* inst = builder.CreateAnd(operand1, operand2);
+    
+    Push(inst);
+    PushNESLType(type);
+  }
 }
 
 void CodeGenVisitor::Visit(NotAnd* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (m_Values.size() >= m_NumChildOfBinary) {
+    
+    IRBuilder<> builder(m_CurrentBB);
+    NESLType type = PopNESLType(m_NumChildOfBinary);
+    Value* operand2 = Pop();
+    Value* operand1 = Pop();
+
+    operand1 = Dereference(operand1);
+    operand2 = Dereference(operand2);
+    // INTEGER or BOOL
+    Value* inst = builder.CreateNot(builder.CreateAnd(operand1, operand2));
+    
+    Push(inst);
+    PushNESLType(type);
+  }
 }
 
 void CodeGenVisitor::Visit(Equal* pNode)
