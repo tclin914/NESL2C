@@ -14,7 +14,7 @@ SymbolTable::SymbolTable()
 {
 }
 
-void SymbolTable::insertSymbol(Symbol* pSymbol)
+void SymbolTable::addSymbol(Symbol* pSymbol)
 {
   m_Symbols.push_back(pSymbol);
 }

@@ -10,8 +10,10 @@
 #include "llvm/IR/Constants.h"
 
 #include "nesl2c/Visitor/CodeGenVisitor.h"
+#include "nesl2c/AST/Symbol.h"
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/Tuple.h"
 #include "nesl2c/AST/Or.h"
 #include "nesl2c/AST/NotOr.h"
 #include "nesl2c/AST/XOr.h"
@@ -27,6 +29,7 @@
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Mul.h"
 #include "nesl2c/AST/Div.h"
+#include "nesl2c/AST/Identifier.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
 #include "nesl2c/AST/ConstantBoolean.h"
@@ -53,12 +56,38 @@ void CodeGenVisitor::Visit(TopLevels* pNode)
 void CodeGenVisitor::Visit(Assign* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
-
+  
   IRBuilder<> builder(m_CurrentBB);
-  NESLType type = PopNESLType(m_NumChildOfBinary);
-  Value* operand1 = Pop();
-  Value* operand2 = Pop();
-  builder.CreateStore(operand2, operand1);
+
+  int leftDepth = GetDepth(pNode->GetChild(0));
+  int rightDepth = GetDepth(pNode->GetChild(1));
+  int numPacked = rightDepth - leftDepth + 1;
+
+  Symbol* symbol;
+  while (NULL != (symbol = PopSymbol())) {
+    if (numPacked > 0) {
+      // create struct for packing tuple element
+      StructType* packedType = StructType::create(m_Module->getContext(), 
+          StringRef(symbol->getID() + "_type").upper());
+      vector<Type*> elementTypes;
+      while (numPacked > 0) {
+        elementTypes.push_back(ToLLVMType(PopNESLType(0))); 
+        --numPacked;
+      }
+      packedType->setBody(elementTypes, false);       
+      
+      // set up data of elements
+      Value* packedValue = builder.CreateAlloca(packedType, NULL, symbol->getID());
+      for (int i = 0; i < packedType->getNumElements(); ++i) {
+        Value* elementPtr = builder.CreateStructGEP(packedType, packedValue, i);
+        builder.CreateStore(Pop(), elementPtr);
+      }
+
+      symbol->setValue(packedValue);
+    } else {
+    
+    }
+  }
 }
 
 void CodeGenVisitor::Visit(IfElse* pNode)
@@ -75,6 +104,7 @@ void CodeGenVisitor::Visit(ExpBinds* pNode)
 
 void CodeGenVisitor::Visit(Tuple* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
 }
 
 void CodeGenVisitor::Visit(Or* pNode)
@@ -591,6 +621,10 @@ void CodeGenVisitor::Visit(SequenceTail* pNode)
 
 void CodeGenVisitor::Visit(Identifier* pNode)
 {
+  Symbol* symbol = new Symbol(pNode->getID(), UNDEFINED);
+  m_SymbolTable.addSymbol(symbol);
+
+  PushSymbol(symbol);
 }
 
 void CodeGenVisitor::Visit(TypeNode* pNode)
@@ -602,7 +636,7 @@ void CodeGenVisitor::Visit(ConstantInteger* pNode)
   // TODO: Be careful with integer is signed or unsigned in nesl
   ConstantInt *ConstIntValue = ConstantInt::get(IntegerType::get(m_Context, 32), 
         pNode->GetIntValue());
-
+  
   Push(ConstIntValue);
   PushNESLType(INTEGER_T);
 }

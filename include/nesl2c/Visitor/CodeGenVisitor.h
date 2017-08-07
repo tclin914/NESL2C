@@ -89,19 +89,25 @@ public:
 private:
   typedef vector<Value*> Values;
   typedef vector<NESLType> Types;
+  typedef vector<Symbol*> Symbols;
 
 private:
   void VisitChildren(Node*, int);
+  void VisitChild(Node*, int);
 
   void Push(Value*);
   Value* Pop();
   void PushNESLType(NESLType);
   NESLType PopNESLType(int);
+  void PushSymbol(Symbol*);
+  Symbol* PopSymbol();
 
   Value* Dereference(Value*);
   
   // translate NESL Type to LLVM Type
   Type* ToLLVMType(NESLType);
+
+  int GetDepth(Node*);
 
 private:
   static const int m_NumChildOfUnary = 1;
@@ -116,6 +122,7 @@ private:
   // stack 
   Values m_Values;
   Types m_Types;
+  Symbols m_Symbols;
 
   // symbol table
   SymbolTable m_SymbolTable;

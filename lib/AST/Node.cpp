@@ -16,11 +16,17 @@ Node::Node()
   f_LineNo = yylineno; // line_no is a global variable from yacc
 }
 
-Node* Node::GetChild(int pIndex) {
-  return f_Children[pIndex];
-}
-
 NESLType Node::GetType()
 {
   return f_NESLType; 
+}
+
+Node* Node::GetChild(int pIndex) 
+{
+  return f_Children[pIndex];
+}
+
+int Node::GetChildNum()
+{
+  return f_Children.size(); 
 }

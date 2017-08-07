@@ -22,3 +22,8 @@ NESLType Symbol::getNESLType() const
 {
   return m_NESLType;
 }
+
+void Symbol::setValue(llvm::Value* pValue)
+{
+  m_Value = pValue;
+}

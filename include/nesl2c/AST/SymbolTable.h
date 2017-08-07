@@ -26,7 +26,7 @@ public:
   unsigned int size() const { return m_Symbols.size(); }
   bool empty() const { return m_Symbols.empty(); }
 
-  void insertSymbol(Symbol*);
+  void addSymbol(Symbol*);
   Symbol* getSymbol(string pID);
 
 private:

@@ -26,8 +26,11 @@ class Symbol
 
 public:
   Symbol(string, NESLType);
+  
   string getID() const;
   NESLType getNESLType() const;
+
+  void setValue(llvm::Value*);
 
 private:
   string m_ID;

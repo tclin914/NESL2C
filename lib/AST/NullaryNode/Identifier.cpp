@@ -25,3 +25,8 @@ void Identifier::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);
 }
+
+string Identifier::getID() const
+{
+  return m_Value;
+}

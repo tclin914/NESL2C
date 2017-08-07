@@ -25,6 +25,8 @@ public:
   bool Initialize();
   void Accept(Visitor*);
 
+  string getID() const;
+
 private:
   string m_Value;
 

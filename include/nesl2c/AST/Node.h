@@ -30,6 +30,7 @@ public:
   virtual NESLType GetType();
 
   Node* GetChild(int);
+  int GetChildNum();
 
 protected:
   typedef std::vector<Node*> Children;
