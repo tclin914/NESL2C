@@ -56,39 +56,6 @@ void CodeGenVisitor::Visit(TopLevels* pNode)
 void CodeGenVisitor::Visit(Assign* pNode)
 {
   transAssign(pNode->GetChild(0), pNode->GetChild(1));
-  // VisitChildren(pNode, m_NumChildOfBinary);
-  
-  // IRBuilder<> builder(m_CurrentBB);
-
-  // int leftDepth = GetDepth(pNode->GetChild(0));
-  // int rightDepth = GetDepth(pNode->GetChild(1));
-  // int numPacked = rightDepth - leftDepth + 1;
-
-  // Symbol* symbol;
-  // while (NULL != (symbol = PopSymbol())) {
-    // if (numPacked > 0) {
-      // // create struct for packing tuple element
-      // StructType* packedType = StructType::create(m_Module->getContext(), 
-          // StringRef(symbol->getID() + "_type").upper());
-      // vector<Type*> elementTypes;
-      // while (numPacked > 0) {
-        // elementTypes.push_back(ToLLVMType(PopNESLType(0))); 
-        // --numPacked;
-      // }
-      // packedType->setBody(elementTypes, false);       
-      
-      // // set up data of elements
-      // Value* packedValue = builder.CreateAlloca(packedType, NULL, symbol->getID());
-      // for (int i = 0; i < packedType->getNumElements(); ++i) {
-        // Value* elementPtr = builder.CreateStructGEP(packedType, packedValue, i);
-        // builder.CreateStore(Pop(), elementPtr)->dump();
-      // }
-
-      // symbol->setValue(packedValue);
-    // } else {
-    
-    // }
-  // }
 }
 
 void CodeGenVisitor::Visit(IfElse* pNode)
