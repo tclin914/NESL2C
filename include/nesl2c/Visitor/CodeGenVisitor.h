@@ -89,24 +89,26 @@ public:
 private:
   typedef vector<Value*> Values;
   typedef vector<NESLType> Types;
-  typedef vector<Symbol*> Symbols;
 
 private:
   void VisitChildren(Node*, int);
   void VisitChild(Node*, int);
+  void VisitSelf(Node*);
 
   void Push(Value*);
   Value* Pop();
   void PushNESLType(NESLType);
   NESLType PopNESLType(int);
-  void PushSymbol(Symbol*);
-  Symbol* PopSymbol();
 
   Value* Dereference(Value*);
   
   // translate NESL Type to LLVM Type
   Type* ToLLVMType(NESLType);
 
+  void transAssign(Node*, Node*);
+
+  Values ReversedOrderPop(int);
+  Types ReversedOrderPopNESLType(int);
   int GetDepth(Node*);
 
 private:
@@ -122,7 +124,6 @@ private:
   // stack 
   Values m_Values;
   Types m_Types;
-  Symbols m_Symbols;
 
   // symbol table
   SymbolTable m_SymbolTable;

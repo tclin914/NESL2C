@@ -9,8 +9,11 @@
 #define NESL2C_AST_NODE_H
 
 #include <vector>
+#include <string>
 
 #include "nesl2c/AST/NESLType.h"
+
+using namespace std;
 
 namespace nesl2c {
 
@@ -28,9 +31,10 @@ public:
   virtual void Accept(Visitor*) = 0;
 
   virtual NESLType GetType();
-
   Node* GetChild(int);
   int GetChildNum();
+  string GetID() const;
+  bool isLeafNode() const;
 
 protected:
   typedef std::vector<Node*> Children;
@@ -39,6 +43,7 @@ protected:
   NESLType f_NESLType;
   int f_LineNo;
   Children f_Children;
+  string f_ID;
 
 protected:
   // virtual void ErrorReport(string, ...);

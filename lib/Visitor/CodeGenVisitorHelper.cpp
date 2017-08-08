@@ -6,10 +6,12 @@
 //
 //===--------------------------------------------------------------===//
 #include "llvm/IR/Module.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 
 #include "nesl2c/Visitor/CodeGenVisitor.h"
 #include "nesl2c/AST/Node.h"
+#include "nesl2c/AST/Symbol.h"
 
 using namespace nesl2c;
 
@@ -24,6 +26,11 @@ void CodeGenVisitor::VisitChildren(Node* pNode, int pNum)
 void CodeGenVisitor::VisitChild(Node* pNode, int pIndex) 
 {
   pNode->GetChild(pIndex)->Accept(this);
+}
+
+void CodeGenVisitor::VisitSelf(Node* pNode)
+{
+  pNode->Accept(this);
 }
 
 void CodeGenVisitor::Push(Value* pValue) {
@@ -49,18 +56,6 @@ NESLType CodeGenVisitor::PopNESLType(int pNum)
     m_Types.pop_back();
   }
   return type;
-}
-
-void CodeGenVisitor::PushSymbol(Symbol* pSymbol)
-{
-  m_Symbols.push_back(pSymbol);
-}
-
-Symbol* CodeGenVisitor::PopSymbol()
-{
-  Symbol *symbol = m_Symbols.back();
-  m_Symbols.pop_back();
-  return symbol;
 }
 
 Value* CodeGenVisitor::Dereference(Value* pValue) 
@@ -93,9 +88,80 @@ Type* CodeGenVisitor::ToLLVMType(NESLType pNESLType)
   }
 }
 
+void CodeGenVisitor::transAssign(Node* pL, Node* pR)
+{
+  if (nullptr == pL)
+      return;
+
+  if (pL->isLeafNode()) {
+    // get the number of rvalue
+    int stackSize = m_Values.size();
+    VisitSelf(pL);
+    VisitSelf(pR);
+    int numPacked = m_Values.size() - stackSize;
+    
+    IRBuilder<> builder(m_CurrentBB);
+    if (numPacked > 1) {
+      // create struct type for packing tuple elements
+      StructType* packedType = StructType::create(m_Module->getContext(),
+        StringRef(pL->GetID() + "_TYPE").upper());
+      vector<Type*> elementTypes;
+      for (int i = 0; i < numPacked; ++i) {
+        elementTypes.push_back(ToLLVMType(PopNESLType(0)));
+      }
+      std::reverse(elementTypes.begin(), elementTypes.end());
+      packedType->setBody(elementTypes, false);
+
+      // create a struct and assign data into it
+      Value* packedValue = builder.CreateAlloca(packedType, NULL, pL->GetID());
+      for (int i = numPacked - 1; i >= 0; --i) {
+        Value* elementPtr = builder.CreateStructGEP(packedType, packedValue, i);
+        builder.CreateStore(Pop(), elementPtr);
+      }
+      
+      m_SymbolTable.getSymbol(pL->GetID())->setValue(packedValue);
+    } else {
+      Type* type = ToLLVMType(PopNESLType(0));   
+      Value* value = builder.CreateAlloca(type, NULL, pL->GetID());
+      builder.CreateStore(Pop(), value);
+
+      m_SymbolTable.getSymbol(pL->GetID())->setValue(value);
+    }
+  } else if (pR->isLeafNode()) {
+    
+    // TODO: ERROR: the number of rvalue is less than lvalue
+  } else {
+    
+    transAssign(pL->GetChild(0), pR->GetChild(0));
+    transAssign(pL->GetChild(1), pR->GetChild(1));
+  }
+}
+
+CodeGenVisitor::Values CodeGenVisitor::ReversedOrderPop(int pNum) 
+{
+  Values result;
+  for (int i = pNum; i > 0; --i) 
+    result.push_back(m_Values[m_Values.size() - i]);
+  for (int i = pNum; i > 0; --i)
+    Pop();
+
+  return result;
+}
+
+CodeGenVisitor::Types CodeGenVisitor::ReversedOrderPopNESLType(int pNum)
+{
+  Types result;
+  for (int i = pNum; i > 0; --i)
+    result.push_back(m_Types[m_Types.size() - i]);
+  if (pNum > 0)
+    PopNESLType(pNum);
+
+  return result;
+}
+
 int CodeGenVisitor::GetDepth(Node* pNode)
 {
-  if (NULL == pNode)
+  if (nullptr == pNode)
     return 0;
   
   int maxDepth = 0;

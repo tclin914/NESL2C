@@ -55,39 +55,40 @@ void CodeGenVisitor::Visit(TopLevels* pNode)
 
 void CodeGenVisitor::Visit(Assign* pNode)
 {
-  VisitChildren(pNode, m_NumChildOfBinary);
+  transAssign(pNode->GetChild(0), pNode->GetChild(1));
+  // VisitChildren(pNode, m_NumChildOfBinary);
   
-  IRBuilder<> builder(m_CurrentBB);
+  // IRBuilder<> builder(m_CurrentBB);
 
-  int leftDepth = GetDepth(pNode->GetChild(0));
-  int rightDepth = GetDepth(pNode->GetChild(1));
-  int numPacked = rightDepth - leftDepth + 1;
+  // int leftDepth = GetDepth(pNode->GetChild(0));
+  // int rightDepth = GetDepth(pNode->GetChild(1));
+  // int numPacked = rightDepth - leftDepth + 1;
 
-  Symbol* symbol;
-  while (NULL != (symbol = PopSymbol())) {
-    if (numPacked > 0) {
-      // create struct for packing tuple element
-      StructType* packedType = StructType::create(m_Module->getContext(), 
-          StringRef(symbol->getID() + "_type").upper());
-      vector<Type*> elementTypes;
-      while (numPacked > 0) {
-        elementTypes.push_back(ToLLVMType(PopNESLType(0))); 
-        --numPacked;
-      }
-      packedType->setBody(elementTypes, false);       
+  // Symbol* symbol;
+  // while (NULL != (symbol = PopSymbol())) {
+    // if (numPacked > 0) {
+      // // create struct for packing tuple element
+      // StructType* packedType = StructType::create(m_Module->getContext(), 
+          // StringRef(symbol->getID() + "_type").upper());
+      // vector<Type*> elementTypes;
+      // while (numPacked > 0) {
+        // elementTypes.push_back(ToLLVMType(PopNESLType(0))); 
+        // --numPacked;
+      // }
+      // packedType->setBody(elementTypes, false);       
       
-      // set up data of elements
-      Value* packedValue = builder.CreateAlloca(packedType, NULL, symbol->getID());
-      for (int i = 0; i < packedType->getNumElements(); ++i) {
-        Value* elementPtr = builder.CreateStructGEP(packedType, packedValue, i);
-        builder.CreateStore(Pop(), elementPtr);
-      }
+      // // set up data of elements
+      // Value* packedValue = builder.CreateAlloca(packedType, NULL, symbol->getID());
+      // for (int i = 0; i < packedType->getNumElements(); ++i) {
+        // Value* elementPtr = builder.CreateStructGEP(packedType, packedValue, i);
+        // builder.CreateStore(Pop(), elementPtr)->dump();
+      // }
 
-      symbol->setValue(packedValue);
-    } else {
+      // symbol->setValue(packedValue);
+    // } else {
     
-    }
-  }
+    // }
+  // }
 }
 
 void CodeGenVisitor::Visit(IfElse* pNode)
@@ -621,10 +622,9 @@ void CodeGenVisitor::Visit(SequenceTail* pNode)
 
 void CodeGenVisitor::Visit(Identifier* pNode)
 {
-  Symbol* symbol = new Symbol(pNode->getID(), UNDEFINED);
+  Symbol* symbol = new Symbol(pNode->GetID(), UNDEFINED);
   m_SymbolTable.addSymbol(symbol);
 
-  PushSymbol(symbol);
 }
 
 void CodeGenVisitor::Visit(TypeNode* pNode)

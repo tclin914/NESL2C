@@ -12,7 +12,7 @@ using namespace nesl2c;
 
 Identifier::Identifier(string pValue) : NullaryNode()
 {
-  this->m_Value = pValue;
+  this->f_ID = pValue;
 }
 
 bool Identifier::Initialize()
@@ -24,9 +24,4 @@ bool Identifier::Initialize()
 void Identifier::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);
-}
-
-string Identifier::getID() const
-{
-  return m_Value;
 }

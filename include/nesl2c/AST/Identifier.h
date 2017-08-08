@@ -8,8 +8,6 @@
 #ifndef NESL2C_AST_IDENTIFIER_H
 #define NESL2C_AST_IDENTIFIER_H
 
-#include <string>
-
 #include "nesl2c/AST/NullaryNode.h"
 
 using namespace std;
@@ -24,11 +22,6 @@ public:
   
   bool Initialize();
   void Accept(Visitor*);
-
-  string getID() const;
-
-private:
-  string m_Value;
 
 };
 
