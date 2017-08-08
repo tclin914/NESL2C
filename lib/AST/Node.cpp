@@ -21,6 +21,11 @@ NESLType Node::GetType()
   return f_NESLType; 
 }
 
+void Node::SetType(NESLType pType)
+{
+  f_NESLType = pType;
+}
+
 Node* Node::GetChild(int pIndex) 
 {
   return f_Children[pIndex];

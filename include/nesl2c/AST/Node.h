@@ -31,6 +31,7 @@ public:
   virtual void Accept(Visitor*) = 0;
 
   virtual NESLType GetType();
+  void SetType(NESLType);
   Node* GetChild(int);
   int GetChildNum();
   string GetID() const;
