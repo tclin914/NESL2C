@@ -10,6 +10,7 @@
 
 namespace nesl2c {
 
+class Node;
 class TopLevels;
 class Assign;
 class IfElse;
@@ -57,6 +58,7 @@ class Visitor
 {
 
 public:
+  virtual ~Visitor() {}
 
   virtual void Visit(TopLevels*) = 0;
   virtual void Visit(Assign*) = 0;
@@ -106,6 +108,15 @@ public:
   virtual void Visit(ConstantFloat*) = 0;
   virtual void Visit(ConstantBoolean*) = 0;
   virtual void Visit(ConstantString*) = 0;
+
+protected:
+  void VisitChildren(Node*, int);
+  void VisitChild(Node*, int);
+  void VisitSelf(Node*);
+
+protected:
+  static const int m_NumChildOfUnary = 1;
+  static const int m_NumChildOfBinary = 2;
 
 };
 

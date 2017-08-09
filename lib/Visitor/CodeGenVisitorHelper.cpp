@@ -15,24 +15,6 @@
 
 using namespace nesl2c;
 
-void CodeGenVisitor::VisitChildren(Node* pNode, int pNum) 
-{
-  for (int i = 0; i < pNum; ++i) {
-    if (NULL != pNode->GetChild(i))
-      pNode->GetChild(i)->Accept(this); 
-  }
-}
-
-void CodeGenVisitor::VisitChild(Node* pNode, int pIndex) 
-{
-  pNode->GetChild(pIndex)->Accept(this);
-}
-
-void CodeGenVisitor::VisitSelf(Node* pNode)
-{
-  pNode->Accept(this);
-}
-
 void CodeGenVisitor::Push(Value* pValue) {
   m_Values.push_back(pValue);
 }

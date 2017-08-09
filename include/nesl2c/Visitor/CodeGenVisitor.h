@@ -91,10 +91,6 @@ private:
   typedef vector<NESLType> Types;
 
 private:
-  void VisitChildren(Node*, int);
-  void VisitChild(Node*, int);
-  void VisitSelf(Node*);
-
   void Push(Value*);
   Value* Pop();
   void PushNESLType(NESLType);
@@ -112,9 +108,6 @@ private:
   int GetDepth(Node*);
 
 private:
-  static const int m_NumChildOfUnary = 1;
-  static const int m_NumChildOfBinary = 2;
-
   // LLVM IR Container
   LLVMContext m_Context;
   Module* m_Module;
