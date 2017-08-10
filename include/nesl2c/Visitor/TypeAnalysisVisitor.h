@@ -9,6 +9,7 @@
 #define NESL2C_VISITOR_TYPE_ANALYSIS_VISITOR_H
 
 #include "nesl2c/Visitor/Visitor.h"
+#include "nesl2c/AST/SymbolTable.h"
 
 namespace nesl2c {
 
@@ -66,6 +67,9 @@ public:
   virtual void Visit(ConstantFloat*);
   virtual void Visit(ConstantBoolean*);
   virtual void Visit(ConstantString*);
+
+private:
+  SymbolTable m_SymbolTable;
 
 };
 

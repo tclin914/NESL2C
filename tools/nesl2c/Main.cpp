@@ -16,6 +16,7 @@
 
 #include "nesl2c/AST/Node.h"
 #include "nesl2c/Visitor/CodeGenVisitor.h"
+#include "nesl2c/Visitor/TypeAnalysisVisitor.h"
 
 using namespace nesl2c;
 
@@ -176,8 +177,10 @@ int main(int argc, char **argv) {
       exit(1);
     }
     
-    Visitor *codeGenVisitor = new CodeGenVisitor();
-    yyheader->Accept(codeGenVisitor);
+    // Visitor* codeGenVisitor = new CodeGenVisitor();
+    // yyheader->Accept(codeGenVisitor);
+    Visitor* typeAnalysisVisitor = new TypeAnalysisVisitor();
+    yyheader->Accept(typeAnalysisVisitor);
 
     // printf("************************\n");
     // printf("*** NO PARSING ERROR ***\n");
