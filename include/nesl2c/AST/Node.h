@@ -32,10 +32,17 @@ public:
 
   NESLType GetNESLType();
   void SetNESLType(NESLType);
+  
   Node* GetChild(int);
   int GetChildNum();
+  
   string GetID() const;
+  
   bool isLeafNode() const;
+
+  bool isNumber() const;
+  bool isLogic() const;
+  bool isOrdinal() const;
 
 protected:
   typedef std::vector<Node*> Children;

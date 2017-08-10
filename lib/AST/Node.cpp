@@ -45,3 +45,20 @@ bool Node::isLeafNode() const
 {
   return f_Children.empty(); 
 }
+
+bool Node::isNumber() const
+{
+  return f_NESLType == INTEGER_T || 
+      f_NESLType == FLOAT_T;
+}
+
+bool Node::isLogic() const
+{
+  return f_NESLType == INTEGER_T ||
+      f_NESLType == BOOL_T;
+}
+
+bool Node::isOrdinal() const 
+{
+  return isNumber() || f_NESLType == CHAR_T;
+}
