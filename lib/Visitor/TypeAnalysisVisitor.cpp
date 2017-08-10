@@ -10,6 +10,7 @@
 #include "nesl2c/Visitor/TypeAnalysisVisitor.h"
 #include "nesl2c/AST/Symbol.h"
 #include "nesl2c/AST/TopLevels.h"
+#include "nesl2c/AST/Assign.h"
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Identifier.h"
@@ -32,6 +33,7 @@ void TypeAnalysisVisitor::Visit(TopLevels* pNode)
 
 void TypeAnalysisVisitor::Visit(Assign* pNode)
 {
+  VisitAssign(pNode->GetChild(0), pNode->GetChild(1));
 }
 
 void TypeAnalysisVisitor::Visit(IfElse* pNode)
@@ -98,33 +100,32 @@ void TypeAnalysisVisitor::Visit(Add* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (pNode->GetChild(0)->GetType() != INTEGER_T &&
-        pNode->GetChild(0)->GetType() != FLOAT_T &&
-        pNode->GetChild(1)->GetType() != INTEGER_T &&
-        pNode->GetChild(1)->GetType() != FLOAT_T) 
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of + operation is undefined");
+
+  if (!pNode->GetChild(0)->isNumber() || !pNode->GetChild(1)->isNumber())
     report_fatal_error("Type Analysis: The operand of + operation must be integer or float type");
   
-
-  if (pNode->GetChild(0)->GetType() != pNode->GetChild(1)->GetType())
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
     report_fatal_error("Type Analysis: The operands of + operation are not the same type");
 
-  pNode->SetType(pNode->GetChild(0)->GetType());
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(Subtract* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
+  
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of - operation is undefined");
 
-  if (pNode->GetChild(0)->GetType() != INTEGER_T &&
-        pNode->GetChild(0)->GetType() != FLOAT_T &&
-        pNode->GetChild(1)->GetType() != INTEGER_T &&
-        pNode->GetChild(1)->GetType() != FLOAT_T)
+  if (!pNode->GetChild(0)->isNumber() || !pNode->GetChild(1)->isNumber())
     report_fatal_error("Type Analysis: The operand of - operation must be integer or float type");
 
-  if (pNode->GetChild(0)->GetType() != pNode->GetChild(1)->GetType())
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
     report_fatal_error("Type Analysis: The operands of - operation are not the same type");
 
-  pNode->SetType(pNode->GetChild(0)->GetType());
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(PP* pNode)
@@ -197,8 +198,11 @@ void TypeAnalysisVisitor::Visit(SequenceTail* pNode)
 
 void TypeAnalysisVisitor::Visit(Identifier* pNode)
 {
-  Symbol* symbol = new Symbol(pNode->GetID(), UNDEFINED);
-  m_SymbolTable.addSymbol(symbol);
+  Symbol* symbol = m_SymbolTable.getSymbol(pNode->GetID());
+  if (nullptr == symbol) 
+    m_SymbolTable.addSymbol(new Symbol(pNode->GetID(), UNDEFINED));
+  else
+    pNode->SetNESLType(symbol->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(TypeNode* pNode)
@@ -207,20 +211,40 @@ void TypeAnalysisVisitor::Visit(TypeNode* pNode)
 
 void TypeAnalysisVisitor::Visit(ConstantInteger* pNode)
 {
-  pNode->SetType(INTEGER_T);
+  pNode->SetNESLType(INTEGER_T);
 }
 
 void TypeAnalysisVisitor::Visit(ConstantFloat* pNode)
 {
-  pNode->SetType(FLOAT_T);
+  pNode->SetNESLType(FLOAT_T);
 }
 
 void TypeAnalysisVisitor::Visit(ConstantBoolean* pNode)
 {
-  pNode->SetType(BOOL_T);
+  pNode->SetNESLType(BOOL_T);
 }
 
 void TypeAnalysisVisitor::Visit(ConstantString* pNode)
 {
-  pNode->SetType(STRING_T);
+  pNode->SetNESLType(STRING_T);
+}
+
+void TypeAnalysisVisitor::VisitAssign(Node* pL, Node* pR) 
+{
+  if (nullptr == pL)
+    return;
+
+  if (pL->isLeafNode()) {
+    VisitSelf(pL);
+    VisitSelf(pR);
+
+    m_SymbolTable.getSymbol(pL->GetID())->SetNESLType(pR->GetNESLType());
+  } else if (pR->isLeafNode()) {
+       
+    report_fatal_error("Type Analysis: The number of tuple of rvalue is less than lvalue");
+  } else {
+  
+    VisitAssign(pL->GetChild(0), pR->GetChild(0));
+    VisitAssign(pL->GetChild(1), pR->GetChild(1));
+  }
 }

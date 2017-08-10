@@ -167,15 +167,15 @@ int main(int argc, char **argv) {
 
     initialized = yyheader->Initialize();
 
-    if (!initialized) {
-      printf("Initialize fail\n");
-      exit(1);
-    }
+    // if (!initialized) {
+      // printf("Initialize fail\n");
+      // exit(1);
+    // }
 
-    if (!yyheader->SemanticCheck()) {
-      printf("Semantic check fail\n");
-      exit(1);
-    }
+    // if (!yyheader->SemanticCheck()) {
+      // printf("Semantic check fail\n");
+      // exit(1);
+    // }
     
     // Visitor* codeGenVisitor = new CodeGenVisitor();
     // yyheader->Accept(codeGenVisitor);
