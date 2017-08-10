@@ -11,6 +11,11 @@
 #include "nesl2c/AST/Symbol.h"
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/Or.h"
+#include "nesl2c/AST/NotOr.h"
+#include "nesl2c/AST/XOr.h"
+#include "nesl2c/AST/And.h"
+#include "nesl2c/AST/NotAnd.h"
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Mul.h"
@@ -57,22 +62,82 @@ void TypeAnalysisVisitor::Visit(Tuple* pNode)
 
 void TypeAnalysisVisitor::Visit(Or* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of or operation is undefined");
+
+  if (!pNode->GetChild(0)->isLogic() || !pNode->GetChild(1)->isLogic())
+    report_fatal_error("Type Analysis: The operand of or operation must be integer or boolean type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of or operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(NotOr* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of not or operation is undefined");
+
+  if (!pNode->GetChild(0)->isLogic() || !pNode->GetChild(1)->isLogic())
+    report_fatal_error("Type Analysis: The operand of not or operation must be integer or boolean type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of not or operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(XOr* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of xor operation is undefined");
+
+  if (!pNode->GetChild(0)->isLogic() || !pNode->GetChild(1)->isLogic())
+    report_fatal_error("Type Analysis: The operand of xor operation must be integer or boolean type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of xor operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(And* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of and operation is undefined");
+
+  if (!pNode->GetChild(0)->isLogic() || !pNode->GetChild(1)->isLogic())
+    report_fatal_error("Type Analysis: The operand of and operation must be integer or boolean type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of and operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(NotAnd* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of not and operation is undefined");
+
+  if (!pNode->GetChild(0)->isLogic() || !pNode->GetChild(1)->isLogic())
+    report_fatal_error("Type Analysis: The operand of not and operation must be integer or boolean type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of not and operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(Equal* pNode)
