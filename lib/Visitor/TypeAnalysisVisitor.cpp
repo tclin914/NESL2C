@@ -15,6 +15,7 @@
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Mul.h"
 #include "nesl2c/AST/Div.h"
+#include "nesl2c/AST/Uminus.h"
 #include "nesl2c/AST/Identifier.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
@@ -184,6 +185,15 @@ void TypeAnalysisVisitor::Visit(At* pNode)
 
 void TypeAnalysisVisitor::Visit(Uminus* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfUnary);
+
+  if (pNode->GetChild(0)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of uminus operation is undefined");
+
+  if (!pNode->GetChild(0)->isNumber())
+    report_fatal_error("Type Analysis: The operand of / operation must be integer or float type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(Upt* pNode)
