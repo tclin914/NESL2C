@@ -20,7 +20,7 @@ bool LogicOperation::Initialize()
 
   bool result = locallySemanticCheck();
   if (result) 
-    f_NESLType = f_Children[0]->GetType();
+    f_NESLType = f_Children[0]->GetNESLType();
   return result;
 }
 

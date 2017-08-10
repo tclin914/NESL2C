@@ -16,12 +16,12 @@ Node::Node() : f_ID("")
   f_LineNo = yylineno; // line_no is a global variable from yacc
 }
 
-NESLType Node::GetType()
+NESLType Node::GetNESLType()
 {
   return f_NESLType; 
 }
 
-void Node::SetType(NESLType pType)
+void Node::SetNESLType(NESLType pType)
 {
   f_NESLType = pType;
 }

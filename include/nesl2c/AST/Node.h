@@ -30,8 +30,8 @@ public:
   virtual bool SemanticCheck() = 0;
   virtual void Accept(Visitor*) = 0;
 
-  virtual NESLType GetType();
-  void SetType(NESLType);
+  NESLType GetNESLType();
+  void SetNESLType(NESLType);
   Node* GetChild(int);
   int GetChildNum();
   string GetID() const;

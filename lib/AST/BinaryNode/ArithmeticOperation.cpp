@@ -20,7 +20,7 @@ bool ArithmeticOperation::Initialize()
   
   bool result =  locallySemanticCheck();
   if (result)
-    f_NESLType = f_Children[0]->GetType();
+    f_NESLType = f_Children[0]->GetNESLType();
   return result;
 }
 
@@ -35,9 +35,9 @@ bool ArithmeticOperation::locallySemanticCheck()
     return false;
   }
 
-  if (f_Children[0]->GetType() != f_Children[1]->GetType() ||
-        (f_Children[0]->GetType() != INTEGER_T && 
-        f_Children[0]->GetType() != FLOAT_T)) {
+  if (f_Children[0]->GetNESLType() != f_Children[1]->GetNESLType() ||
+        (f_Children[0]->GetNESLType() != INTEGER_T && 
+        f_Children[0]->GetNESLType() != FLOAT_T)) {
     return false;
   }
 
