@@ -13,6 +13,8 @@
 #include "nesl2c/AST/Assign.h"
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
+#include "nesl2c/AST/Mul.h"
+#include "nesl2c/AST/Div.h"
 #include "nesl2c/AST/Identifier.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
@@ -138,10 +140,34 @@ void TypeAnalysisVisitor::Visit(LARROW* pNode)
 
 void TypeAnalysisVisitor::Visit(Mul* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+  
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of * operation is undefined");
+
+  if (!pNode->GetChild(0)->isNumber() || !pNode->GetChild(1)->isNumber())
+    report_fatal_error("Type Analysis: The operand of * operation must be integer or float type");
+
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of * operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(Div* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+  
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of / operation is undefined");
+
+  if (!pNode->GetChild(0)->isNumber() || !pNode->GetChild(1)->isNumber())
+    report_fatal_error("Type Analysis: The operand of / operation must be integer or float type");
+
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of / operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(RARROW* pNode)
