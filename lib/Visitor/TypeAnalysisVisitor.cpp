@@ -16,6 +16,12 @@
 #include "nesl2c/AST/XOr.h"
 #include "nesl2c/AST/And.h"
 #include "nesl2c/AST/NotAnd.h"
+#include "nesl2c/AST/Equal.h"
+#include "nesl2c/AST/NotEqual.h"
+#include "nesl2c/AST/LessThan.h"
+#include "nesl2c/AST/GreaterThan.h"
+#include "nesl2c/AST/LessEqual.h"
+#include "nesl2c/AST/GreaterEqual.h"
 #include "nesl2c/AST/Add.h"
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Mul.h"
@@ -142,26 +148,98 @@ void TypeAnalysisVisitor::Visit(NotAnd* pNode)
 
 void TypeAnalysisVisitor::Visit(Equal* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of == operation is undefined");
+
+  if (!pNode->GetChild(0)->isOrdinal() || !pNode->GetChild(1)->isOrdinal())
+    report_fatal_error("Type Analysis: The operand of == operation must be ordinal type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of == operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(NotEqual* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of /= operation is undefined");
+
+  if (!pNode->GetChild(0)->isOrdinal() || !pNode->GetChild(1)->isOrdinal())
+    report_fatal_error("Type Analysis: The operand of /= operation must be ordinal type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of /= operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(LessThan* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of < operation is undefined");
+
+  if (!pNode->GetChild(0)->isOrdinal() || !pNode->GetChild(1)->isOrdinal())
+    report_fatal_error("Type Analysis: The operand of < operation must be ordinal type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of < operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(GreaterThan* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of > operation is undefined");
+
+  if (!pNode->GetChild(0)->isOrdinal() || !pNode->GetChild(1)->isOrdinal())
+    report_fatal_error("Type Analysis: The operand of > operation must be ordinal type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of > operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(LessEqual* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of <= operation is undefined");
+
+  if (!pNode->GetChild(0)->isOrdinal() || !pNode->GetChild(1)->isOrdinal())
+    report_fatal_error("Type Analysis: The operand of <= operation must be ordinal type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of <= operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(GreaterEqual* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
+
+  if (pNode->GetChild(0)->isUndefined() || pNode->GetChild(1)->isUndefined())
+    report_fatal_error("Type Analysis: The operand of >= operation is undefined");
+
+  if (!pNode->GetChild(0)->isOrdinal() || !pNode->GetChild(1)->isOrdinal())
+    report_fatal_error("Type Analysis: The operand of >= operation must be ordinal type");
+  
+  if (pNode->GetChild(0)->GetNESLType() != pNode->GetChild(1)->GetNESLType())
+    report_fatal_error("Type Analysis: The operands of >= operation are not the same type");
+
+  pNode->SetNESLType(pNode->GetChild(0)->GetNESLType());
 }
 
 void TypeAnalysisVisitor::Visit(Add* pNode)
