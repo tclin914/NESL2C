@@ -101,13 +101,13 @@ void CodeGenVisitor::transAssign(Node* pL, Node* pR)
         builder.CreateStore(Pop(), elementPtr);
       }
       
-      m_SymbolTable.getSymbol(pL->GetID())->setValue(packedValue);
+      m_SymbolTable.getSymbol(pL->GetID())->SetValue(packedValue);
     } else {
       Type* type = ToLLVMType(PopNESLType(0));   
       Value* value = builder.CreateAlloca(type, NULL, pL->GetID());
       builder.CreateStore(Pop(), value);
 
-      m_SymbolTable.getSymbol(pL->GetID())->setValue(value);
+      m_SymbolTable.getSymbol(pL->GetID())->SetValue(value);
     }
   } else if (pR->isLeafNode()) {
     

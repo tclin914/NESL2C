@@ -23,7 +23,7 @@ Symbol* SymbolTable::getSymbol(string pString)
 {
   vector<Symbol*>::iterator it;
   for (it = m_Symbols.begin(); it != m_Symbols.end(); ++it) {
-    if ((*it)->getID() == pString) {
+    if ((*it)->GetID() == pString) {
       return *it; 
     }    
   }

@@ -27,10 +27,11 @@ class Symbol
 public:
   Symbol(string, NESLType);
   
-  string getID() const;
-  NESLType getNESLType() const;
+  string GetID() const;
+  NESLType GetNESLType() const;
+  void SetNESLType(NESLType);
 
-  void setValue(llvm::Value*);
+  void SetValue(llvm::Value*);
 
 private:
   string m_ID;

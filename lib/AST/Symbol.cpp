@@ -13,17 +13,22 @@ Symbol::Symbol(string pID, NESLType pType) : m_ID(pID), m_NESLType(pType)
 {
 }
 
-string Symbol::getID() const
+string Symbol::GetID() const
 {
   return m_ID;
 }
 
-NESLType Symbol::getNESLType() const
+NESLType Symbol::GetNESLType() const
 {
   return m_NESLType;
 }
 
-void Symbol::setValue(llvm::Value* pValue)
+void Symbol::SetNESLType(NESLType pType)
+{
+  m_NESLType = pType;
+}
+
+void Symbol::SetValue(llvm::Value* pValue)
 {
   m_Value = pValue;
 }
