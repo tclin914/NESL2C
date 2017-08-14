@@ -11,6 +11,7 @@
 namespace nesl2c {
 
 class Node;
+class Goal;
 class TopLevels;
 class Assign;
 class IfElse;
@@ -60,6 +61,7 @@ class Visitor
 public:
   virtual ~Visitor() {}
 
+  virtual void Visit(Goal*) = 0;
   virtual void Visit(TopLevels*) = 0;
   virtual void Visit(Assign*) = 0;
   virtual void Visit(IfElse*) = 0;

@@ -49,6 +49,10 @@ CodeGenVisitor::~CodeGenVisitor()
   delete m_Module;
 }
 
+void CodeGenVisitor::Visit(Goal* pNode)
+{
+}
+
 void CodeGenVisitor::Visit(TopLevels* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);

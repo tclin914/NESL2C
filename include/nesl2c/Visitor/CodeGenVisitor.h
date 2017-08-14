@@ -37,6 +37,7 @@ public:
   CodeGenVisitor(SymbolTable*);
   ~CodeGenVisitor();
 
+  virtual void Visit(Goal*);
   virtual void Visit(TopLevels*);
   virtual void Visit(Assign*);
   virtual void Visit(IfElse*);

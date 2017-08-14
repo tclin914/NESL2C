@@ -45,6 +45,10 @@ TypeAnalysisVisitor::~TypeAnalysisVisitor()
 {
 }
 
+void TypeAnalysisVisitor::Visit(Goal* pNode)
+{
+}
+
 void TypeAnalysisVisitor::Visit(TopLevels* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
