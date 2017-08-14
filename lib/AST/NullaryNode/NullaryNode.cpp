@@ -13,8 +13,3 @@ NullaryNode::NullaryNode() : Node()
 {
   f_NESLType = UNDEFINED;
 }
-
-bool NullaryNode::SemanticCheck()
-{
-  return true;
-}

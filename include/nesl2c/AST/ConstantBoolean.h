@@ -18,7 +18,6 @@ class ConstantBoolean : public NullaryNode
 public:
   ConstantBoolean(bool);
   
-  bool Initialize();
   void Accept(Visitor*);
 
   bool GetBoolValue();

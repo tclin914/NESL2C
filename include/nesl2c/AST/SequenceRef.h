@@ -18,8 +18,6 @@ class SequenceRef : public BinaryNode
 public:
   SequenceRef(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
 
 };

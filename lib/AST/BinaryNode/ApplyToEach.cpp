@@ -14,16 +14,6 @@ ApplyToEach::ApplyToEach(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool ApplyToEach::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool ApplyToEach::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void ApplyToEach::Accept(Visitor* pVisitor)
 {
   return pVisitor->Visit(this);

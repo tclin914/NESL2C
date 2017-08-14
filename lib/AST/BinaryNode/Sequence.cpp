@@ -14,16 +14,6 @@ Sequence::Sequence(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool Sequence::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool Sequence::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void Sequence::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

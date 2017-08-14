@@ -15,11 +15,6 @@ TypeNode::TypeNode(NESLType pNESLType) : NullaryNode()
   f_NESLType = pNESLType;
 }
 
-bool TypeNode::Initialize()
-{
-  return true;
-}
-
 void TypeNode::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

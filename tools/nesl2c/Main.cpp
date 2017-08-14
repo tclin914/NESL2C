@@ -162,24 +162,6 @@ int main(int argc, char **argv) {
     yyparse();
     fclose(yyin);
 
-    bool initialized = false;
-    bool semanticValid = false;
-
-    initialized = yyheader->Initialize();
-
-    // if (!initialized) {
-      // printf("Initialize fail\n");
-      // exit(1);
-    // }
-
-    // if (!yyheader->SemanticCheck()) {
-      // printf("Semantic check fail\n");
-      // exit(1);
-    // }
-    
-    // Visitor* codeGenVisitor = new CodeGenVisitor();
-    // yyheader->Accept(codeGenVisitor);
-    // Visitor* typeAnalysisVisitor = new TypeAnalysisVisitor();
     SymbolTable symbolTable;
     // Type Analysis
     TypeAnalysisVisitor typeAnalysisVisitor(&symbolTable);

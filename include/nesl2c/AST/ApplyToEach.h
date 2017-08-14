@@ -18,8 +18,6 @@ class ApplyToEach : public BinaryNode
 public:
   ApplyToEach(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
 
 };

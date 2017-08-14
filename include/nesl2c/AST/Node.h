@@ -26,8 +26,6 @@ public:
   Node();
   virtual ~Node() {}
 
-  virtual bool Initialize() = 0;
-  virtual bool SemanticCheck() = 0;
   virtual void Accept(Visitor*) = 0;
 
   NESLType GetNESLType() const;

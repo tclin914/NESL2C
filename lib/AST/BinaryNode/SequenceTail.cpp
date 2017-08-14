@@ -14,16 +14,6 @@ SequenceTail::SequenceTail(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool SequenceTail::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool SequenceTail::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void SequenceTail::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

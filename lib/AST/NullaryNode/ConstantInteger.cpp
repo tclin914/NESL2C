@@ -17,12 +17,6 @@ ConstantInteger::ConstantInteger(string pValue) : NullaryNode()
   this->m_Value = atoi(pValue.c_str());
 }
 
-bool ConstantInteger::Initialize()
-{
-  f_NESLType = INTEGER_T;
-  return true;
-}
-
 void ConstantInteger::Accept(Visitor* pVisitor) 
 {
   pVisitor->Visit(this);

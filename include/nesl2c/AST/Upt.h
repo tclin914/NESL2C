@@ -18,8 +18,6 @@ class Upt : public BinaryNode
 public:
   Upt(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
   
 };

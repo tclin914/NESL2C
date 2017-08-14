@@ -14,16 +14,6 @@ In::In(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool In::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool In::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void In::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

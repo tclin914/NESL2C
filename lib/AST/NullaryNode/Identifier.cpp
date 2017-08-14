@@ -15,12 +15,6 @@ Identifier::Identifier(string pValue) : NullaryNode()
   this->f_ID = pValue;
 }
 
-bool Identifier::Initialize()
-{
-  f_NESLType = UNDEFINED;
-  return true;
-}
-
 void Identifier::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

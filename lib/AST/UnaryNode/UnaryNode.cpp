@@ -13,17 +13,3 @@ UnaryNode::UnaryNode(Node* pA) : Node()
 {
   f_Children.push_back(pA);
 }
-
-bool UnaryNode::Initialize()
-{
-  if (f_Children[0] != NULL)
-    return f_Children[0]->Initialize();
-  return true;
-}
-
-bool UnaryNode::SemanticCheck()
-{
-  if (f_Children[0] != NULL) 
-    return f_Children[0]->SemanticCheck();
-  return true;
-}

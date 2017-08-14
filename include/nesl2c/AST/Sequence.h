@@ -18,8 +18,6 @@ class Sequence : public BinaryNode
 public:
   Sequence(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
 
 };

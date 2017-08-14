@@ -14,16 +14,6 @@ ExpBinds::ExpBinds(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool ExpBinds::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool ExpBinds::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void ExpBinds::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

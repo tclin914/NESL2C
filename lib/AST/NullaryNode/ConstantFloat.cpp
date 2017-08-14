@@ -17,12 +17,6 @@ ConstantFloat::ConstantFloat(string pValue) : NullaryNode()
   this->m_Value = atof(pValue.c_str());
 }
 
-bool ConstantFloat::Initialize()
-{
-  f_NESLType = FLOAT_T;
-  return true;
-}
-
 void ConstantFloat::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

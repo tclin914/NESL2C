@@ -19,9 +19,6 @@ public:
   TernaryNode(Node*, Node*, Node*);
   virtual ~TernaryNode() {}
 
-  virtual bool Initialize();
-  virtual bool SemanticCheck();
-
 };
 
 } // namespace of nesl2c

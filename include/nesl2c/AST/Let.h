@@ -18,8 +18,6 @@ class Let : public BinaryNode
 public:
   Let(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
 
 };

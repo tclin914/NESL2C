@@ -19,12 +19,6 @@ public:
   RelationalOperation(Node*, Node*);
   virtual ~RelationalOperation() {}
 
-  bool Initialize();
-  bool SemanticCheck();
-
-private:
-  bool locallySemanticCheck();
-
 };
 
 } // namespace of nesl2c

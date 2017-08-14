@@ -15,12 +15,6 @@ ConstantBoolean::ConstantBoolean(bool pValue) : NullaryNode()
   this->m_Value = pValue;
 }
 
-bool ConstantBoolean::Initialize()
-{
-  f_NESLType = BOOL_T;
-  return true;
-}
-
 void ConstantBoolean::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

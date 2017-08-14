@@ -18,7 +18,6 @@ class TypeNode : public NullaryNode
 public:
   TypeNode(NESLType);
   
-  bool Initialize();
   void Accept(Visitor*);
 
 };

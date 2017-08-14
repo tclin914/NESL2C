@@ -18,8 +18,6 @@ class SequenceTail : public BinaryNode
 public:  
   SequenceTail(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
 
 };

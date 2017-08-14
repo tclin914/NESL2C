@@ -12,25 +12,3 @@ using namespace nesl2c;
 LogicOperation::LogicOperation(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
-
-bool LogicOperation::Initialize()
-{
-  if (!BinaryNode::Initialize())
-    return false;
-
-  bool result = locallySemanticCheck();
-  if (result) 
-    f_NESLType = f_Children[0]->GetNESLType();
-  return result;
-}
-
-bool LogicOperation::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck() & locallySemanticCheck();
-}
-
-bool LogicOperation::locallySemanticCheck()
-{
-  // TODO:
-  return true;
-}

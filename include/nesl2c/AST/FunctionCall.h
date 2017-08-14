@@ -18,8 +18,6 @@ class FunctionCall : public BinaryNode
 public:
   FunctionCall(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
 
 };

@@ -19,9 +19,6 @@ public:
   BinaryNode(Node*, Node*);
   virtual ~BinaryNode() {}
 
-  virtual bool Initialize();
-  virtual bool SemanticCheck();
-
 };
 
 } // namespace of nesl2c

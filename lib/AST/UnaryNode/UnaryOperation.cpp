@@ -12,16 +12,3 @@ using namespace nesl2c;
 UnaryOperation::UnaryOperation(Node* pA) : UnaryNode(pA)
 {
 }
-
-bool UnaryOperation::Initialize()
-{
-  if (!UnaryNode::Initialize())
-    return false;
-
-  return true;
-}
-
-bool UnaryOperation::SemanticCheck()
-{
-  return UnaryNode::SemanticCheck();
-}

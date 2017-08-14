@@ -14,16 +14,6 @@ FunctionCall::FunctionCall(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool FunctionCall::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool FunctionCall::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck(); 
-}
-
 void FunctionCall::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

@@ -19,12 +19,6 @@ public:
   ArithmeticOperation(Node*, Node*);
   virtual ~ArithmeticOperation() {}
 
-  bool Initialize(); 
-  bool SemanticCheck();
-
-private:
-  bool locallySemanticCheck();
-
 };
 
 } // namespace of nesl2c

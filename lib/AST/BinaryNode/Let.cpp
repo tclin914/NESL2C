@@ -14,16 +14,6 @@ Let::Let(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool Let::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool Let::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void Let::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

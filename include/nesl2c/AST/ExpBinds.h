@@ -18,8 +18,6 @@ class ExpBinds : public BinaryNode
 public:
   ExpBinds(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
   
 };

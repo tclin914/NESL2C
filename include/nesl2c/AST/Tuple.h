@@ -18,8 +18,6 @@ class Tuple : public BinaryNode
 public:
   Tuple(Node*, Node*);
 
-  bool Initialize();
-  bool SemanticCheck();
   void Accept(Visitor*);
   
 };

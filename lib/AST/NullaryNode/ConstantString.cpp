@@ -15,12 +15,6 @@ ConstantString::ConstantString(string pValue) : NullaryNode()
   this->m_Value = pValue;
 }
 
-bool ConstantString::Initialize()
-{
-  f_NESLType = STRING_T;
-  return true;
-}
-
 void ConstantString::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

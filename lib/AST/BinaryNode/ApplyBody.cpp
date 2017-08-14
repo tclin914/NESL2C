@@ -14,16 +14,6 @@ ApplyBody::ApplyBody(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool ApplyBody::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool ApplyBody::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void ApplyBody::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

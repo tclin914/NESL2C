@@ -14,16 +14,6 @@ IfElse::IfElse(Node* pA, Node* pB, Node* pC) : TernaryNode(pA, pB, pC)
 {
 }
 
-bool IfElse::Initialize()
-{
-  return TernaryNode::Initialize();
-}
-
-bool IfElse::SemanticCheck()
-{
-  return TernaryNode::SemanticCheck();
-}
-
 void IfElse::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

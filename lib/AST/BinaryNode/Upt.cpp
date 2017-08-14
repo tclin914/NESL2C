@@ -14,16 +14,6 @@ Upt::Upt(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool Upt::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool Upt::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void Upt::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

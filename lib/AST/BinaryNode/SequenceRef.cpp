@@ -14,16 +14,6 @@ SequenceRef::SequenceRef(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool SequenceRef::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool SequenceRef::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void SequenceRef::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);

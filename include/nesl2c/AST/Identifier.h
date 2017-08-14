@@ -20,7 +20,6 @@ class Identifier : public NullaryNode
 public:
   Identifier(string);
   
-  bool Initialize();
   void Accept(Visitor*);
 
 };

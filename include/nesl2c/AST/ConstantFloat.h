@@ -22,7 +22,6 @@ class ConstantFloat : public NullaryNode
 public:
   ConstantFloat(string);
   
-  bool Initialize();
   void Accept(Visitor*);
 
   float GetFPValue();

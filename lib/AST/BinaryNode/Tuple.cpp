@@ -14,16 +14,6 @@ Tuple::Tuple(Node* pA, Node* pB) : BinaryNode(pA, pB)
 {
 }
 
-bool Tuple::Initialize()
-{
-  return BinaryNode::Initialize();
-}
-
-bool Tuple::SemanticCheck()
-{
-  return BinaryNode::SemanticCheck();
-}
-
 void Tuple::Accept(Visitor* pVisitor)
 {
   pVisitor->Visit(this);
