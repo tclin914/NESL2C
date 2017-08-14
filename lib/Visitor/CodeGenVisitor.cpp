@@ -79,384 +79,323 @@ void CodeGenVisitor::Visit(Tuple* pNode)
 void CodeGenVisitor::Visit(Or* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
-
-  if (m_Values.size() >= m_NumChildOfBinary) {
  
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
-    // INTEGER or BOOL
-    Value* inst = builder.CreateOr(operand1, operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
+  // INTEGER or BOOL
+  Value* inst = builder.CreateOr(operand1, operand2);
     
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
-  }
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(NotOr* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-  
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
-    // INTEGER or BOOL
-    Value* inst = builder.CreateNot(builder.CreateOr(operand1, operand2));
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
+  // INTEGER or BOOL
+  Value* inst = builder.CreateNot(builder.CreateOr(operand1, operand2));
     
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
-  }
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(XOr* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
-    // INTEGER or BOOL
-    Value* inst = builder.CreateXor(operand1, operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
+  // INTEGER or BOOL
+  Value* inst = builder.CreateXor(operand1, operand2);
     
-    Push(inst);
-    PushNESLType(type); 
-  } else {
-    // TODO:
-  }
+  Push(inst);
+  PushNESLType(type); 
 }
 
 void CodeGenVisitor::Visit(And* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
-    // INTEGER or BOOL
-    Value* inst = builder.CreateAnd(operand1, operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
+  // INTEGER or BOOL
+  Value* inst = builder.CreateAnd(operand1, operand2);
     
-    Push(inst);
-    PushNESLType(type);
-  }
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(NotAnd* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
-    // INTEGER or BOOL
-    Value* inst = builder.CreateNot(builder.CreateAnd(operand1, operand2));
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
+  // INTEGER or BOOL
+  Value* inst = builder.CreateNot(builder.CreateAnd(operand1, operand2));
     
-    Push(inst);
-    PushNESLType(type);
-  }
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(Equal* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
-
-  if (m_Values.size() >= m_NumChildOfBinary) {
-  
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
-
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
-
-    Value* inst;
-    switch (type) {
-      case INTEGER_T:
-        inst = builder.CreateICmpEQ(operand1, operand2);
-        break;
-      case FLOAT_T: // TODO: OEQ or UEQ
-        inst = builder.CreateFCmpUEQ(operand1, operand2);
-        break; 
-      default:
-        // TODO:
-        break;
-    }
     
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO: 
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
+
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
+
+  Value* inst;
+  switch (type) {
+    case INTEGER_T:
+      inst = builder.CreateICmpEQ(operand1, operand2);
+      break;
+    case FLOAT_T: // TODO: OEQ or UEQ
+      inst = builder.CreateFCmpUEQ(operand1, operand2);
+      break; 
+    default:
+      // TODO:
+      break;
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(NotEqual* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-  
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T:
-        inst = builder.CreateICmpNE(operand1, operand2);
-        break;
-      case FLOAT_T:
-        inst = builder.CreateFCmpUNE(operand1, operand2);
-        break;
-      default:
-        // TODO:
-        break;
-    }
-    
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
+  Value* inst;
+  switch (type) {
+    case INTEGER_T:
+      inst = builder.CreateICmpNE(operand1, operand2);
+      break;
+    case FLOAT_T:
+      inst = builder.CreateFCmpUNE(operand1, operand2);
+      break;
+    default:
+      // TODO:
+      break;
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(LessThan* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T:
-        inst = builder.CreateICmpSLT(operand1, operand2);
-        break;
-      case FLOAT_T: // TODO: OLT or ULT
-        inst = builder.CreateFCmpULT(operand1, operand2);
-        break;
-      default:
-        // TODO:
-        break;   
-    }
-    
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
+  Value* inst;
+  switch (type) {
+    case INTEGER_T:
+      inst = builder.CreateICmpSLT(operand1, operand2);
+      break;
+    case FLOAT_T: // TODO: OLT or ULT
+      inst = builder.CreateFCmpULT(operand1, operand2);
+      break;
+    default:
+      // TODO:
+      break;   
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(GreaterThan* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T:
-        inst = builder.CreateICmpSGT(operand1, operand2);
-        break;
-      case FLOAT_T: // TODO: OGT or UGT
-        inst = builder.CreateFCmpUGT(operand1, operand2);
-        break;
-      default:
-        // TODO:
-        break;   
-    }
-    
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
+  Value* inst;
+  switch (type) {
+    case INTEGER_T:
+      inst = builder.CreateICmpSGT(operand1, operand2);
+      break;
+    case FLOAT_T: // TODO: OGT or UGT
+      inst = builder.CreateFCmpUGT(operand1, operand2);
+      break;
+    default:
+      // TODO:
+      break;   
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(LessEqual* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T:
-        inst = builder.CreateICmpSLE(operand1, operand2);
-        break;
-      case FLOAT_T: // TODO: OLE or ULE
-        inst = builder.CreateFCmpULE(operand1, operand2);
-        break;
-      default:
-        // TODO:
-        break;   
-    }
-    
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
+  Value* inst;
+  switch (type) {
+    case INTEGER_T:
+      inst = builder.CreateICmpSLE(operand1, operand2);
+      break;
+    case FLOAT_T: // TODO: OLE or ULE
+      inst = builder.CreateFCmpULE(operand1, operand2);
+      break;
+    default:
+      // TODO:
+      break;   
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(GreaterEqual* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T:
-        inst = builder.CreateICmpSGE(operand1, operand2);
-        break;
-      case FLOAT_T: // TODO: OGE or UGE
-        inst = builder.CreateFCmpUGE(operand1, operand2);
-        break;
-      default:
-        // TODO:
-        break;   
-    }
-    
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
+  Value* inst;
+  switch (type) {
+    case INTEGER_T:
+      inst = builder.CreateICmpSGE(operand1, operand2);
+      break;
+    case FLOAT_T: // TODO: OGE or UGE
+      inst = builder.CreateFCmpUGE(operand1, operand2);
+      break;
+    default:
+      // TODO:
+      break;   
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(Add* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
-
-  if (m_Values.size() >= m_NumChildOfBinary) {
-
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
-   
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
-
-    Value* inst;
-    switch (type) {
-      case INTEGER_T: 
-        inst = builder.CreateAdd(operand1, operand2);
-        break;
-      case FLOAT_T: 
-        inst = builder.CreateFAdd(operand1, operand2);
-        break;
-      default:
-        // TODO:
-        break;
-    }
     
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
+   
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
+
+  Value* inst;
+  switch (type) {
+    case INTEGER_T: 
+      inst = builder.CreateAdd(operand1, operand2);
+      break;
+    case FLOAT_T: 
+      inst = builder.CreateFAdd(operand1, operand2);
+      break;
+    default:
+      // TODO:
+      break;
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(Subtract* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-  
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T: 
-        inst = builder.CreateSub(operand1, operand2);
-        break;
-      case FLOAT_T:   
-        inst = builder.CreateFSub(operand1, operand2);
-        break;
-      default:
-        // TODO:
-        break;
-    }
-    
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO:
+  Value* inst;
+  switch (type) {
+    case INTEGER_T: 
+      inst = builder.CreateSub(operand1, operand2);
+      break;
+    case FLOAT_T:   
+      inst = builder.CreateFSub(operand1, operand2);
+      break;
+    default:
+      // TODO:
+      break;
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(PP* pNode)
@@ -471,69 +410,59 @@ void CodeGenVisitor::Visit(Mul* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T: 
-        inst = builder.CreateMul(operand1, operand2);
-        break;               
-      case FLOAT_T: 
-        inst = builder.CreateFMul(operand1, operand2);
-        break;            
-      default:
-        // TODO:
-        break;
-    }
-
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO: 
+  Value* inst;
+  switch (type) {
+    case INTEGER_T: 
+      inst = builder.CreateMul(operand1, operand2);
+      break;               
+    case FLOAT_T: 
+      inst = builder.CreateFMul(operand1, operand2);
+      break;            
+    default:
+      // TODO:
+      break;
   }
+
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(Div* pNode)
 {
   VisitChildren(pNode, m_NumChildOfBinary);
 
-  if (m_Values.size() >= m_NumChildOfBinary) {
-    
-    IRBuilder<> builder(m_CurrentBB);
-    NESLType type = PopNESLType(m_NumChildOfBinary);
-    Value* operand2 = Pop();
-    Value* operand1 = Pop();
+  IRBuilder<> builder(m_CurrentBB);
+  NESLType type = PopNESLType(m_NumChildOfBinary);
+  Value* operand2 = Pop();
+  Value* operand1 = Pop();
 
-    operand1 = Dereference(operand1);
-    operand2 = Dereference(operand2);
+  operand1 = Dereference(operand1);
+  operand2 = Dereference(operand2);
 
-    Value* inst;
-    switch (type) {
-      case INTEGER_T: 
-        // TODO: unsigned div or signed div
-        inst = builder.CreateUDiv(operand1, operand2);
-        break;               
-      case FLOAT_T: 
-        inst = builder.CreateFDiv(operand1, operand2);
-        break;            
-      default:
-        // TODO:
-        break;
-    }
-    
-    Push(inst);
-    PushNESLType(type);
-  } else {
-    // TODO: 
+  Value* inst;
+  switch (type) {
+    case INTEGER_T: 
+      // TODO: unsigned div or signed div
+      inst = builder.CreateUDiv(operand1, operand2);
+      break;               
+    case FLOAT_T: 
+      inst = builder.CreateFDiv(operand1, operand2);
+      break;            
+    default:
+      // TODO:
+      break;
   }
+    
+  Push(inst);
+  PushNESLType(type);
 }
 
 void CodeGenVisitor::Visit(RARROW* pNode)
@@ -590,9 +519,6 @@ void CodeGenVisitor::Visit(SequenceTail* pNode)
 
 void CodeGenVisitor::Visit(Identifier* pNode)
 {
-  Symbol* symbol = new Symbol(pNode->GetID(), UNDEFINED);
-  m_SymbolTable->addSymbol(symbol);
-
 }
 
 void CodeGenVisitor::Visit(TypeNode* pNode)
