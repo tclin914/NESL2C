@@ -8,12 +8,23 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Verifier.h"
 
 #include "nesl2c/Visitor/CodeGenVisitor.h"
 #include "nesl2c/AST/Node.h"
 #include "nesl2c/AST/Symbol.h"
 
 using namespace nesl2c;
+
+void CodeGenVisitor::dump()
+{
+  m_Module->dump();
+}
+
+void CodeGenVisitor::verifyModule()
+{
+  llvm::verifyModule(*m_Module);
+}
 
 void CodeGenVisitor::Push(Value* pValue) {
   m_Values.push_back(pValue);
@@ -31,12 +42,18 @@ void CodeGenVisitor::PushNESLType(NESLType pType)
   m_Types.push_back(pType);
 }
 
+NESLType CodeGenVisitor::PopNESLType() 
+{  
+  NESLType type = m_Types.back();
+  m_Types.pop_back();
+  return type;
+}
+
 NESLType CodeGenVisitor::PopNESLType(int pNum) 
 {  
   NESLType type = m_Types.back();
-  for (int i = 0; i < pNum; i++) {
+  for (int i = 0; i < pNum; ++i)
     m_Types.pop_back();
-  }
   return type;
 }
 
@@ -78,7 +95,6 @@ void CodeGenVisitor::transAssign(Node* pL, Node* pR)
   if (pL->isLeafNode()) {
     // get the number of rvalue
     int stackSize = m_Values.size();
-    VisitSelf(pL);
     VisitSelf(pR);
     int numPacked = m_Values.size() - stackSize;
     
@@ -89,7 +105,7 @@ void CodeGenVisitor::transAssign(Node* pL, Node* pR)
         StringRef(pL->GetID() + "_TYPE").upper());
       vector<Type*> elementTypes;
       for (int i = 0; i < numPacked; ++i) {
-        elementTypes.push_back(ToLLVMType(PopNESLType(0)));
+        elementTypes.push_back(ToLLVMType(PopNESLType()));
       }
       std::reverse(elementTypes.begin(), elementTypes.end());
       packedType->setBody(elementTypes, false);
@@ -103,15 +119,12 @@ void CodeGenVisitor::transAssign(Node* pL, Node* pR)
       
       m_SymbolTable->getSymbol(pL->GetID())->SetValue(packedValue);
     } else {
-      Type* type = ToLLVMType(PopNESLType(0));   
+      Type* type = ToLLVMType(PopNESLType());   
       Value* value = builder.CreateAlloca(type, NULL, pL->GetID());
       builder.CreateStore(Pop(), value);
 
       m_SymbolTable->getSymbol(pL->GetID())->SetValue(value);
     }
-  } else if (pR->isLeafNode()) {
-    
-    // TODO: ERROR: the number of rvalue is less than lvalue
   } else {
     
     transAssign(pL->GetChild(0), pR->GetChild(0));

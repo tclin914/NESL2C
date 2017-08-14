@@ -171,6 +171,9 @@ int main(int argc, char **argv) {
     CodeGenVisitor codeGenVisitor(&symbolTable);
     yyheader->Accept(&codeGenVisitor);
 
+    codeGenVisitor.dump();
+    codeGenVisitor.verifyModule();
+
     // printf("************************\n");
     // printf("*** NO PARSING ERROR ***\n");
     // printf("************************\n");

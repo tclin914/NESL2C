@@ -519,6 +519,10 @@ void CodeGenVisitor::Visit(SequenceTail* pNode)
 
 void CodeGenVisitor::Visit(Identifier* pNode)
 {
+  Symbol* symbol = m_SymbolTable->getSymbol(pNode->GetID());
+  
+  Push(symbol->GetValue());
+  PushNESLType(symbol->GetNESLType());
 }
 
 void CodeGenVisitor::Visit(TypeNode* pNode)
@@ -539,7 +543,7 @@ void CodeGenVisitor::Visit(ConstantFloat* pNode)
 {
   Constant *ConstFPValue = ConstantFP::get(Type::getFloatTy(m_Context), 
         pNode->GetFPValue());
-
+  
   Push(ConstFPValue);
   PushNESLType(FLOAT_T);
 }

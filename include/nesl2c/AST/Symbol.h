@@ -31,6 +31,7 @@ public:
   NESLType GetNESLType() const;
   void SetNESLType(NESLType);
 
+  llvm::Value* GetValue() const;
   void SetValue(llvm::Value*);
 
 private:

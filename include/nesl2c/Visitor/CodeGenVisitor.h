@@ -85,7 +85,10 @@ public:
   virtual void Visit(ConstantFloat*);
   virtual void Visit(ConstantBoolean*);
   virtual void Visit(ConstantString*);
- 
+
+  void verifyModule();
+  void dump();
+
 private:
   typedef vector<Value*> Values;
   typedef vector<NESLType> Types;
@@ -94,6 +97,7 @@ private:
   void Push(Value*);
   Value* Pop();
   void PushNESLType(NESLType);
+  NESLType PopNESLType();
   NESLType PopNESLType(int);
 
   Value* Dereference(Value*);

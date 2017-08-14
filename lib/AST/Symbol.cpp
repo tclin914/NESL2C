@@ -28,6 +28,11 @@ void Symbol::SetNESLType(NESLType pType)
   m_NESLType = pType;
 }
 
+llvm::Value* Symbol::GetValue() const
+{
+  return m_Value;
+}
+
 void Symbol::SetValue(llvm::Value* pValue)
 {
   m_Value = pValue;
