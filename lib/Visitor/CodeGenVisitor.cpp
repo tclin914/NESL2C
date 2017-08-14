@@ -36,8 +36,9 @@
 
 using namespace nesl2c;
 
-CodeGenVisitor::CodeGenVisitor()
-  : m_Module(new Module("NESL2C", m_Context)), 
+CodeGenVisitor::CodeGenVisitor(SymbolTable* pSymbolTable)
+  : m_SymbolTable(pSymbolTable),
+    m_Module(new Module("NESL2C", m_Context)), 
     m_CurrentFunc(cast<Function>(m_Module->getOrInsertFunction("main", ToLLVMType(VOID_T), (Type*)0))), 
     m_CurrentBB(BasicBlock::Create(m_Context, "entryBlock", m_CurrentFunc)) {
 
@@ -590,7 +591,7 @@ void CodeGenVisitor::Visit(SequenceTail* pNode)
 void CodeGenVisitor::Visit(Identifier* pNode)
 {
   Symbol* symbol = new Symbol(pNode->GetID(), UNDEFINED);
-  m_SymbolTable.addSymbol(symbol);
+  m_SymbolTable->addSymbol(symbol);
 
 }
 

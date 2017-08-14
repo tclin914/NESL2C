@@ -11,6 +11,7 @@
 #include "nesl2c/AST/Symbol.h"
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
+#include "nesl2c/AST/Tuple.h"
 #include "nesl2c/AST/Or.h"
 #include "nesl2c/AST/NotOr.h"
 #include "nesl2c/AST/XOr.h"
@@ -36,7 +37,11 @@
 using namespace llvm;
 using namespace nesl2c;
 
-TypeAnalysisVisitor::TypeAnalysisVisitor()
+TypeAnalysisVisitor::TypeAnalysisVisitor(SymbolTable* pSymbolTable) 
+  : m_SymbolTable(pSymbolTable) {
+}
+
+TypeAnalysisVisitor::~TypeAnalysisVisitor()
 {
 }
 
@@ -64,6 +69,7 @@ void TypeAnalysisVisitor::Visit(ExpBinds* pNode)
 
 void TypeAnalysisVisitor::Visit(Tuple* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfBinary);
 }
 
 void TypeAnalysisVisitor::Visit(Or* pNode)
@@ -377,9 +383,9 @@ void TypeAnalysisVisitor::Visit(SequenceTail* pNode)
 
 void TypeAnalysisVisitor::Visit(Identifier* pNode)
 {
-  Symbol* symbol = m_SymbolTable.getSymbol(pNode->GetID());
+  Symbol* symbol = m_SymbolTable->getSymbol(pNode->GetID());
   if (nullptr == symbol) 
-    m_SymbolTable.addSymbol(new Symbol(pNode->GetID(), UNDEFINED));
+    m_SymbolTable->addSymbol(new Symbol(pNode->GetID(), UNDEFINED));
   else
     pNode->SetNESLType(symbol->GetNESLType());
 }
@@ -417,7 +423,7 @@ void TypeAnalysisVisitor::VisitAssign(Node* pL, Node* pR)
     VisitSelf(pL);
     VisitSelf(pR);
 
-    m_SymbolTable.getSymbol(pL->GetID())->SetNESLType(pR->GetNESLType());
+    m_SymbolTable->getSymbol(pL->GetID())->SetNESLType(pR->GetNESLType());
   } else if (pR->isLeafNode()) {
        
     report_fatal_error("Type Analysis: The number of tuple of rvalue is less than lvalue");

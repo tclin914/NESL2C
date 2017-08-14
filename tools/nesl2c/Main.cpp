@@ -179,8 +179,15 @@ int main(int argc, char **argv) {
     
     // Visitor* codeGenVisitor = new CodeGenVisitor();
     // yyheader->Accept(codeGenVisitor);
-    Visitor* typeAnalysisVisitor = new TypeAnalysisVisitor();
-    yyheader->Accept(typeAnalysisVisitor);
+    // Visitor* typeAnalysisVisitor = new TypeAnalysisVisitor();
+    SymbolTable symbolTable;
+    // Type Analysis
+    TypeAnalysisVisitor typeAnalysisVisitor(&symbolTable);
+    yyheader->Accept(&typeAnalysisVisitor);
+
+    // Code Generation
+    CodeGenVisitor codeGenVisitor(&symbolTable);
+    yyheader->Accept(&codeGenVisitor);
 
     // printf("************************\n");
     // printf("*** NO PARSING ERROR ***\n");

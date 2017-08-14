@@ -34,7 +34,7 @@ class CodeGenVisitor : public Visitor
 {
 
 public:
-  CodeGenVisitor();
+  CodeGenVisitor(SymbolTable*);
   ~CodeGenVisitor();
 
   virtual void Visit(TopLevels*);
@@ -119,7 +119,7 @@ private:
   Types m_Types;
 
   // symbol table
-  SymbolTable m_SymbolTable;
+  SymbolTable* m_SymbolTable;
 
 };
 

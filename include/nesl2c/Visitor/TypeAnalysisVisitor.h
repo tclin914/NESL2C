@@ -17,7 +17,8 @@ class TypeAnalysisVisitor : public Visitor
 {
  
 public: 
-  TypeAnalysisVisitor();
+  TypeAnalysisVisitor(SymbolTable*);
+  ~TypeAnalysisVisitor();
 
   virtual void Visit(TopLevels*);
   virtual void Visit(Assign*);
@@ -71,7 +72,7 @@ public:
   void VisitAssign(Node*, Node*);
 
 private:
-  SymbolTable m_SymbolTable;
+  SymbolTable* m_SymbolTable;
 
 };
 
