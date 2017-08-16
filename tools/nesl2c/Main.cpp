@@ -167,6 +167,8 @@ int main(int argc, char **argv) {
     TypeAnalysisVisitor typeAnalysisVisitor(&symbolTable);
     yyheader->Accept(&typeAnalysisVisitor);
 
+    symbolTable.dump();
+
     // Code Generation
     CodeGenVisitor codeGenVisitor(&symbolTable);
     yyheader->Accept(&codeGenVisitor);

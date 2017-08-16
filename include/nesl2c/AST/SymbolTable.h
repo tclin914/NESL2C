@@ -29,6 +29,8 @@ public:
   void addSymbol(Symbol*);
   Symbol* getSymbol(string pID);
 
+  void dump();
+
 private:
   typedef vector<Symbol*> Symbols;
 

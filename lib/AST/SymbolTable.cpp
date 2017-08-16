@@ -5,6 +5,9 @@
 //  Copyright (C) 2017, Programming Language and System Lab
 //
 //===--------------------------------------------------------------===//
+#include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include "nesl2c/AST/SymbolTable.h"
 #include "nesl2c/AST/Symbol.h"
 
@@ -28,4 +31,19 @@ Symbol* SymbolTable::getSymbol(string pString)
     }    
   }
   return nullptr;
+}
+
+void SymbolTable::dump()
+{
+  vector<Symbol*>::iterator it;
+  llvm::outs() << "Symbol\t" << "Type\t" << "Value\t" << "\n";
+  for (it = m_Symbols.begin(); it != m_Symbols.end(); ++it) {
+    llvm::outs() << (*it)->GetID() << "\t";
+    llvm::outs() << (*it)->GetNESLType() << "\t";
+
+    if ((*it)->GetValue())
+      (*it)->GetValue()->dump();
+    else 
+      llvm::outs() << "\n";
+  }
 }
