@@ -59,9 +59,9 @@ NESLType CodeGenVisitor::PopNESLType(int pNum)
 
 Value* CodeGenVisitor::Dereference(Value* pValue) 
 {
-  if (dyn_cast<Constant>(pValue)) 
-    return pValue;
-  return new LoadInst(pValue, "", false, m_CurrentBB);
+  if (pValue->getType()->isPointerTy())
+    return new LoadInst(pValue, "", false, m_CurrentBB);
+  return pValue;
 }
 
 Type* CodeGenVisitor::ToLLVMType(NESLType pNESLType) 
