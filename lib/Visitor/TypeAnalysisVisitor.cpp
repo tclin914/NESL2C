@@ -9,6 +9,7 @@
 
 #include "nesl2c/Visitor/TypeAnalysisVisitor.h"
 #include "nesl2c/AST/Symbol.h"
+#include "nesl2c/AST/Goal.h"
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
 #include "nesl2c/AST/Tuple.h"
@@ -47,6 +48,7 @@ TypeAnalysisVisitor::~TypeAnalysisVisitor()
 
 void TypeAnalysisVisitor::Visit(Goal* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfUnary);
 }
 
 void TypeAnalysisVisitor::Visit(TopLevels* pNode)

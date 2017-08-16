@@ -18,6 +18,7 @@
 #include "nesl2c/AST/ConstantFloat.h"
 #include "nesl2c/AST/ConstantString.h"
 // Unary Node
+#include "nesl2c/AST/Goal.h"
 #include "nesl2c/AST/UnaryOpFactory.h"
 // Binary Node
 #include "nesl2c/AST/TopLevels.h"
@@ -123,7 +124,7 @@ extern int yylineno;
 Goal
   : TopLevels
     {
-      yyheader = $1;
+      yyheader = new Goal($1);
     }
   ;
 

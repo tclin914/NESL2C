@@ -27,4 +27,3 @@ void Visitor::VisitSelf(Node* pNode)
 {
   pNode->Accept(this);
 }
-

@@ -11,6 +11,7 @@
 
 #include "nesl2c/Visitor/CodeGenVisitor.h"
 #include "nesl2c/AST/Symbol.h"
+#include "nesl2c/AST/Goal.h"
 #include "nesl2c/AST/TopLevels.h"
 #include "nesl2c/AST/Assign.h"
 #include "nesl2c/AST/Tuple.h"
@@ -51,6 +52,10 @@ CodeGenVisitor::~CodeGenVisitor()
 
 void CodeGenVisitor::Visit(Goal* pNode)
 {
+  VisitChildren(pNode, m_NumChildOfUnary);
+
+  IRBuilder<> builder(m_CurrentBB);
+  builder.CreateRetVoid();
 }
 
 void CodeGenVisitor::Visit(TopLevels* pNode)
