@@ -70,7 +70,7 @@ public:
   virtual void Visit(ConstantBoolean*);
   virtual void Visit(ConstantString*);
 
-  void VisitAssign(Node*, Node*);
+  void CheckAssign(Node*, Node*);
 
 private:
   SymbolTable* m_SymbolTable;

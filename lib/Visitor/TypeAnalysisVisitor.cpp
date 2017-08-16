@@ -7,6 +7,8 @@
 //===--------------------------------------------------------------===//
 #include "llvm/Support/ErrorHandling.h"
 
+#include <stack>
+
 #include "nesl2c/Visitor/TypeAnalysisVisitor.h"
 #include "nesl2c/AST/Symbol.h"
 #include "nesl2c/AST/Goal.h"
@@ -29,6 +31,7 @@
 #include "nesl2c/AST/Mul.h"
 #include "nesl2c/AST/Div.h"
 #include "nesl2c/AST/Uminus.h"
+#include "nesl2c/AST/Sequence.h"
 #include "nesl2c/AST/Identifier.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
@@ -58,7 +61,7 @@ void TypeAnalysisVisitor::Visit(TopLevels* pNode)
 
 void TypeAnalysisVisitor::Visit(Assign* pNode)
 {
-  VisitAssign(pNode->GetChild(0), pNode->GetChild(1));
+  CheckAssign(pNode->GetChild(0), pNode->GetChild(1));
 }
 
 void TypeAnalysisVisitor::Visit(IfElse* pNode)
@@ -368,7 +371,28 @@ void TypeAnalysisVisitor::Visit(EmptySequence* pNode)
 }
 
 void TypeAnalysisVisitor::Visit(Sequence* pNode)
-{
+{  
+  VisitChild(pNode, 0);
+  
+  // check whether the elements in sequence are the same type
+  std::stack<Node*> nodes;
+  nodes.push(pNode->GetChild(0));
+  
+  NESLType type = UNDEFINED;
+  while (!nodes.empty()) {
+    Node* node = nodes.top();
+    nodes.pop();
+    if (node->isLeafNode()) {
+      if (UNDEFINED == type)
+        type = node->GetNESLType();
+      else if (type != node->GetNESLType())
+        report_fatal_error(
+            "Type Analysis: The type of elements in sequence are not the same");
+      continue;
+    }
+    nodes.push(node->GetChild(1));
+    nodes.push(node->GetChild(0));
+  }
 }
 
 void TypeAnalysisVisitor::Visit(FunctionCall* pNode)
@@ -420,7 +444,7 @@ void TypeAnalysisVisitor::Visit(ConstantString* pNode)
   pNode->SetNESLType(STRING_T);
 }
 
-void TypeAnalysisVisitor::VisitAssign(Node* pL, Node* pR) 
+void TypeAnalysisVisitor::CheckAssign(Node* pL, Node* pR) 
 {
   if (nullptr == pL)
     return;
@@ -435,7 +459,7 @@ void TypeAnalysisVisitor::VisitAssign(Node* pL, Node* pR)
     report_fatal_error("Type Analysis: The number of tuple of rvalue is less than lvalue");
   } else {
   
-    VisitAssign(pL->GetChild(0), pR->GetChild(0));
-    VisitAssign(pL->GetChild(1), pR->GetChild(1));
+    CheckAssign(pL->GetChild(0), pR->GetChild(0));
+    CheckAssign(pL->GetChild(1), pR->GetChild(1));
   }
 }
