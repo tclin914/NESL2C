@@ -30,6 +30,7 @@
 #include "nesl2c/AST/Subtract.h"
 #include "nesl2c/AST/Mul.h"
 #include "nesl2c/AST/Div.h"
+#include "nesl2c/AST/Sequence.h"
 #include "nesl2c/AST/Identifier.h"
 #include "nesl2c/AST/ConstantInteger.h"
 #include "nesl2c/AST/ConstantFloat.h"
@@ -508,6 +509,17 @@ void CodeGenVisitor::Visit(EmptySequence* pNode)
 
 void CodeGenVisitor::Visit(Sequence* pNode)
 {
+  int stackSize = m_Values.size();
+  VisitChild(pNode, 0);
+  int numElements = m_Values.size() - stackSize;
+
+  ArrayType* arrayType = ArrayType::get(ToLLVMType(PopNESLType(numElements)),
+      numElements);
+  IRBuilder<> builder(m_CurrentBB);
+  Value* array = builder.CreateAlloca(arrayType);
+  for (int i = 0; i < numElements; ++i) {
+  
+  }
 }
 
 void CodeGenVisitor::Visit(FunctionCall* pNode)
